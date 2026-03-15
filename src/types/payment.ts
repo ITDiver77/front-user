@@ -1,3 +1,5 @@
+export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED'
+
 export interface Payment {
   id: number
   user_id: number
@@ -6,6 +8,7 @@ export interface Payment {
   period_days: number
   payment_method: string
   notes: string | null
+  status: PaymentStatus
 }
 
 export interface PaymentListResponse {
@@ -25,7 +28,8 @@ export interface PaymentCreateRequest {
 }
 
 export interface PaymentInitiationRequest {
-  connection_name: string
+  connection_name?: string
+  server_name?: string
   months: number
   payment_method?: string
 }

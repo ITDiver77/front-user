@@ -17,9 +17,6 @@ import {
   CircularProgress,
   Typography,
   Box,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
 } from '@mui/material'
 import { paymentInitiationSchema } from '../../utils/validation'
 import { paymentService } from '../../services/paymentService'
@@ -72,43 +69,36 @@ const PaymentInitiationModal = ({
     setLoading(true)
     setError('')
     try {
-      // TODO: call backend payment initiation
-      // const response = await paymentService.initiatePayment({
-      //   connection_name: connectionName,
-      //   months: data.months,
-      //   payment_method: data.paymentMethod,
-      // })
-      // Mock response
-      const mockResponse = { payment_id: 123, redirect_url: 'https://example.com/payment' }
-      console.log('Payment initiated:', mockResponse)
-      // Simulate redirect or polling
-      // For now, just call onSuccess
-      onSuccess(mockResponse.payment_id)
-      // In real implementation, we would redirect to redirect_url or start polling
-      // if (mockResponse.redirect_url) {
-      //   window.location.href = mockResponse.redirect_url
-      // } else {
-      //   startPolling(mockResponse.payment_id)
-      // }
+      const response = await paymentService.initiatePayment({
+        connection_name: connectionName,
+        months: data.months,
+        payment_method: data.paymentMethod,
+      })
+
+      // If redirect URL provided, redirect to payment gateway
+      if (response.redirect_url) {
+        window.location.href = response.redirect_url
+      } else {
+        // No redirect, start polling for payment completion
+        startPolling(response.payment_id)
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to initiate payment')
-    } finally {
       setLoading(false)
     }
   }
 
-  const startPolling = (paymentId: number) => {
+  const startPolling = async (paymentId: number) => {
     setPolling(true)
-    // paymentService.pollPaymentStatus(paymentId)
-    //   .then(payment => {
-    //     setPolling(false)
-    //     onSuccess(paymentId)
-    //     onClose()
-    //   })
-    //   .catch(err => {
-    //     setPolling(false)
-    //     setError('Payment polling failed')
-    //   })
+    try {
+      const payment = await paymentService.pollPaymentStatus(paymentId)
+      setPolling(false)
+      onSuccess(paymentId)
+      onClose()
+    } catch (err: any) {
+      setPolling(false)
+      setError('Payment polling failed')
+    }
   }
 
   const handleClose = () => {

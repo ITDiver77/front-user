@@ -12,51 +12,147 @@ import {
   Alert,
   CircularProgress,
   Link,
+  Paper,
+  Divider,
 } from '@mui/material'
-import { registerSchema } from '../utils/validation'
-import { useAuth } from '../contexts/AuthContext'
+import { Telegram as TelegramIcon } from '@mui/icons-material'
+import { authService } from '../services/authService'
+import { RegisterStartResponse } from '../types/user'
 
-type RegisterFormData = z.infer<typeof registerSchema>
+// Step 1: username only
+const usernameSchema = z.object({
+  username: z.string().min(3, 'Username must be at least 3 characters').max(50, 'Username must be less than 50 characters'),
+})
+
+type UsernameFormData = z.infer<typeof usernameSchema>
 
 const Register = () => {
-  const { register: registerAuth } = useAuth()
   const navigate = useNavigate()
+  const [step, setStep] = useState<'username' | 'telegram'>('username')
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState(false)
+  const [registerResponse, setRegisterResponse] = useState<RegisterStartResponse | null>(null)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  } = useForm<UsernameFormData>({
+    resolver: zodResolver(usernameSchema),
     defaultValues: {
       username: '',
-      password: '',
-      confirmPassword: '',
-      telegramId: '',
     },
   })
 
-  const onSubmit = async (data: RegisterFormData) => {
+  const onSubmitUsername = async (data: UsernameFormData) => {
     setError('')
     setLoading(true)
     try {
-      const telegramId = data.telegramId ? parseInt(data.telegramId, 10) : undefined
-      const success = await registerAuth(data.username, data.password, telegramId)
-      if (success) {
-        navigate('/')
-      } else {
-        setError('Registration failed. Username may already exist.')
-      }
-    } catch (err) {
-      setError('An unexpected error occurred')
-      console.error(err)
+      const response = await authService.registerStart({ username: data.username })
+      setRegisterResponse(response)
+      setStep('telegram')
+    } catch (err: any) {
+      setError(err.message || 'Failed to start registration')
     } finally {
       setLoading(false)
     }
   }
 
+  // Step 2: Show Telegram link
+  if (step === 'telegram' && registerResponse) {
+    return (
+      <Container component="main" maxWidth="sm">
+        <Box
+          sx={{
+            marginTop: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <Typography component="h1" variant="h5" gutterBottom>
+            Verify with Telegram
+          </Typography>
+          
+          <Alert severity="info" sx={{ mb: 3, width: '100%' }}>
+            Please verify your account through our Telegram bot to complete registration.
+          </Alert>
+
+          <Paper sx={{ p: 3, width: '100%' }}>
+            <Box sx={{ textAlign: 'center', mb: 3 }}>
+              <TelegramIcon sx={{ fontSize: 48, color: '#0088cc', mb: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                Open Telegram Bot
+              </Typography>
+              <Typography variant="body2" color="textSecondary" paragraph>
+                Click the button below to open our Telegram bot and press /start with your registration token.
+              </Typography>
+            </Box>
+
+            <Button
+              variant="contained"
+              fullWidth
+              href={registerResponse.telegram_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ mb: 2 }}
+            >
+              Open Telegram Bot
+            </Button>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              Instructions:
+            </Typography>
+            <ol style={{ margin: 0, paddingLeft: 20 }}>
+              <li>
+                <Typography variant="body2">Click "Open Telegram Bot" above</Typography>
+              </li>
+              <li>
+                <Typography variant="body2">Press /start in the chat</Typography>
+              </li>
+              <li>
+                <Typography variant="body2">Enter the registration token when prompted</Typography>
+              </li>
+              <li>
+                <Typography variant="body2">Receive your temporary credentials from the bot</Typography>
+              </li>
+            </ol>
+
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                Registration token (for manual entry):
+              </Typography>
+              <Paper 
+                variant="outlined" 
+                sx={{ p: 1, backgroundColor: 'grey.50', fontFamily: 'monospace', fontSize: '0.75rem' }}
+              >
+                {registerResponse.registration_token}
+              </Paper>
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Typography variant="body2" color="textSecondary" paragraph>
+              After verification, you'll receive your login credentials via Telegram. Use your temporary password to log in.
+            </Typography>
+
+            <Button
+              component={RouterLink}
+              to="/login"
+              variant="outlined"
+              fullWidth
+            >
+              Go to Login
+            </Button>
+          </Paper>
+        </Box>
+      </Container>
+    )
+  }
+
+  // Step 1: Username entry
   return (
     <Container component="main" maxWidth="xs">
       <Box
@@ -70,12 +166,17 @@ const Register = () => {
         <Typography component="h1" variant="h5">
           Sign up
         </Typography>
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 1 }}>
+        <Box component="form" onSubmit={handleSubmit(onSubmitUsername)} sx={{ mt: 1 }}>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
+
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Registration requires a Telegram account for verification.
+          </Alert>
+
           <TextField
             margin="normal"
             required
@@ -88,40 +189,7 @@ const Register = () => {
             error={!!errors.username}
             helperText={errors.username?.message}
           />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="new-password"
-            {...register('password')}
-            error={!!errors.password}
-            helperText={errors.password?.message}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            label="Confirm Password"
-            type="password"
-            id="confirmPassword"
-            autoComplete="new-password"
-            {...register('confirmPassword')}
-            error={!!errors.confirmPassword}
-            helperText={errors.confirmPassword?.message}
-          />
-          <TextField
-            margin="normal"
-            fullWidth
-            id="telegramId"
-            label="Telegram ID (optional)"
-            type="number"
-            {...register('telegramId')}
-            error={!!errors.telegramId}
-            helperText={errors.telegramId?.message}
-          />
+
           <Button
             type="submit"
             fullWidth
@@ -129,8 +197,9 @@ const Register = () => {
             sx={{ mt: 3, mb: 2 }}
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : 'Sign Up'}
+            {loading ? <CircularProgress size={24} /> : 'Continue'}
           </Button>
+
           <Box sx={{ textAlign: 'center' }}>
             <Link component={RouterLink} to="/login" variant="body2">
               Already have an account? Sign In

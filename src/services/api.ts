@@ -8,6 +8,7 @@ const getToken = (): string | null => {
 
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 5000, // 5 second timeout to prevent long waits
   headers: {
     'Content-Type': 'application/json',
   },

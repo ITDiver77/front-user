@@ -18,8 +18,8 @@ import {
 } from '@mui/material'
 import { changeServerSchema } from '../../utils/validation'
 import { serverService } from '../../services/serverService'
-import { Server } from '../../types/server'
 import { connectionService } from '../../services/connectionService'
+import { Server } from '../../types/server'
 
 interface ChangeServerModalProps {
   open: boolean
@@ -66,15 +66,8 @@ const ChangeServerModal = ({
   const fetchServers = async () => {
     setServerLoading(true)
     try {
-      // const data = await serverService.getActiveServers()
-      // setServers(data)
-      // Mock servers
-      const mockServers: Server[] = [
-        { id: 1, name: 'US-West', host: 'us.example.com', port: 51820, api_key: '', region: 'US', is_default: true, max_users: 100, is_active: true, created_at: '' },
-        { id: 2, name: 'EU-Central', host: 'eu.example.com', port: 51820, api_key: '', region: 'EU', is_default: false, max_users: 100, is_active: true, created_at: '' },
-        { id: 3, name: 'Asia-Pacific', host: 'ap.example.com', port: 51820, api_key: '', region: 'AP', is_default: false, max_users: 100, is_active: true, created_at: '' },
-      ]
-      setServers(mockServers)
+      const data = await serverService.getActiveServers()
+      setServers(data)
     } catch (err: any) {
       setError('Failed to load servers')
       console.error(err)
@@ -87,10 +80,7 @@ const ChangeServerModal = ({
     setLoading(true)
     setError('')
     try {
-      // await connectionService.changeServer(connectionName, data.newServerName)
-      console.log('Changing server for', connectionName, 'to', data.newServerName)
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await connectionService.changeServer(connectionName, data.newServerName)
       onSuccess()
       onClose()
     } catch (err: any) {

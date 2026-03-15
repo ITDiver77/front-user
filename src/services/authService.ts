@@ -1,8 +1,13 @@
 import api from './api'
+import { TelegramRegisterResponse, RegisterStartResponse } from '../types/user'
 
 export interface LoginRequest {
   username: string
   password: string
+}
+
+export interface RegisterStartRequest {
+  username: string
 }
 
 export interface RegisterRequest {
@@ -30,9 +35,6 @@ export interface ChangePasswordRequest {
   new_password: string
 }
 
-// Mock authentication flag
-const MOCK_AUTH = import.meta.env.VITE_MOCK_AUTH === 'true'
-
 export const authService = {
   /**
    * Authenticate user with username and password
@@ -41,14 +43,6 @@ export const authService = {
    * @throws {Error} On network or API error with descriptive message
    */
   async login(data: LoginRequest): Promise<AuthResponse> {
-    if (MOCK_AUTH) {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 300))
-      return {
-        access_token: 'mock-jwt-token',
-        token_type: 'bearer',
-      }
-    }
     try {
       const response = await api.post<AuthResponse>('/auth/login', data)
       return response.data
@@ -58,21 +52,29 @@ export const authService = {
   },
 
   /**
-   * Register new user account
-   * @param data Registration details
-   * @returns Authentication token response
+   * Start registration flow - initiates Telegram verification
+   * @param data Username for registration
+   * @returns Telegram link and registration token
    * @throws {Error} On network or API error with descriptive message
    */
-  async register(data: RegisterRequest): Promise<AuthResponse> {
-    if (MOCK_AUTH) {
-      await new Promise(resolve => setTimeout(resolve, 300))
-      return {
-        access_token: 'mock-jwt-token',
-        token_type: 'bearer',
-      }
-    }
+  async registerStart(data: RegisterStartRequest): Promise<RegisterStartResponse> {
     try {
-      const response = await api.post<AuthResponse>('/auth/register', data)
+      const response = await api.post<RegisterStartResponse>('/auth/register/start', data)
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.message || 'Registration start failed')
+    }
+  },
+
+  /**
+   * Register new user account (legacy endpoint, prefer registerStart)
+   * @param data Registration details
+   * @returns Authentication token response (standard) or Telegram registration response
+   * @throws {Error} On network or API error with descriptive message
+   */
+  async register(data: RegisterRequest): Promise<AuthResponse | TelegramRegisterResponse> {
+    try {
+      const response = await api.post<AuthResponse | TelegramRegisterResponse>('/auth/register', data)
       return response.data
     } catch (error: any) {
       throw new Error(error.message || 'Registration failed')
@@ -85,10 +87,6 @@ export const authService = {
    * @throws {Error} On network or API error with descriptive message
    */
   async forgotPassword(data: ForgotPasswordRequest): Promise<void> {
-    if (MOCK_AUTH) {
-      await new Promise(resolve => setTimeout(resolve, 300))
-      return
-    }
     try {
       await api.post('/auth/restore', data)
     } catch (error: any) {
@@ -102,10 +100,6 @@ export const authService = {
    * @throws {Error} On network or API error with descriptive error message
    */
   async resetPassword(data: ResetPasswordRequest): Promise<void> {
-    if (MOCK_AUTH) {
-      await new Promise(resolve => setTimeout(resolve, 300))
-      return
-    }
     try {
       await api.post('/auth/reset', data)
     } catch (error: any) {
@@ -119,10 +113,6 @@ export const authService = {
    * @throws {Error} On network or API error with descriptive message
    */
   async changePassword(data: ChangePasswordRequest): Promise<void> {
-    if (MOCK_AUTH) {
-      await new Promise(resolve => setTimeout(resolve, 300))
-      return
-    }
     try {
       await api.post('/auth/change-password', data)
     } catch (error: any) {

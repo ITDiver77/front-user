@@ -4,6 +4,7 @@ import App from './App.tsx'
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
 import { BrowserRouter } from 'react-router-dom'
 
+// Create theme once at module level (cached)
 const theme = createTheme({
   palette: {
     mode: 'light',
@@ -12,6 +13,20 @@ const theme = createTheme({
     },
     secondary: {
       main: '#dc004e',
+    },
+  },
+  // Optimize theme for performance
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        // Reduce repaints
+        '*': {
+          boxSizing: 'border-box',
+        },
+        html: {
+          scrollBehavior: 'smooth',
+        },
+      },
     },
   },
 })

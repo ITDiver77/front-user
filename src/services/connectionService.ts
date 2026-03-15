@@ -4,8 +4,6 @@ import { Connection, ConnectionCreateRequest, ConnectionUpdateRequest, ChangeSer
 export const connectionService = {
   // Get connections for the current user (requires JWT)
   getMyConnections: async () => {
-    // Backend endpoint: GET /connections/my (or /connections/user/{username} filtered by JWT)
-    // For now assume backend will filter by current user from JWT
     const response = await api.get<Connection[]>('/connections/my')
     return response.data
   },
@@ -36,6 +34,12 @@ export const connectionService = {
   // Toggle auto-renew
   toggleAutoRenew: async (connectionName: string, autoRenew: boolean) => {
     const response = await api.put<Connection>(`/connections/${connectionName}`, { auto_renew: autoRenew })
+    return response.data
+  },
+
+  // Toggle enabled/disabled state
+  toggleEnabled: async (connectionName: string, enabled: boolean) => {
+    const response = await api.put<Connection>(`/connections/${connectionName}`, { enabled })
     return response.data
   },
 

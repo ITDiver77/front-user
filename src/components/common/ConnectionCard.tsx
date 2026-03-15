@@ -27,6 +27,7 @@ interface ConnectionCardProps {
   onCopyConfig: (connectionString: string) => void
   onExtend: (connectionName: string) => void
   onChangeServer: (connectionName: string) => void
+  onToggleEnabled: (connectionName: string, enabled: boolean) => void
 }
 
 const ConnectionCard = ({
@@ -35,8 +36,10 @@ const ConnectionCard = ({
   onCopyConfig,
   onExtend,
   onChangeServer,
+  onToggleEnabled,
 }: ConnectionCardProps) => {
   const [autoRenew, setAutoRenew] = useState(connection.auto_renew ?? false)
+  const [enabled, setEnabled] = useState(connection.enabled)
   const [copySuccess, setCopySuccess] = useState(false)
 
   const status = getConnectionStatus(connection.enabled, connection.is_active, connection.paydate)
@@ -49,6 +52,12 @@ const ConnectionCard = ({
     onToggleAutoRenew(connection.connection_name, newValue)
   }
 
+  const handleToggleEnabled = () => {
+    const newValue = !enabled
+    setEnabled(newValue)
+    onToggleEnabled(connection.connection_name, newValue)
+  }
+
   const handleCopyConfig = () => {
     if (connection.connection_string) {
       navigator.clipboard.writeText(connection.connection_string).then(() => {
@@ -58,14 +67,22 @@ const ConnectionCard = ({
     }
   }
 
+  // Show deleted badge if connection is soft-deleted
+  const isDeleted = connection.is_deleted === true
+
   return (
-    <Card sx={{ minWidth: 300, maxWidth: 400, m: 1 }}>
+    <Card sx={{ minWidth: 300, maxWidth: 400, m: 1, opacity: isDeleted ? 0.6 : 1 }}>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Typography variant="h6" component="div">
             {connection.connection_name}
           </Typography>
-          <Chip label={status.toUpperCase()} color={statusColor} size="small" />
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            {isDeleted && (
+              <Chip label="DELETED" color="error" size="small" variant="outlined" />
+            )}
+            <Chip label={status.toUpperCase()} color={statusColor} size="small" />
+          </Box>
         </Box>
         <Typography color="text.secondary" gutterBottom>
           Server: {connection.server_name || 'Unknown'}
@@ -84,13 +101,13 @@ const ConnectionCard = ({
         )}
         <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
           <Typography variant="body2" sx={{ mr: 1 }}>
-            Auto‑renew:
+            Auto-renew:
           </Typography>
           <Switch
             checked={autoRenew}
             onChange={handleToggleAutoRenew}
             size="small"
-            disabled={!connection.enabled}
+            disabled={!enabled || isDeleted}
           />
           <Typography variant="body2" color="text.secondary">
             {autoRenew ? 'On' : 'Off'}
@@ -99,7 +116,7 @@ const ConnectionCard = ({
       </CardContent>
       <CardActions disableSpacing>
         <Tooltip title="Copy connection string">
-          <IconButton onClick={handleCopyConfig} size="small" aria-label="Copy connection string">
+          <IconButton onClick={handleCopyConfig} size="small" aria-label="Copy connection string" disabled={isDeleted}>
             <CopyIcon />
           </IconButton>
         </Tooltip>
@@ -109,12 +126,12 @@ const ConnectionCard = ({
           </Typography>
         )}
         <Tooltip title="Extend / Pay">
-          <IconButton onClick={() => onExtend(connection.connection_name)} size="small" aria-label="Extend payment">
+          <IconButton onClick={() => onExtend(connection.connection_name)} size="small" aria-label="Extend payment" disabled={isDeleted}>
             <PaymentIcon />
           </IconButton>
         </Tooltip>
         <Tooltip title="Change server">
-          <IconButton onClick={() => onChangeServer(connection.connection_name)} size="small" aria-label="Change server">
+          <IconButton onClick={() => onChangeServer(connection.connection_name)} size="small" aria-label="Change server" disabled={isDeleted}>
             <SettingsIcon />
           </IconButton>
         </Tooltip>
@@ -122,10 +139,11 @@ const ConnectionCard = ({
         <Button
           variant="outlined"
           size="small"
-          disabled={!connection.enabled}
-          onClick={() => {/* TODO: toggle enable */}}
+          disabled={isDeleted}
+          onClick={handleToggleEnabled}
+          color={enabled ? 'warning' : 'success'}
         >
-          {connection.enabled ? 'Disable' : 'Enable'}
+          {enabled ? 'Disable' : 'Enable'}
         </Button>
       </CardActions>
     </Card>

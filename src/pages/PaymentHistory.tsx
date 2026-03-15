@@ -14,54 +14,40 @@ import {
   Chip,
 } from '@mui/material'
 import { paymentService } from '../services/paymentService'
-import { Payment } from '../types/payment'
+import { Payment, PaymentStatus } from '../types/payment'
 import { formatDate } from '../utils/dateHelpers'
+
+const getStatusColor = (status: PaymentStatus) => {
+  switch (status) {
+    case 'COMPLETED': return 'success'
+    case 'PENDING': return 'warning'
+    case 'FAILED': return 'error'
+  }
+}
+
+const getStatusLabel = (status: PaymentStatus) => {
+  switch (status) {
+    case 'COMPLETED': return 'Completed'
+    case 'PENDING': return 'Pending'
+    case 'FAILED': return 'Failed'
+  }
+}
 
 const PaymentHistory = () => {
   const [payments, setPayments] = useState<Payment[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
+  const [totalAmount, setTotalAmount] = useState<number>(0)
 
   const fetchPayments = async () => {
     setLoading(true)
     setError('')
     try {
-      // const response = await paymentService.getMyPayments()
-      // setPayments(response.payments)
-      // Mock data
-      const mockPayments: Payment[] = [
-        {
-          id: 1,
-          user_id: 1,
-          amount: 10,
-          payment_date: '2026-03-01',
-          period_days: 30,
-          payment_method: 'card',
-          notes: null,
-        },
-        {
-          id: 2,
-          user_id: 1,
-          amount: 5,
-          payment_date: '2026-02-01',
-          period_days: 30,
-          payment_method: 'paypal',
-          notes: 'Renewal',
-        },
-        {
-          id: 3,
-          user_id: 1,
-          amount: 15,
-          payment_date: '2026-01-01',
-          period_days: 30,
-          payment_method: 'crypto',
-          notes: null,
-        },
-      ]
-      setPayments(mockPayments)
+      const response = await paymentService.getMyPayments()
+      setPayments(response.payments)
+      setTotalAmount(response.total_amount)
     } catch (err: any) {
-      setError(err.message || 'Failed to load payment history')
-      console.error(err)
+      setError(err.message || 'Failed to fetch payments')
     } finally {
       setLoading(false)
     }
@@ -89,6 +75,35 @@ const PaymentHistory = () => {
           {error}
         </Alert>
       )}
+
+      {/* Summary Cards */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <Paper sx={{ p: 2, minWidth: 150 }}>
+          <Typography variant="body2" color="textSecondary">
+            Total Paid
+          </Typography>
+          <Typography variant="h5">
+            ${totalAmount.toFixed(2)}
+          </Typography>
+        </Paper>
+        <Paper sx={{ p: 2, minWidth: 150 }}>
+          <Typography variant="body2" color="textSecondary">
+            Total Payments
+          </Typography>
+          <Typography variant="h5">
+            {payments.length}
+          </Typography>
+        </Paper>
+        <Paper sx={{ p: 2, minWidth: 150 }}>
+          <Typography variant="body2" color="textSecondary">
+            Pending
+          </Typography>
+          <Typography variant="h5">
+            {payments.filter(p => p.status === 'PENDING').length}
+          </Typography>
+        </Paper>
+      </Box>
+
       {payments.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="body1" color="textSecondary">
@@ -119,7 +134,11 @@ const PaymentHistory = () => {
                   </TableCell>
                   <TableCell>{payment.notes || '-'}</TableCell>
                   <TableCell>
-                    <Chip label="Completed" color="success" size="small" />
+                    <Chip
+                      label={getStatusLabel(payment.status)}
+                      color={getStatusColor(payment.status)}
+                      size="small"
+                    />
                   </TableCell>
                 </TableRow>
               ))}

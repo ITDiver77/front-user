@@ -12,11 +12,13 @@ import {
   CircularProgress,
   Divider,
   Grid,
+  Chip,
 } from '@mui/material'
+import { Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material'
 import { changePasswordSchema } from '../utils/validation'
 import { useAuth } from '../contexts/AuthContext'
 import { userService } from '../services/userService'
-import { UserUpdateRequest } from '../types/user'
+import { UserUpdateRequest, User } from '../types/user'
 
 type ProfileFormData = {
   telegramId: string
@@ -31,7 +33,7 @@ const Profile = () => {
   const [profileError, setProfileError] = useState<string>('')
   const [passwordError, setPasswordError] = useState<string>('')
   const [success, setSuccess] = useState<string>('')
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<User | null>(null)
 
   const {
     register: registerProfile,
@@ -65,18 +67,11 @@ const Profile = () => {
   const fetchProfile = async () => {
     setProfileLoading(true)
     try {
-      // const data = await userService.getMyProfile()
-      // setProfile(data)
-      // resetProfile({ telegramId: data.telegram_id?.toString() || '' })
-      const mockProfile = {
-        username: user?.username || 'user',
-        telegram_id: 123456,
-      }
-      setProfile(mockProfile)
-      resetProfile({ telegramId: mockProfile.telegram_id?.toString() || '' })
+      const data = await userService.getMyProfile()
+      setProfile(data)
+      resetProfile({ telegramId: data.telegram_id?.toString() || '' })
     } catch (err: any) {
-      setProfileError('Failed to load profile')
-      console.error(err)
+      setProfileError(err.message || 'Failed to fetch profile')
     } finally {
       setProfileLoading(false)
     }
@@ -90,8 +85,7 @@ const Profile = () => {
       const updateData: UserUpdateRequest = {
         telegram_id: data.telegramId ? parseInt(data.telegramId, 10) : null,
       }
-      // await userService.updateProfile(updateData)
-      console.log('Profile updated:', updateData)
+      await userService.updateProfile(updateData)
       setSuccess('Profile updated successfully')
       fetchProfile()
     } catch (err: any) {
@@ -145,6 +139,40 @@ const Profile = () => {
             <Typography variant="body2" color="textSecondary" paragraph>
               Update your contact details.
             </Typography>
+
+            {/* Telegram Verification Status */}
+            {profile && (
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                  Telegram Verification
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {profile.telegram_verified ? (
+                    <>
+                      <Chip
+                        icon={<CheckIcon />}
+                        label="Verified"
+                        color="success"
+                        size="small"
+                      />
+                      {profile.telegram_id && (
+                        <Typography variant="body2" color="textSecondary">
+                          ID: {profile.telegram_id}
+                        </Typography>
+                      )}
+                    </>
+                  ) : (
+                    <Chip
+                      icon={<CloseIcon />}
+                      label="Not Verified"
+                      color="default"
+                      size="small"
+                    />
+                  )}
+                </Box>
+              </Box>
+            )}
+
             <form onSubmit={handleProfileSubmit(onProfileSubmit)}>
               <TextField
                 margin="normal"

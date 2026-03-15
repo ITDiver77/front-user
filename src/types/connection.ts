@@ -12,6 +12,8 @@ export interface Connection {
   connection_string?: string
   auto_renew?: boolean
   server_name?: string
+  is_deleted?: boolean
+  deleted_at?: string | null
 }
 
 export interface ConnectionCreateRequest {

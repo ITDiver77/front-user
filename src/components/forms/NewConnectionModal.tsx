@@ -22,6 +22,7 @@ import {
 } from '@mui/material'
 import { newConnectionSchema } from '../../utils/validation'
 import { serverService } from '../../services/serverService'
+import { paymentService } from '../../services/paymentService'
 import { Server } from '../../types/server'
 
 interface NewConnectionModalProps {
@@ -32,7 +33,7 @@ interface NewConnectionModalProps {
 
 type NewConnectionFormData = z.infer<typeof newConnectionSchema>
 
-const PRICE_PER_MONTH = 5 // TODO: fetch from server or config
+const PRICE_PER_MONTH = 5
 
 const NewConnectionModal = ({ open, onClose, onCreate }: NewConnectionModalProps) => {
   const [servers, setServers] = useState<Server[]>([])
@@ -70,15 +71,8 @@ const NewConnectionModal = ({ open, onClose, onCreate }: NewConnectionModalProps
   const fetchServers = async () => {
     setServerLoading(true)
     try {
-      // const data = await serverService.getActiveServers()
-      // setServers(data)
-      // Mock servers
-      const mockServers: Server[] = [
-        { id: 1, name: 'US-West', host: 'us.example.com', port: 51820, api_key: '', region: 'US', is_default: true, max_users: 100, is_active: true, created_at: '' },
-        { id: 2, name: 'EU-Central', host: 'eu.example.com', port: 51820, api_key: '', region: 'EU', is_default: false, max_users: 100, is_active: true, created_at: '' },
-        { id: 3, name: 'Asia-Pacific', host: 'ap.example.com', port: 51820, api_key: '', region: 'AP', is_default: false, max_users: 100, is_active: true, created_at: '' },
-      ]
-      setServers(mockServers)
+      const data = await serverService.getActiveServers()
+      setServers(data)
     } catch (err: any) {
       setError('Failed to load servers')
       console.error(err)
@@ -91,12 +85,22 @@ const NewConnectionModal = ({ open, onClose, onCreate }: NewConnectionModalProps
     setLoading(true)
     setError('')
     try {
-      // TODO: call backend to initiate payment
-      console.log('Create connection:', data)
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      onCreate()
-      onClose()
+      // Initiate payment first
+      const paymentResponse = await paymentService.initiatePayment({
+        connection_name: data.connectionName || undefined,
+        server_name: data.serverName,
+        months: data.months,
+        payment_method: 'card', // Default payment method
+      })
+
+      // If payment initiated successfully, redirect to payment gateway
+      if (paymentResponse.redirect_url) {
+        window.location.href = paymentResponse.redirect_url
+      } else {
+        // No redirect needed, just refresh connections
+        onCreate()
+        onClose()
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to create connection')
     } finally {

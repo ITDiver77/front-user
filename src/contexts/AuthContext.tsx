@@ -1,10 +1,10 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { authService } from '../services/authService'
 import { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest } from '../services/authService'
+import { TelegramRegisterResponse } from '../types/user'
 
 interface User {
   username: string
-  // Add other fields from JWT if needed
 }
 
 interface AuthContextType {
@@ -12,7 +12,7 @@ interface AuthContextType {
   loading: boolean
   user: User | null
   login: (username: string, password: string, rememberMe: boolean) => Promise<boolean>
-  register: (username: string, password: string, telegramId?: number) => Promise<boolean>
+  register: (username: string, password: string, telegramId?: number) => Promise<{ success: boolean; telegramResponse?: TelegramRegisterResponse }>
   logout: () => void
   forgotPassword: (username: string) => Promise<boolean>
   resetPassword: (token: string, newPassword: string) => Promise<boolean>
@@ -39,17 +39,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    // Check if user is already logged in
     const token = localStorage.getItem('token') || sessionStorage.getItem('token')
     if (token) {
-      // Decode token to get user info (simple parse)
       try {
         const payload = JSON.parse(atob(token.split('.')[1]))
         setUser({ username: payload.sub || payload.username })
         setIsAuthenticated(true)
       } catch (e) {
         console.error('Invalid token', e)
-        // Clear invalid token
         localStorage.removeItem('token')
         sessionStorage.removeItem('token')
       }
@@ -83,16 +80,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }
 
-  const register = async (username: string, password: string, telegramId?: number): Promise<boolean> => {
+  const register = async (username: string, password: string, telegramId?: number): Promise<{ success: boolean; telegramResponse?: TelegramRegisterResponse }> => {
     try {
       const response = await authService.register({ username, password, telegram_id: telegramId })
-      storeToken(response.access_token, true) // default rememberMe true for registration
+
+      // Check if this is a telegram registration response
+      if ('temp_password' in response) {
+        // Telegram registration - no auto-login, return response for display
+        return { success: true, telegramResponse: response as TelegramRegisterResponse }
+      }
+
+      // Standard registration - store token and login
+      storeToken(response.access_token, true)
       setIsAuthenticated(true)
       setUser({ username })
-      return true
+      return { success: true }
     } catch (error) {
       console.error('Registration failed', error)
-      return false
+      return { success: false }
     }
   }
 

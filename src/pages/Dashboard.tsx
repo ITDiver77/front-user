@@ -7,6 +7,8 @@ import {
   Typography,
   Alert,
   Paper,
+  FormControlLabel,
+  Switch,
 } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import ConnectionCard from '../components/common/ConnectionCard'
@@ -25,51 +27,16 @@ const Dashboard = () => {
   const [selectedConnection, setSelectedConnection] = useState<Connection | null>(null)
   const [paymentModalOpen, setPaymentModalOpen] = useState(false)
   const [paymentConnection, setPaymentConnection] = useState<Connection | null>(null)
+  const [showDeleted, setShowDeleted] = useState(false)
 
   const fetchConnections = async () => {
     setLoading(true)
     setError('')
     try {
-      // Mock data for now (since backend endpoints not ready)
-      // const data = await connectionService.getMyConnections()
-      // setConnections(data)
-      // Simulate mock data
-      const mockConnections: Connection[] = [
-        {
-          id: 1,
-          username: 'testuser',
-          index: 0,
-          connection_name: 'my-vpn-1',
-          short_id: 'abc123',
-          price: 5,
-          paydate: '2026-04-10',
-          enabled: true,
-          is_active: true,
-          created_at: '2026-03-01',
-          connection_string: 'vpn://config',
-          auto_renew: true,
-          server_name: 'US-West',
-        },
-        {
-          id: 2,
-          username: 'testuser',
-          index: 1,
-          connection_name: 'my-vpn-2',
-          short_id: 'def456',
-          price: 5,
-          paydate: '2026-03-05',
-          enabled: true,
-          is_active: false,
-          created_at: '2026-02-01',
-          connection_string: 'vpn://config2',
-          auto_renew: false,
-          server_name: 'EU-Central',
-        },
-      ]
-      setConnections(mockConnections)
+      const data = await connectionService.getMyConnections()
+      setConnections(data)
     } catch (err: any) {
-      setError(err.message || 'Failed to load connections')
-      console.error(err)
+      setError(err.message || 'Failed to fetch connections')
     } finally {
       setLoading(false)
     }
@@ -81,16 +48,23 @@ const Dashboard = () => {
 
   const handleToggleAutoRenew = async (connectionName: string, autoRenew: boolean) => {
     try {
-      // await connectionService.toggleAutoRenew(connectionName, autoRenew)
-      // Refresh connections
+      await connectionService.toggleAutoRenew(connectionName, autoRenew)
       fetchConnections()
     } catch (err) {
       console.error('Failed to toggle auto-renew', err)
     }
   }
 
+  const handleToggleEnabled = async (connectionName: string, enabled: boolean) => {
+    try {
+      await connectionService.toggleEnabled(connectionName, enabled)
+      fetchConnections()
+    } catch (err) {
+      console.error('Failed to toggle enabled state', err)
+    }
+  }
+
   const handleCopyConfig = (connectionString: string) => {
-    // Already handled in ConnectionCard
     console.log('Copy config:', connectionString)
   }
 
@@ -109,7 +83,6 @@ const Dashboard = () => {
       setChangeServerModalOpen(true)
     }
   }
-
 
   const handleServerChangeSuccess = () => {
     fetchConnections()
@@ -133,6 +106,12 @@ const Dashboard = () => {
     setPaymentConnection(null)
   }
 
+  // Filter connections based on showDeleted toggle
+  const filteredConnections = showDeleted 
+    ? connections 
+    : connections.filter(c => !c.is_deleted)
+
+  const deletedCount = connections.filter(c => c.is_deleted).length
 
   if (loading) {
     return (
@@ -154,27 +133,44 @@ const Dashboard = () => {
           New Connection
         </Button>
       </Box>
+
+      {deletedCount > 0 && (
+        <Box sx={{ mb: 2 }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showDeleted}
+                onChange={(e) => setShowDeleted(e.target.checked)}
+              />
+            }
+            label={`Show deleted connections (${deletedCount})`}
+          />
+        </Box>
+      )}
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      {connections.length === 0 ? (
+      {filteredConnections.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="body1" color="textSecondary">
-            You don't have any connections yet. Create your first connection to get started.
+            {showDeleted ? 'No connections found.' : "You don't have any connections yet. Create your first connection to get started."}
           </Typography>
-          <Button
-            variant="outlined"
-            sx={{ mt: 2 }}
-            onClick={() => setShowNewConnectionModal(true)}
-          >
-            Create Connection
-          </Button>
+          {!showDeleted && (
+            <Button
+              variant="outlined"
+              sx={{ mt: 2 }}
+              onClick={() => setShowNewConnectionModal(true)}
+            >
+              Create Connection
+            </Button>
+          )}
         </Paper>
       ) : (
         <Grid container spacing={3}>
-          {connections.map((conn) => (
+          {filteredConnections.map((conn) => (
             <Grid item key={conn.id} xs={12} sm={6} md={4}>
               <ConnectionCard
                 connection={conn}
@@ -182,6 +178,7 @@ const Dashboard = () => {
                 onCopyConfig={handleCopyConfig}
                 onExtend={handleExtend}
                 onChangeServer={handleChangeServer}
+                onToggleEnabled={handleToggleEnabled}
               />
             </Grid>
           ))}
