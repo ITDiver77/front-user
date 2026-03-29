@@ -1,6 +1,8 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Box, CircularProgress } from '@mui/material'
 import { Suspense, lazy } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { pageVariants } from './styles/animations'
 
 // Context
 import { AuthProvider, useAuth } from './contexts/AuthContext'
@@ -16,6 +18,18 @@ const Dashboard = lazy(() => import('./pages/Dashboard'))
 const PaymentHistory = lazy(() => import('./pages/PaymentHistory'))
 const Instructions = lazy(() => import('./pages/Instructions'))
 const Profile = lazy(() => import('./pages/Profile'))
+
+const PageWrapper = ({ children }: { children: React.ReactNode }) => (
+  <motion.div
+    initial="initial"
+    animate="animate"
+    exit="exit"
+    variants={pageVariants}
+    style={{ width: '100%', height: '100%' }}
+  >
+    {children}
+  </motion.div>
+)
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth()
@@ -36,33 +50,86 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 }
 
 function AppRoutes() {
+  const location = useLocation()
+
   return (
-    <Suspense
-      fallback={
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-          <CircularProgress />
-        </Box>
-      }
-    >
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route
-          path="/"
-          element={
-            <PrivateRoute>
-              <Layout />
-            </PrivateRoute>
-          }
-        >
-          <Route index element={<Dashboard />} />
-          <Route path="payment-history" element={<PaymentHistory />} />
-          <Route path="instructions" element={<Instructions />} />
-          <Route path="profile" element={<Profile />} />
-        </Route>
-      </Routes>
-    </Suspense>
+    <AnimatePresence mode="wait">
+      <Suspense
+        fallback={
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+            <CircularProgress />
+          </Box>
+        }
+      >
+        <Routes location={location} key={location.pathname}>
+          <Route
+            path="/login"
+            element={
+              <PageWrapper>
+                <Login />
+              </PageWrapper>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PageWrapper>
+                <Register />
+              </PageWrapper>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <PageWrapper>
+                <ForgotPassword />
+              </PageWrapper>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <Layout />
+              </PrivateRoute>
+            }
+          >
+            <Route
+              index
+              element={
+                <PageWrapper>
+                  <Dashboard />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="payment-history"
+              element={
+                <PageWrapper>
+                  <PaymentHistory />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="instructions"
+              element={
+                <PageWrapper>
+                  <Instructions />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="profile"
+              element={
+                <PageWrapper>
+                  <Profile />
+                </PageWrapper>
+              }
+            />
+          </Route>
+        </Routes>
+      </Suspense>
+    </AnimatePresence>
   )
 }
 

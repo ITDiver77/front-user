@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   AppBar,
   Box,
@@ -34,6 +35,8 @@ import {
   ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material'
 import { useAuth } from '../../contexts/AuthContext'
+import { useTelegramWebApp } from '../../hooks/useTelegramWebApp'
+import { ThemeSelector } from '../common/ThemeSelector'
 
 const drawerWidth = 240
 
@@ -53,6 +56,14 @@ const Layout = () => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const { isTelegram, setHeaderColor, setBackgroundColor } = useTelegramWebApp()
+
+  useEffect(() => {
+    if (isTelegram) {
+      setHeaderColor(theme.palette.primary.main)
+      setBackgroundColor(theme.palette.background.default)
+    }
+  }, [isTelegram, theme, setHeaderColor, setBackgroundColor])
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen)
@@ -89,6 +100,16 @@ const Layout = () => {
             <ListItemButton
               selected={location.pathname === item.path}
               onClick={() => handleNavigation(item.path, index)}
+              component={motion.button}
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.98 }}
+              sx={{
+                '&.Mui-selected': {
+                  bgcolor: 'action.selected',
+                  borderRight: '3px solid',
+                  borderColor: 'primary.main',
+                },
+              }}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
@@ -108,6 +129,33 @@ const Layout = () => {
     </Box>
   )
 
+  if (isTelegram) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <CssBaseline />
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 2,
+            pb: 8,
+          }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
+        </Box>
+      </Box>
+    )
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <CssBaseline />
@@ -125,6 +173,9 @@ const Layout = () => {
               edge="start"
               onClick={handleDrawerToggle}
               sx={{ mr: 2 }}
+              component={motion.button}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               {drawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
             </IconButton>
@@ -136,6 +187,9 @@ const Layout = () => {
               edge="start"
               onClick={handleDrawerToggle}
               sx={{ mr: 2 }}
+              component={motion.button}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <MenuIcon />
             </IconButton>
@@ -143,8 +197,14 @@ const Layout = () => {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             VPN User Panel
           </Typography>
+          <ThemeSelector />
           <IconButton onClick={handleMenuOpen} color="inherit">
-            <Avatar sx={{ width: 32, height: 32 }}>
+            <Avatar
+              sx={{ width: 32, height: 32 }}
+              component={motion.div}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
               {user?.username?.charAt(0).toUpperCase() || 'U'}
             </Avatar>
           </IconButton>
@@ -159,6 +219,12 @@ const Layout = () => {
             transformOrigin={{
               vertical: 'top',
               horizontal: 'right',
+            }}
+            PaperProps={{
+              component: motion.div,
+              initial: { opacity: 0, y: -10 },
+              animate: { opacity: 1, y: 0 },
+              exit: { opacity: 0, y: -10 },
             }}
           >
             <MenuItem disabled>{user?.username}</MenuItem>
@@ -200,7 +266,17 @@ const Layout = () => {
               {drawer}
             </Drawer>
             <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-              <Outlet />
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={location.pathname}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <Outlet />
+                </motion.div>
+              </AnimatePresence>
             </Box>
           </>
         ) : (
@@ -210,7 +286,7 @@ const Layout = () => {
               open={drawerOpen}
               onClose={handleDrawerToggle}
               ModalProps={{
-                keepMounted: true, // Better open performance on mobile.
+                keepMounted: true,
               }}
               sx={{
                 '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
@@ -219,13 +295,26 @@ const Layout = () => {
               {drawer}
             </Drawer>
             <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-              <Outlet />
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={location.pathname}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <Outlet />
+                </motion.div>
+              </AnimatePresence>
             </Box>
           </>
         )}
       </Box>
       {isMobile && (
-        <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
+        <Paper
+          sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }}
+          elevation={3}
+        >
           <BottomNavigation
             showLabels
             value={bottomNavValue}
@@ -234,15 +323,21 @@ const Layout = () => {
               handleNavigation(menuItems[newValue].path, newValue)
             }}
           >
-            {menuItems.map((item, index) => (
-              <BottomNavigationAction key={item.text} label={item.text} icon={item.icon} />
+            {menuItems.map((item) => (
+              <BottomNavigationAction
+                key={item.text}
+                label={item.text}
+                icon={item.icon}
+              />
             ))}
           </BottomNavigation>
         </Paper>
       )}
-      {/* Add padding bottom to account for bottom navigation */}
       {isMobile && <Box sx={{ height: 56 }} />}
-      <Box component="footer" sx={{ py: 2, px: 3, backgroundColor: 'grey.100', textAlign: 'center' }}>
+      <Box
+        component="footer"
+        sx={{ py: 2, px: 3, backgroundColor: 'grey.100', textAlign: 'center' }}
+      >
         <Typography variant="body2" color="textSecondary">
           © {new Date().getFullYear()} VPN Service
         </Typography>

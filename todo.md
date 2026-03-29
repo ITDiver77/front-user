@@ -4,10 +4,10 @@ Current tasks, planned features, and deferred work.
 
 ## High Priority
 
-- [ ] Backend integration when `/connections/my` and `/users/me` are ready
-- [ ] Connection string copy functionality (after backend adds field)
-- [ ] Auto-renew toggle UI (after backend adds field)
-- [ ] Server change functionality (after backend endpoint ready)
+- [x] Backend integration when `/connections/my` and `/users/me` are ready
+- [x] Connection string copy functionality (after backend adds field)
+- [x] Auto-renew toggle UI (after backend adds field)
+- [x] Server change functionality (after backend endpoint ready)
 
 ## Medium Priority
 
@@ -24,12 +24,7 @@ Current tasks, planned features, and deferred work.
 
 ## Dependencies
 
-- Waiting on central_manager:
-  - `/users/me` endpoint
-  - `/connections/my` endpoint
-  - `/connections/{name}/change-server` endpoint
-  - `connection_string` in connection response
-  - `auto_renew` in connection model
+- Completed: central_manager endpoints now available
 
 ## Testing
 

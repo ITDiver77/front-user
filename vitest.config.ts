@@ -9,8 +9,8 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    define: {
-      'import.meta.env': JSON.stringify({ VITE_API_BASE_URL: 'http://localhost:8000/api/v1' }),
+    env: {
+      VITE_API_BASE_URL: 'http://localhost:8000/api/v1',
     },
     coverage: {
       provider: 'v8',

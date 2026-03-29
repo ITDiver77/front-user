@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import {
   Box,
   Button,
@@ -10,13 +11,15 @@ import {
   FormControlLabel,
   Switch,
 } from '@mui/material'
-import { Add as AddIcon } from '@mui/icons-material'
+import { Add as AddIcon, Wifi as WifiIcon } from '@mui/icons-material'
 import ConnectionCard from '../components/common/ConnectionCard'
 import NewConnectionModal from '../components/forms/NewConnectionModal'
 import ChangeServerModal from '../components/forms/ChangeServerModal'
 import PaymentInitiationModal from '../components/forms/PaymentInitiationModal'
+import { EmptyState } from '../components/common/EmptyState'
 import { connectionService } from '../services/connectionService'
 import { Connection } from '../types/connection'
+import { staggerContainer } from '../styles/animations'
 
 const Dashboard = () => {
   const [connections, setConnections] = useState<Connection[]>([])
@@ -154,20 +157,33 @@ const Dashboard = () => {
         </Alert>
       )}
       {filteredConnections.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="body1" color="textSecondary">
-            {showDeleted ? 'No connections found.' : "You don't have any connections yet. Create your first connection to get started."}
-          </Typography>
-          {!showDeleted && (
-            <Button
-              variant="outlined"
-              sx={{ mt: 2 }}
-              onClick={() => setShowNewConnectionModal(true)}
-            >
-              Create Connection
-            </Button>
-          )}
-        </Paper>
+        <motion.div
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
+          <EmptyState
+            icon={<WifiIcon />}
+            title={showDeleted ? 'No Connections Found' : 'No Connections Yet'}
+            description={
+              showDeleted
+                ? 'No connections match your filters.'
+                : 'Create your first VPN connection to get started.'
+            }
+            action={
+              !showDeleted && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => setShowNewConnectionModal(true)}
+                  sx={{ mt: 2 }}
+                >
+                  Create Connection
+                </Button>
+              )
+            }
+          />
+        </motion.div>
       ) : (
         <Grid container spacing={3}>
           {filteredConnections.map((conn) => (

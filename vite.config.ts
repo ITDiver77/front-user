@@ -1,52 +1,38 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react';
+import { type ProxyOptions, defineConfig, loadEnv } from 'vite';
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: 9556,
-    host: true,
-    allowedHosts: ['srv9.mythservers.abrdns.com'],
-    // Performance optimizations
-    hmr: {
-      overlay: true,
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  
+  // In Docker development, default to central_manager if not set
+  const proxyTarget = env.VITE_PROXY_TARGET || 'http://central_manager:8000';
+  
+  const proxyConfig: Record<string, ProxyOptions | string> = {
+    '/api/v1': {
+      target: proxyTarget,
+      changeOrigin: true,
+      secure: false,
     },
-    // Increase timeout for slower networks
-    timeout: 30000,
-    // Optimize deps
-    optimizeDeps: {
-      include: ['react', 'react-dom', 'react-router-dom', '@mui/material', 'axios'],
+  };
+
+  return {
+    plugins: [react()],
+    server: {
+      port: 9556,
+      host: true,
+      origin: 'https://front-user.mythicuser.cloudns.nz:9443',
+      allowedHosts: ['front-user.mythicuser.cloudns.nz', 'devel.mythicuser.cloudns.nz', 'localhost', '.mythicuser.cloudns.nz'],
+      proxy: proxyConfig,
     },
-    proxy: {
-      '/api/v1': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/v1/, '/api/v1'),
-      }
-    }
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: true,
-    // Production optimizations
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Split vendor chunks for better caching
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-mui': ['@mui/material', '@mui/icons-material'],
-          'vendor-utils': ['axios', 'date-fns', 'zod'],
-        },
-      },
+    preview: {
+      port: 9556,
+      host: true,
+      allowedHosts: ['front-user.mythicuser.cloudns.nz', 'devel.mythicuser.cloudns.nz', 'localhost', '.mythicuser.cloudns.nz'],
+      proxy: proxyConfig,
     },
-    // Minification
-    minify: 'esbuild',
-    // CSS code splitting
-    cssCodeSplit: true,
-  },
-  // Dependencies optimization
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', '@mui/material', '@emotion/react', '@emotion/styled', 'axios'],
-  },
-})
+    build: {
+      outDir: 'dist',
+      sourcemap: true,
+    },
+  };
+});
