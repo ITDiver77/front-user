@@ -76,4 +76,15 @@ export const supportService = {
 	deleteConversation: async (conversationId: number) => {
 		await api.delete(`/support/conversations/${conversationId}`);
 	},
+
+	/**
+	 * Get count of unread admin messages
+	 * @returns {Promise<number>} Number of unread messages
+	 */
+	getUnreadCount: async (): Promise<number> => {
+		const response = await api.get<{ unread_count: number }>(
+			"/support/conversations/unread-count",
+		);
+		return response.data.unread_count;
+	},
 };

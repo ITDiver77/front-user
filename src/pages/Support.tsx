@@ -328,6 +328,14 @@ const Support = () => {
 		}
 	}, [selectedConversation?.messages]);
 
+	// Auto-refresh conversations every 30 seconds
+	useEffect(() => {
+		const interval = setInterval(() => {
+			fetchConversations();
+		}, 30000);
+		return () => clearInterval(interval);
+	}, []);
+
 	// Select conversation
 	const handleSelectConversation = async (id: number) => {
 		try {

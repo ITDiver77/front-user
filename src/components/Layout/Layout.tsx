@@ -39,6 +39,7 @@ import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTelegramWebApp } from "../../hooks/useTelegramWebApp";
+import { supportService } from "../../services/supportService";
 import { ThemeSelector } from "../common/ThemeSelector";
 
 const drawerWidth = 240;
@@ -57,6 +58,7 @@ const Layout = () => {
 	const [drawerOpen, setDrawerOpen] = useState(!isMobile);
 	const [bottomNavValue, setBottomNavValue] = useState(0);
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const [unreadCount, setUnreadCount] = useState(0);
 	const { user, logout } = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -69,6 +71,21 @@ const Layout = () => {
 			setBackgroundColor(theme.palette.background.default);
 		}
 	}, [isTelegram, theme, setHeaderColor, setBackgroundColor]);
+
+	useEffect(() => {
+		const fetchUnreadCount = async () => {
+			try {
+				const count = await supportService.getUnreadCount();
+				setUnreadCount(count);
+			} catch (err) {
+				console.error("Failed to fetch unread count:", err);
+			}
+		};
+
+		fetchUnreadCount();
+		const interval = setInterval(fetchUnreadCount, 30000);
+		return () => clearInterval(interval);
+	}, []);
 
 	const handleDrawerToggle = () => {
 		setDrawerOpen(!drawerOpen);
@@ -95,6 +112,28 @@ const Layout = () => {
 		}
 	};
 
+	const getMenuIcon = (item: typeof menuItems[number]) => {
+		let badgeContent = 0;
+		let showBadge = false;
+
+		if (item.text === "Profile" && !user?.telegram_verified) {
+			showBadge = true;
+			badgeContent = 1;
+		} else if (item.text === "Support" && unreadCount > 0) {
+			showBadge = true;
+			badgeContent = unreadCount;
+		}
+
+		if (showBadge) {
+			return (
+				<Badge badgeContent={badgeContent} color="error">
+					{item.icon}
+				</Badge>
+			);
+		}
+		return item.icon;
+	};
+
 	const drawer = (
 		<Box>
 			<Toolbar />
@@ -118,7 +157,7 @@ const Layout = () => {
 										},
 									}}
 								>
-									<ListItemIcon>{item.icon}</ListItemIcon>
+									<ListItemIcon>{getMenuIcon(item)}</ListItemIcon>
 								</ListItemButton>
 							</Tooltip>
 						) : (
@@ -136,7 +175,7 @@ const Layout = () => {
 									},
 								}}
 							>
-								<ListItemIcon>{item.icon}</ListItemIcon>
+								<ListItemIcon>{getMenuIcon(item)}</ListItemIcon>
 								<ListItemText primary={item.text} />
 							</ListItemButton>
 						)}
@@ -365,7 +404,7 @@ const Layout = () => {
 							<BottomNavigationAction
 								key={item.text}
 								label={item.text}
-								icon={item.icon}
+								icon={getMenuIcon(item)}
 							/>
 						))}
 					</BottomNavigation>

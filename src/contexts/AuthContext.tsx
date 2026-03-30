@@ -13,6 +13,7 @@ import {
 	RegisterRequest,
 	ResetPasswordRequest,
 } from "../services/authService";
+import { userService } from "../services/userService";
 import type { TelegramRegisterResponse } from "../types/user";
 
 interface User {
@@ -109,6 +110,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		sessionStorage.removeItem(STORAGE_KEY);
 	};
 
+	const fetchUserProfile = async () => {
+		try {
+			const profile = await userService.getMyProfile();
+			setUser((prev) => {
+				if (!prev) return null;
+				const updated = { ...prev, telegram_verified: profile.telegram_verified };
+				const rememberMe = !!localStorage.getItem("token");
+				saveUserData(updated, rememberMe);
+				return updated;
+			});
+		} catch (err) {
+			console.error("Failed to fetch user profile:", err);
+		}
+	};
+
 	useEffect(() => {
 		const token =
 			localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -121,6 +137,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 					telegram_verified: storedUser?.telegram_verified,
 				});
 				setIsAuthenticated(true);
+				fetchUserProfile();
 			} catch (e) {
 				console.error("Invalid token", e);
 				localStorage.removeItem("token");
