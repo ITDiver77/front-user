@@ -345,13 +345,10 @@ const Support = () => {
 
 		setSending(true);
 		try {
-			const updated = await supportService.sendMessage(
-				selectedConversation.id,
-				newMessage.trim(),
-			);
+			await supportService.sendMessage(selectedConversation.id, newMessage.trim());
+			const updated = await supportService.getConversation(selectedConversation.id);
 			setSelectedConversation(updated);
 			setNewMessage("");
-			// Refresh conversation list
 			fetchConversations();
 		} catch (err: any) {
 			console.error("Failed to send message:", err);
