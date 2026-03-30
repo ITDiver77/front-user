@@ -61,10 +61,53 @@ interface AuthProviderProps {
 	children: ReactNode;
 }
 
+const STORAGE_KEY = "vpn_user_data";
+
+interface StoredUserData {
+	username: string;
+	telegram_verified?: boolean;
+}
+
 export const AuthProvider = ({ children }: AuthProviderProps) => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [user, setUser] = useState<User | null>(null);
+
+	const loadUserData = (): StoredUserData | null => {
+		const stored = localStorage.getItem(STORAGE_KEY);
+		if (stored) {
+			try {
+				return JSON.parse(stored);
+			} catch {
+				return null;
+			}
+		}
+		const sessionStored = sessionStorage.getItem(STORAGE_KEY);
+		if (sessionStored) {
+			try {
+				return JSON.parse(sessionStored);
+			} catch {
+				return null;
+			}
+		}
+		return null;
+	};
+
+	const saveUserData = (userData: StoredUserData, rememberMe: boolean) => {
+		const data = JSON.stringify(userData);
+		if (rememberMe) {
+			localStorage.setItem(STORAGE_KEY, data);
+			sessionStorage.removeItem(STORAGE_KEY);
+		} else {
+			sessionStorage.setItem(STORAGE_KEY, data);
+			localStorage.removeItem(STORAGE_KEY);
+		}
+	};
+
+	const clearUserData = () => {
+		localStorage.removeItem(STORAGE_KEY);
+		sessionStorage.removeItem(STORAGE_KEY);
+	};
 
 	useEffect(() => {
 		const token =
@@ -72,7 +115,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		if (token) {
 			try {
 				const payload = JSON.parse(atob(token.split(".")[1]));
-				setUser({ username: payload.sub || payload.username });
+				const storedUser = loadUserData();
+				setUser({
+					username: payload.sub || payload.username,
+					telegram_verified: storedUser?.telegram_verified,
+				});
 				setIsAuthenticated(true);
 			} catch (e) {
 				console.error("Invalid token", e);
@@ -104,6 +151,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		try {
 			const response = await authService.login({ username, password });
 			storeToken(response.access_token, rememberMe);
+			saveUserData({ username }, rememberMe);
 			setIsAuthenticated(true);
 			setUser({ username });
 			return true;
@@ -139,6 +187,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
 			// Standard registration - store token and login
 			storeToken(response.access_token, true);
+			saveUserData({ username }, true);
 			setIsAuthenticated(true);
 			setUser({ username });
 			return { success: true };
@@ -150,6 +199,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
 	const logout = () => {
 		clearToken();
+		clearUserData();
 		setIsAuthenticated(false);
 		setUser(null);
 	};
@@ -194,7 +244,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 	};
 
 	const updateUser = (userData: Partial<User>) => {
-		setUser((prev) => (prev ? { ...prev, ...userData } : null));
+		setUser((prev) => {
+			if (!prev) return null;
+			const updated = { ...prev, ...userData };
+			const rememberMe = !!localStorage.getItem("token");
+			saveUserData(updated, rememberMe);
+			return updated;
+		});
 	};
 
 	return (
