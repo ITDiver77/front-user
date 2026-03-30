@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
 	CheckCircle,
-	ContentCopy,
 	Email as EmailIcon,
 	Telegram as TelegramIcon,
 	Visibility,
@@ -24,12 +23,15 @@ import {
 	ToggleButtonGroup,
 	Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { authService } from "../services/authService";
-import type { RegisterStartResponse } from "../types/user";
+import type {
+	RegisterStartResponse,
+	RegistrationStatusResponse,
+} from "../types/user";
 
 // Step 1: username only (for Telegram flow)
 const usernameSchema = z.object({
@@ -77,6 +79,7 @@ interface SiteRegisterResponse {
 }
 
 const Register = () => {
+	const navigate = useNavigate();
 	const [registrationMethod, setRegistrationMethod] = useState<
 		"telegram" | "site"
 	>("telegram");
@@ -89,6 +92,11 @@ const Register = () => {
 		useState<SiteRegisterResponse | null>(null);
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const [pollingStatus, setPollingStatus] = useState<
+		"pending" | "checking" | "completed"
+	>("pending");
+	const [telegramCredentials, setTelegramCredentials] =
+		useState<RegistrationStatusResponse | null>(null);
 
 	const {
 		register: registerPasswordForm,
@@ -105,6 +113,46 @@ const Register = () => {
 	});
 
 	const passwordValue = watch("password", "");
+
+	// Polling effect for Telegram registration status
+	useEffect(() => {
+		if (
+			step !== "telegram" ||
+			!registerResponse ||
+			pollingStatus !== "pending"
+		) {
+			return;
+		}
+
+		setPollingStatus("checking");
+
+		const pollInterval = setInterval(async () => {
+			try {
+				const status = await authService.getRegistrationStatus(
+					registerResponse.registration_token,
+				);
+				if (status.status === "completed") {
+					setPollingStatus("completed");
+					setTelegramCredentials(status);
+					clearInterval(pollInterval);
+				}
+			} catch (err) {
+				console.error("Polling error:", err);
+			}
+		}, 3000); // Poll every 3 seconds
+
+		return () => clearInterval(pollInterval);
+	}, [step, registerResponse, pollingStatus]);
+
+	// Auto-login and redirect when Telegram verification completes
+	useEffect(() => {
+		if (pollingStatus === "completed" && telegramCredentials?.access_token) {
+			// Store the token
+			localStorage.setItem("token", telegramCredentials.access_token);
+			// Redirect to dashboard
+			navigate("/");
+		}
+	}, [pollingStatus, telegramCredentials, navigate]);
 
 	const {
 		register,
@@ -169,9 +217,13 @@ const Register = () => {
 		}
 	};
 
-	const copyToClipboard = (text: string) => {
-		navigator.clipboard.writeText(text);
-	};
+	// Auto-login and redirect for site registration
+	useEffect(() => {
+		if (siteRegisterResponse?.access_token) {
+			localStorage.setItem("token", siteRegisterResponse.access_token);
+			navigate("/");
+		}
+	}, [siteRegisterResponse, navigate]);
 
 	// Success page for site registration
 	if (siteRegisterResponse) {
@@ -194,98 +246,13 @@ const Register = () => {
 							borderRadius: 3,
 						}}
 					>
-						<CheckCircle sx={{ fontSize: 64, color: "#4caf50", mb: 2 }} />
+						<CircularProgress sx={{ mb: 2 }} />
 						<Typography component="h1" variant="h5" gutterBottom>
-							Registration Successful!
+							Registering...
 						</Typography>
-						<Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
-							Your account has been created. Please save your credentials below:
+						<Typography variant="body2" color="textSecondary">
+							Setting up your account and logging you in.
 						</Typography>
-
-						<Paper
-							sx={{
-								p: 3,
-								mb: 3,
-								backgroundColor: "white",
-								borderRadius: 2,
-							}}
-						>
-							<Box sx={{ mb: 2 }}>
-								<Typography
-									variant="caption"
-									color="textSecondary"
-									display="block"
-								>
-									Username
-								</Typography>
-								<Box
-									sx={{
-										display: "flex",
-										alignItems: "center",
-										justifyContent: "center",
-									}}
-								>
-									<Typography variant="h6" sx={{ fontFamily: "monospace" }}>
-										{siteRegisterResponse.connection.name}
-									</Typography>
-									<IconButton
-										size="small"
-										onClick={() =>
-											copyToClipboard(siteRegisterResponse.connection.name)
-										}
-										sx={{ ml: 1 }}
-									>
-										<ContentCopy fontSize="small" />
-									</IconButton>
-								</Box>
-							</Box>
-
-							<Divider sx={{ my: 2 }} />
-
-							<Box>
-								<Typography
-									variant="caption"
-									color="textSecondary"
-									display="block"
-								>
-									Password
-								</Typography>
-								<Box
-									sx={{
-										display: "flex",
-										alignItems: "center",
-										justifyContent: "center",
-									}}
-								>
-									<Typography variant="h6" sx={{ fontFamily: "monospace" }}>
-										{siteRegisterResponse.password}
-									</Typography>
-									<IconButton
-										size="small"
-										onClick={() =>
-											copyToClipboard(siteRegisterResponse.password)
-										}
-										sx={{ ml: 1 }}
-									>
-										<ContentCopy fontSize="small" />
-									</IconButton>
-								</Box>
-							</Box>
-						</Paper>
-
-						<Alert severity="warning" sx={{ mb: 3, textAlign: "left" }}>
-							Please save your password now. You won't be able to see it again!
-						</Alert>
-
-						<Button
-							component={RouterLink}
-							to="/login"
-							variant="contained"
-							fullWidth
-							size="large"
-						>
-							Go to Login
-						</Button>
 					</Paper>
 				</Box>
 			</Container>
@@ -309,98 +276,123 @@ const Register = () => {
 					</Typography>
 
 					<Alert severity="info" sx={{ mb: 3, width: "100%" }}>
-						Please verify your account through our Telegram bot to complete
-						registration.
+						{pollingStatus === "pending" || pollingStatus === "checking"
+							? "Please verify your account through our Telegram bot to complete registration. This page will automatically update when verification is complete."
+							: "Verification complete! Logging you in..."}
 					</Alert>
 
 					<Paper sx={{ p: 3, width: "100%", borderRadius: 3 }}>
 						<Box sx={{ textAlign: "center", mb: 3 }}>
-							<TelegramIcon sx={{ fontSize: 48, color: "#0088cc", mb: 2 }} />
+							{pollingStatus === "completed" ? (
+								<CheckCircle sx={{ fontSize: 48, color: "#4caf50", mb: 2 }} />
+							) : (
+								<TelegramIcon sx={{ fontSize: 48, color: "#0088cc", mb: 2 }} />
+							)}
 							<Typography variant="h6" gutterBottom>
-								Open Telegram Bot
+								{pollingStatus === "completed"
+									? "Verification Complete!"
+									: "Open Telegram Bot"}
 							</Typography>
 							<Typography variant="body2" color="textSecondary" paragraph>
-								Click the button below to open our Telegram bot and press /start
-								with your registration token.
+								{pollingStatus === "completed"
+									? "Your account has been verified. You'll be logged in automatically."
+									: "Click the button below to open our Telegram bot and press /start with your registration token."}
 							</Typography>
 						</Box>
 
-						<Button
-							variant="contained"
-							fullWidth
-							href={registerResponse.telegram_link}
-							target="_blank"
-							rel="noopener noreferrer"
-							sx={{ mb: 2, borderRadius: 2 }}
-						>
-							Open Telegram Bot
-						</Button>
+						{pollingStatus !== "completed" && (
+							<>
+								<Button
+									variant="contained"
+									fullWidth
+									href={registerResponse.telegram_link}
+									target="_blank"
+									rel="noopener noreferrer"
+									sx={{ mb: 2, borderRadius: 2 }}
+								>
+									Open Telegram Bot
+								</Button>
+
+								<Divider sx={{ my: 2 }} />
+
+								<Typography variant="body2" color="textSecondary" gutterBottom>
+									Instructions:
+								</Typography>
+								<ol style={{ margin: 0, paddingLeft: 20 }}>
+									<li>
+										<Typography variant="body2">
+											Click "Open Telegram Bot" above
+										</Typography>
+									</li>
+									<li>
+										<Typography variant="body2">
+											Press /start in the chat
+										</Typography>
+									</li>
+									<li>
+										<Typography variant="body2">
+											Enter the registration token when prompted
+										</Typography>
+									</li>
+									<li>
+										<Typography variant="body2">
+											Receive your temporary credentials from the bot
+										</Typography>
+									</li>
+								</ol>
+
+								<Box sx={{ mt: 3 }}>
+									<Typography
+										variant="caption"
+										color="textSecondary"
+										display="block"
+										gutterBottom
+									>
+										Registration token (for manual entry):
+									</Typography>
+									<Paper
+										variant="outlined"
+										sx={{
+											p: 1,
+											backgroundColor: "grey.50",
+											fontFamily: "monospace",
+											fontSize: "0.75rem",
+										}}
+									>
+										{registerResponse.registration_token}
+									</Paper>
+								</Box>
+							</>
+						)}
 
 						<Divider sx={{ my: 2 }} />
 
-						<Typography variant="body2" color="textSecondary" gutterBottom>
-							Instructions:
-						</Typography>
-						<ol style={{ margin: 0, paddingLeft: 20 }}>
-							<li>
-								<Typography variant="body2">
-									Click "Open Telegram Bot" above
+						{pollingStatus === "checking" && (
+							<Box sx={{ textAlign: "center", py: 2 }}>
+								<CircularProgress size={24} sx={{ mb: 1 }} />
+								<Typography variant="body2" color="textSecondary">
+									Waiting for verification... Please complete the Telegram step
+									above.
 								</Typography>
-							</li>
-							<li>
-								<Typography variant="body2">
-									Press /start in the chat
-								</Typography>
-							</li>
-							<li>
-								<Typography variant="body2">
-									Enter the registration token when prompted
-								</Typography>
-							</li>
-							<li>
-								<Typography variant="body2">
-									Receive your temporary credentials from the bot
-								</Typography>
-							</li>
-						</ol>
+							</Box>
+						)}
 
-						<Box sx={{ mt: 3 }}>
-							<Typography
-								variant="caption"
-								color="textSecondary"
-								display="block"
-								gutterBottom
-							>
-								Registration token (for manual entry):
+						{pollingStatus === "pending" && (
+							<Typography variant="body2" color="textSecondary" paragraph>
+								After verification, you'll receive your login credentials via
+								Telegram. You'll be automatically logged in when verification is
+								complete.
 							</Typography>
-							<Paper
-								variant="outlined"
-								sx={{
-									p: 1,
-									backgroundColor: "grey.50",
-									fontFamily: "monospace",
-									fontSize: "0.75rem",
-								}}
-							>
-								{registerResponse.registration_token}
-							</Paper>
-						</Box>
-
-						<Divider sx={{ my: 2 }} />
-
-						<Typography variant="body2" color="textSecondary" paragraph>
-							After verification, you'll receive your login credentials via
-							Telegram. Use your temporary password to log in.
-						</Typography>
+						)}
 
 						<Button
 							component={RouterLink}
 							to="/login"
 							variant="outlined"
 							fullWidth
-							sx={{ borderRadius: 2 }}
+							sx={{ borderRadius: 2, mt: 2 }}
 						>
-							Go to Login
+							Back to Login
 						</Button>
 					</Paper>
 				</Box>

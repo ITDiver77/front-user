@@ -1,5 +1,6 @@
 import type {
 	RegisterStartResponse,
+	RegistrationStatusResponse,
 	TelegramRegisterResponse,
 } from "../types/user";
 import api from "./api";
@@ -130,6 +131,25 @@ export const authService = {
 			await api.post("/auth/change-password", data);
 		} catch (error: any) {
 			throw new Error(error.message || "Password change failed");
+		}
+	},
+
+	/**
+	 * Get registration status for Telegram verification polling
+	 * @param registrationToken Token from registerStart
+	 * @returns Status of registration (pending or completed with credentials)
+	 * @throws {Error} On network or API error with descriptive message
+	 */
+	async getRegistrationStatus(
+		registrationToken: string,
+	): Promise<RegistrationStatusResponse> {
+		try {
+			const response = await api.get<RegistrationStatusResponse>(
+				`/auth/register/status/${registrationToken}`,
+			);
+			return response.data;
+		} catch (error: any) {
+			throw new Error(error.message || "Failed to get registration status");
 		}
 	},
 };

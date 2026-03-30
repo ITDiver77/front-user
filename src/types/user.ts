@@ -32,3 +32,12 @@ export interface RegisterStartResponse {
 	registration_token: string;
 	message: string;
 }
+
+export interface RegistrationStatusResponse {
+	status: "pending" | "completed";
+	access_token?: string;
+	username?: string;
+	temp_password?: string;
+	connection_name?: string;
+	connection_string?: string;
+}

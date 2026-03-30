@@ -542,7 +542,7 @@ const Support = () => {
 								borderColor: "divider",
 								display: "flex",
 								flexDirection: "column",
-								bgcolor: "grey.50",
+								bgcolor: theme.palette.mode === "dark" ? "grey.900" : "grey.50",
 							}}
 						>
 							<Box
