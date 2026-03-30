@@ -68,4 +68,12 @@ export const supportService = {
 		);
 		return response.data;
 	},
+
+	/**
+	 * Delete a support conversation
+	 * @param {number} conversationId - Conversation ID to delete
+	 */
+	deleteConversation: async (conversationId: number) => {
+		await api.delete(`/support/conversations/${conversationId}`);
+	},
 };

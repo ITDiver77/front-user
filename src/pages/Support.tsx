@@ -3,6 +3,7 @@ import {
 	ArrowBack as ArrowBackIcon,
 	Chat as ChatIcon,
 	Close as CloseIcon,
+	Delete as DeleteIcon,
 	Send as SendIcon,
 	SupportAgent as SupportAgentIcon,
 	ViewList as ViewListIcon,
@@ -375,6 +376,19 @@ const Support = () => {
 		}
 	};
 
+	// Delete conversation
+	const handleDeleteConversation = async () => {
+		if (!selectedConversation) return;
+
+		try {
+			await supportService.deleteConversation(selectedConversation.id);
+			setSelectedConversation(null);
+			fetchConversations();
+		} catch (err) {
+			console.error("Failed to delete conversation:", err);
+		}
+	};
+
 	// Handle new conversation created
 	const handleConversationCreated = (conversation: SupportConversation) => {
 		// Convert SupportConversation to ConversationListItem for the list
@@ -687,17 +701,28 @@ const Support = () => {
 												</Typography>
 											</Box>
 										</Box>
-										{selectedConversation.status === "open" && (
+										<Box sx={{ display: "flex", gap: 1 }}>
 											<Button
 												variant="outlined"
 												color="error"
 												size="small"
-												startIcon={<CloseIcon />}
-												onClick={handleCloseConversation}
+												startIcon={<DeleteIcon />}
+												onClick={handleDeleteConversation}
 											>
-												Close
+												Delete
 											</Button>
-										)}
+											{selectedConversation.status === "open" && (
+												<Button
+													variant="outlined"
+													color="warning"
+													size="small"
+													startIcon={<CloseIcon />}
+													onClick={handleCloseConversation}
+												>
+													Close
+												</Button>
+											)}
+										</Box>
 									</Box>
 
 									{/* Messages */}
