@@ -101,8 +101,10 @@ const PaymentHistory = () => {
 			<Box
 				sx={{
 					display: "flex",
+					flexDirection: { xs: "column", sm: "row" },
 					justifyContent: "space-between",
-					alignItems: "center",
+					alignItems: { xs: "stretch", sm: "center" },
+					gap: { xs: 2, sm: 0 },
 					mb: 3,
 				}}
 			>
@@ -111,6 +113,11 @@ const PaymentHistory = () => {
 					variant="contained"
 					color="primary"
 					onClick={() => setModalOpen(true)}
+					sx={{
+						whiteSpace: "nowrap",
+						minWidth: "auto",
+						px: { xs: 2, sm: 3 },
+					}}
 				>
 					Make a Payment
 				</Button>

@@ -118,7 +118,19 @@ const Layout = () => {
 										},
 									}}
 								>
-									<ListItemIcon>{item.icon}</ListItemIcon>
+									<ListItemIcon>
+										{item.text === "Support" && !user?.telegram_verified ? (
+											<Badge
+												badgeContent="!"
+												color="error"
+												anchorOrigin={{ vertical: "top", horizontal: "right" }}
+											>
+												{item.icon}
+											</Badge>
+										) : (
+											item.icon
+										)}
+									</ListItemIcon>
 								</ListItemButton>
 							</Tooltip>
 						) : (
@@ -136,7 +148,19 @@ const Layout = () => {
 									},
 								}}
 							>
-								<ListItemIcon>{item.icon}</ListItemIcon>
+								<ListItemIcon>
+									{item.text === "Support" && !user?.telegram_verified ? (
+										<Badge
+											badgeContent="!"
+											color="error"
+											anchorOrigin={{ vertical: "top", horizontal: "right" }}
+										>
+											{item.icon}
+										</Badge>
+									) : (
+										item.icon
+									)}
+								</ListItemIcon>
 								<ListItemText primary={item.text} />
 							</ListItemButton>
 						)}

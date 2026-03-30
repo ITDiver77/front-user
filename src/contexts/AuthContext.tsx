@@ -17,6 +17,7 @@ import type { TelegramRegisterResponse } from "../types/user";
 
 interface User {
 	username: string;
+	telegram_verified?: boolean;
 }
 
 interface AuthContextType {
@@ -43,6 +44,7 @@ interface AuthContextType {
 		oldPassword: string,
 		newPassword: string,
 	) => Promise<boolean>;
+	updateUser: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -191,6 +193,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		}
 	};
 
+	const updateUser = (userData: Partial<User>) => {
+		setUser((prev) => (prev ? { ...prev, ...userData } : null));
+	};
+
 	return (
 		<AuthContext.Provider
 			value={{
@@ -203,6 +209,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 				forgotPassword,
 				resetPassword,
 				changePassword,
+				updateUser,
 			}}
 		>
 			{children}

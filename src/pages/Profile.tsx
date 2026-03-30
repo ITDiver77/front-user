@@ -32,7 +32,7 @@ type ProfileFormData = {
 type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
 const Profile = () => {
-	const { user, changePassword } = useAuth();
+	const { user, changePassword, updateUser } = useAuth();
 	const [loading, setLoading] = useState(false);
 	const [profileLoading, setProfileLoading] = useState(true);
 	const [profileError, setProfileError] = useState<string>("");
@@ -40,6 +40,7 @@ const Profile = () => {
 	const [success, setSuccess] = useState<string>("");
 	const [profile, setProfile] = useState<User | null>(null);
 	const [relinkDialogOpen, setRelinkDialogOpen] = useState(false);
+	const [linkDialogOpen, setLinkDialogOpen] = useState(false);
 
 	const {
 		register: registerProfile,
@@ -77,6 +78,7 @@ const Profile = () => {
 		try {
 			const data = await userService.getMyProfile();
 			setProfile(data);
+			updateUser({ telegram_verified: data.telegram_verified });
 			resetProfile({
 				firstName: data.first_name || "",
 				lastName: data.last_name || "",
@@ -208,7 +210,11 @@ const Profile = () => {
 												color="default"
 												size="small"
 											/>
-											<Button variant="contained" size="small">
+											<Button
+												variant="contained"
+												size="small"
+												onClick={() => setLinkDialogOpen(true)}
+											>
 												Link Telegram Account
 											</Button>
 										</>
@@ -330,6 +336,32 @@ const Profile = () => {
 				<DialogActions>
 					<Button onClick={() => setRelinkDialogOpen(false)}>Cancel</Button>
 					<Button onClick={() => setRelinkDialogOpen(false)}>Confirm</Button>
+				</DialogActions>
+			</Dialog>
+
+			<Dialog open={linkDialogOpen} onClose={() => setLinkDialogOpen(false)}>
+				<DialogTitle>Link Telegram Account</DialogTitle>
+				<DialogContent>
+					<Typography>
+						To link your account with Telegram, please contact support. They will help you
+						set up Telegram verification for your existing account.
+					</Typography>
+					<Typography sx={{ mt: 2 }}>
+						Alternatively, you can create a new account using the Telegram bot and our
+						support team can transfer your services.
+					</Typography>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setLinkDialogOpen(false)}>Close</Button>
+					<Button
+						onClick={() => {
+							setLinkDialogOpen(false);
+							window.location.href = "/support";
+						}}
+						variant="contained"
+					>
+						Contact Support
+					</Button>
 				</DialogActions>
 			</Dialog>
 		</Box>
