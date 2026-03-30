@@ -16,6 +16,11 @@
 - Docker file watcher issue (ENOSPC) by increasing fs.inotify.max_user_watches
 - Registration now points to correct bot (@Myth_vpnbot)
 - Support route registered in App.tsx
+- Badge logic: removed from Support icon, only shows on profile avatar when NOT verified
+- Persist telegram_verified in localStorage/sessionStorage
+
+### Added
+- Delete conversation functionality for support chat
 
 ### Known Issues
 - Bot doesn't use /auth/telegram/callback - breaks registration flow
