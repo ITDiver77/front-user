@@ -10,6 +10,7 @@ import {
 	Person as PersonIcon,
 } from "@mui/icons-material";
 import {
+	AppBar,
 	Avatar,
 	Badge,
 	BottomNavigation,
