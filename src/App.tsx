@@ -18,6 +18,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'))
 const PaymentHistory = lazy(() => import('./pages/PaymentHistory'))
 const Instructions = lazy(() => import('./pages/Instructions'))
 const Profile = lazy(() => import('./pages/Profile'))
+const Support = lazy(() => import('./pages/Support'))
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -123,6 +124,14 @@ function AppRoutes() {
               element={
                 <PageWrapper>
                   <Profile />
+                </PageWrapper>
+              }
+            />
+            <Route
+              path="support"
+              element={
+                <PageWrapper>
+                  <Support />
                 </PageWrapper>
               }
             />

@@ -33,6 +33,7 @@ import {
   ExitToApp as LogoutIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  Chat as ChatIcon,
 } from '@mui/icons-material'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTelegramWebApp } from '../../hooks/useTelegramWebApp'
@@ -45,6 +46,7 @@ const menuItems = [
   { text: 'Payment History', path: '/payment-history', icon: <PaymentIcon /> },
   { text: 'Instructions', path: '/instructions', icon: <HelpIcon /> },
   { text: 'Profile', path: '/profile', icon: <PersonIcon /> },
+  { text: 'Support', path: '/support', icon: <ChatIcon /> },
 ]
 
 const Layout = () => {

@@ -3,7 +3,28 @@
 ## [Unreleased]
 
 ### Added
-- Documentation structure (todo.md, context.md, changelog.md)
+- Multi-theme system (Violet, Teal, Telegram, Light themes)
+- Telegram WebApp SDK integration (@tma.js/sdk)
+- Framer-motion animations for pages and components
+- ThemeSelector component for theme switching
+- Auto-detection of Telegram environment
+- Support chat page with 2 UI variants (Telegram-like and modern cards)
+- Support navigation link in Layout
+- Register.tsx password fields for non-Telegram registration
+
+### Fixed
+- Docker file watcher issue (ENOSPC) by increasing fs.inotify.max_user_watches
+- Registration now points to correct bot (@Myth_vpnbot)
+- Support route registered in App.tsx
+
+### Known Issues
+- Bot doesn't use /auth/telegram/callback - breaks registration flow
+- No seamless integration between frontend and @Myth_vpnbot bot
+
+## [2026-03-29] UI Enhancements
+- Added ESLint and Prettier configuration
+- Updated product.md documentation
+- Committed UI improvements (commit 90c9ca9)
 
 ## [2026-03-24] Documentation & Tooling
 - Added ESLint and Prettier configuration
