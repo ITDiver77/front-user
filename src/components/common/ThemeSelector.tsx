@@ -63,7 +63,9 @@ export function ThemeSelector() {
 					sx: { borderRadius: 2, minWidth: 200 },
 				}}
 			>
-				{availableThemes.map((theme) => (
+				{availableThemes
+					.filter((theme) => theme.name !== "light")
+					.map((theme) => (
 					<MenuItem
 						key={theme.name}
 						onClick={() => handleSelectTheme(theme.name)}

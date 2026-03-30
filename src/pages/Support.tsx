@@ -595,17 +595,17 @@ const Support = () => {
 															},
 														}}
 													>
-														<ListItemAvatar>
-															<Badge
-																color="primary"
-																variant="dot"
-																invisible={conv.status === "closed"}
-															>
-																<Avatar sx={{ bgcolor: "success.main" }}>
-																	<SupportAgentIcon />
-																</Avatar>
-															</Badge>
-														</ListItemAvatar>
+													<ListItemAvatar>
+														<Badge
+															color="primary"
+															variant="dot"
+															invisible={!conv.has_unread_answers}
+														>
+															<Avatar sx={{ bgcolor: conv.has_unread_answers ? "success.main" : "grey.500" }}>
+																<SupportAgentIcon />
+															</Avatar>
+														</Badge>
+													</ListItemAvatar>
 														<ListItemText
 															primary={
 																<Box

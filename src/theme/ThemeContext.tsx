@@ -11,6 +11,9 @@ import { lightTheme } from "./themes/light";
 import { tealTheme } from "./themes/teal";
 import { createTelegramTheme } from "./themes/telegram";
 import { violetTheme } from "./themes/violet";
+import { darkBlueTheme } from "./themes/darkBlue";
+import { darkPurpleTheme } from "./themes/darkPurple";
+import { darkTealTheme } from "./themes/darkTeal";
 import type { TelegramThemeParams, ThemeName } from "./types";
 
 interface ThemeContextValue {
@@ -30,7 +33,7 @@ function getInitialTheme(): ThemeName {
 	const stored = localStorage.getItem(THEME_STORAGE_KEY);
 	if (
 		stored &&
-		["violet", "teal", "telegram", "light", "dark"].includes(stored)
+		["violet", "teal", "telegram", "light", "dark", "darkBlue", "darkPurple", "darkTeal"].includes(stored)
 	) {
 		return stored as ThemeName;
 	}
@@ -129,6 +132,12 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 					...lightTheme,
 					palette: { mode: "dark" },
 				});
+			case "darkBlue":
+				return darkBlueTheme;
+			case "darkPurple":
+				return darkPurpleTheme;
+			case "darkTeal":
+				return darkTealTheme;
 			case "light":
 			default:
 				return lightTheme;
@@ -139,7 +148,9 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 		themeName,
 		setThemeName,
 		isDark:
-			themeName === "telegram" ? telegramState.isDark : themeName === "dark",
+			themeName === "telegram"
+				? telegramState.isDark
+				: ["dark", "darkBlue", "darkPurple", "darkTeal"].includes(themeName),
 		isTelegram: telegramState.isTelegram,
 		telegramThemeParams: telegramState.params,
 	};
