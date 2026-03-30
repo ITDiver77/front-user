@@ -11,6 +11,8 @@ Project-specific patterns, conventions, and architectural decisions.
 - **HTTP Client**: Axios with interceptors
 - **Forms**: React Hook Form + Zod
 - **State**: React Context + useReducer
+- **Animations**: Framer Motion
+- **Telegram**: @tma.js/sdk
 
 ## Project Structure
 
@@ -20,13 +22,43 @@ src/
 │   ├── common/           # ConnectionCard, PaymentCard
 │   ├── forms/            # Modals (NewConnection, Payment, ChangeServer)
 │   └── Layout/           # Navigation, Footer
-├── contexts/             # AuthContext
-├── hooks/                # Custom hooks
+├── contexts/             # AuthContext, ThemeContext
+├── hooks/                # Custom hooks (useTelegramWebApp)
 ├── pages/                # Route pages
 ├── services/             # API service layer (mock-ready)
+├── theme/                # Theme configurations (violet, teal, telegram, light)
 ├── types/                # TypeScript interfaces
 └── utils/                # Validation schemas
 ```
+
+## Theme System
+
+Located in `src/theme/`:
+- `violet.ts` - Default purple theme
+- `teal.ts` - Teal/green alternative
+- `telegram.ts` - Telegram-inspired dark theme
+- `light.ts` - Light mode theme
+- `ThemeContext.tsx` - Theme provider with persistence
+- `ThemeSelector.tsx` - Theme switching component
+
+Theme features:
+- Soft colors with rounded corners
+- Custom MUI theme overrides
+- Auto-detects Telegram environment
+
+## Telegram Integration
+
+- `@tma.js/sdk` for Telegram WebApp API
+- `useTelegramWebApp` hook in `src/hooks/`
+- Auto-adapts to Telegram environment
+- Telegram-specific UI adjustments in Layout
+
+## Animations
+
+- Framer Motion for page transitions
+- ConnectionCard hover animations
+- Status icons with subtle animations
+- Page-level enter/exit animations
 
 ## API Integration
 
@@ -65,6 +97,7 @@ When `VITE_MOCK_AUTH=true`:
 - Copy button for connection string
 - Toggle for auto-renew
 - Pay button for expired connections
+- Hover animations with framer-motion
 
 ### Payment Modal
 - Amount selection
@@ -93,6 +126,6 @@ npm run test:coverage  # With coverage
 npm install
 npm run dev        # Start on port 9556
 npm run build      # Production build
-npm run lint       # ESLint check
-npm run test       # Run tests
+npm run lint       # Biome check
+npm run typecheck  # TypeScript check
 ```

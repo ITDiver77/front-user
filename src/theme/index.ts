@@ -1,7 +1,16 @@
-export { CustomThemeProvider, useTheme, ThemeContext } from './ThemeContext'
-export { violetTheme } from './themes/violet'
-export { tealTheme } from './themes/teal'
-export { lightTheme } from './themes/light'
-export { createTelegramTheme, telegramLightTheme, telegramDarkTheme } from './themes/telegram'
-export type { ThemeName, ThemeMode, ThemeConfig, TelegramThemeParams } from './types'
-export { availableThemes } from './types'
+export { CustomThemeProvider, ThemeContext, useTheme } from "./ThemeContext";
+export { lightTheme } from "./themes/light";
+export { tealTheme } from "./themes/teal";
+export {
+	createTelegramTheme,
+	telegramDarkTheme,
+	telegramLightTheme,
+} from "./themes/telegram";
+export { violetTheme } from "./themes/violet";
+export type {
+	TelegramThemeParams,
+	ThemeConfig,
+	ThemeMode,
+	ThemeName,
+} from "./types";
+export { availableThemes } from "./types";

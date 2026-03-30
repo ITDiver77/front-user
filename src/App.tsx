@@ -1,153 +1,162 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { Box, CircularProgress } from '@mui/material'
-import { Suspense, lazy } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { pageVariants } from './styles/animations'
-
+import { Box, CircularProgress } from "@mui/material";
+import { AnimatePresence, motion } from "framer-motion";
+import { lazy, Suspense } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 // Context
-import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { pageVariants } from "./styles/animations";
 
 // Layout
-const Layout = lazy(() => import('./components/Layout/Layout'))
+const Layout = lazy(() => import("./components/Layout/Layout"));
 
 // Pages
-const Login = lazy(() => import('./pages/Login'))
-const Register = lazy(() => import('./pages/Register'))
-const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
-const Dashboard = lazy(() => import('./pages/Dashboard'))
-const PaymentHistory = lazy(() => import('./pages/PaymentHistory'))
-const Instructions = lazy(() => import('./pages/Instructions'))
-const Profile = lazy(() => import('./pages/Profile'))
-const Support = lazy(() => import('./pages/Support'))
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
+const Instructions = lazy(() => import("./pages/Instructions"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Support = lazy(() => import("./pages/Support"));
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
-  <motion.div
-    initial="initial"
-    animate="animate"
-    exit="exit"
-    variants={pageVariants}
-    style={{ width: '100%', height: '100%' }}
-  >
-    {children}
-  </motion.div>
-)
+	<motion.div
+		initial="initial"
+		animate="animate"
+		exit="exit"
+		variants={pageVariants}
+		style={{ width: "100%", height: "100%" }}
+	>
+		{children}
+	</motion.div>
+);
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth()
+	const { isAuthenticated, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <CircularProgress />
-      </Box>
-    )
-  }
+	if (loading) {
+		return (
+			<Box
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				minHeight="100vh"
+			>
+				<CircularProgress />
+			</Box>
+		);
+	}
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
+	if (!isAuthenticated) {
+		return <Navigate to="/login" replace />;
+	}
 
-  return <>{children}</>
-}
+	return <>{children}</>;
+};
 
 function AppRoutes() {
-  const location = useLocation()
+	const location = useLocation();
 
-  return (
-    <AnimatePresence mode="wait">
-      <Suspense
-        fallback={
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-            <CircularProgress />
-          </Box>
-        }
-      >
-        <Routes location={location} key={location.pathname}>
-          <Route
-            path="/login"
-            element={
-              <PageWrapper>
-                <Login />
-              </PageWrapper>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PageWrapper>
-                <Register />
-              </PageWrapper>
-            }
-          />
-          <Route
-            path="/forgot-password"
-            element={
-              <PageWrapper>
-                <ForgotPassword />
-              </PageWrapper>
-            }
-          />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <Layout />
-              </PrivateRoute>
-            }
-          >
-            <Route
-              index
-              element={
-                <PageWrapper>
-                  <Dashboard />
-                </PageWrapper>
-              }
-            />
-            <Route
-              path="payment-history"
-              element={
-                <PageWrapper>
-                  <PaymentHistory />
-                </PageWrapper>
-              }
-            />
-            <Route
-              path="instructions"
-              element={
-                <PageWrapper>
-                  <Instructions />
-                </PageWrapper>
-              }
-            />
-            <Route
-              path="profile"
-              element={
-                <PageWrapper>
-                  <Profile />
-                </PageWrapper>
-              }
-            />
-            <Route
-              path="support"
-              element={
-                <PageWrapper>
-                  <Support />
-                </PageWrapper>
-              }
-            />
-          </Route>
-        </Routes>
-      </Suspense>
-    </AnimatePresence>
-  )
+	return (
+		<AnimatePresence mode="wait">
+			<Suspense
+				fallback={
+					<Box
+						display="flex"
+						justifyContent="center"
+						alignItems="center"
+						minHeight="100vh"
+					>
+						<CircularProgress />
+					</Box>
+				}
+			>
+				<Routes location={location} key={location.pathname}>
+					<Route
+						path="/login"
+						element={
+							<PageWrapper>
+								<Login />
+							</PageWrapper>
+						}
+					/>
+					<Route
+						path="/register"
+						element={
+							<PageWrapper>
+								<Register />
+							</PageWrapper>
+						}
+					/>
+					<Route
+						path="/forgot-password"
+						element={
+							<PageWrapper>
+								<ForgotPassword />
+							</PageWrapper>
+						}
+					/>
+					<Route
+						path="/"
+						element={
+							<PrivateRoute>
+								<Layout />
+							</PrivateRoute>
+						}
+					>
+						<Route
+							index
+							element={
+								<PageWrapper>
+									<Dashboard />
+								</PageWrapper>
+							}
+						/>
+						<Route
+							path="payment-history"
+							element={
+								<PageWrapper>
+									<PaymentHistory />
+								</PageWrapper>
+							}
+						/>
+						<Route
+							path="instructions"
+							element={
+								<PageWrapper>
+									<Instructions />
+								</PageWrapper>
+							}
+						/>
+						<Route
+							path="profile"
+							element={
+								<PageWrapper>
+									<Profile />
+								</PageWrapper>
+							}
+						/>
+						<Route
+							path="support"
+							element={
+								<PageWrapper>
+									<Support />
+								</PageWrapper>
+							}
+						/>
+					</Route>
+				</Routes>
+			</Suspense>
+		</AnimatePresence>
+	);
 }
 
 function App() {
-  return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
-  )
+	return (
+		<AuthProvider>
+			<AppRoutes />
+		</AuthProvider>
+	);
 }
 
-export default App
+export default App;

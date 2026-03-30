@@ -1,40 +1,40 @@
-export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED'
+export type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED";
 
 export interface Payment {
-  id: number
-  user_id: number
-  amount: number
-  payment_date: string
-  period_days: number
-  payment_method: string
-  notes: string | null
-  status: PaymentStatus
+	id: number;
+	user_id: number;
+	amount: number;
+	payment_date: string;
+	period_days: number;
+	payment_method: string;
+	notes: string | null;
+	status: PaymentStatus;
 }
 
 export interface PaymentListResponse {
-  payments: Payment[]
-  total: number
-  total_amount: number
-  limit: number
-  offset: number
+	payments: Payment[];
+	total: number;
+	total_amount: number;
+	limit: number;
+	offset: number;
 }
 
 export interface PaymentCreateRequest {
-  user_id: number
-  amount: number
-  period_days: number
-  payment_method?: string
-  notes?: string | null
+	user_id: number;
+	amount: number;
+	period_days: number;
+	payment_method?: string;
+	notes?: string | null;
 }
 
 export interface PaymentInitiationRequest {
-  connection_name?: string
-  server_name?: string
-  months: number
-  payment_method?: string
+	connection_name?: string;
+	server_name?: string;
+	months: number;
+	payment_method?: string;
 }
 
 export interface PaymentInitiationResponse {
-  payment_id: number
-  redirect_url: string
+	payment_id: number;
+	redirect_url: string;
 }

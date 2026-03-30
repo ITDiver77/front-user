@@ -9,11 +9,13 @@
 
 ## Core Features
 
-- **Authentication**: Register, login, password reset with JWT
+- **Authentication**: Register via Telegram bot, login with JWT
 - **Connection Management**: View VPN connections, copy config, change server
 - **Payments**: Pay for connection extension, view history
 - **Profile**: Update info, change password, link Telegram
 - **Instructions**: VPN setup guides for various OS
+- **Themes**: Multiple themes (Violet, Teal, Telegram, Light)
+- **Telegram Integration**: Native WebView support with @tma.js/sdk
 
 ## Tech Stack
 
@@ -79,8 +81,14 @@ Enable `VITE_MOCK_AUTH=true` for development without backend:
 4. Works in Telegram WebView
 5. Mobile responsive
 
+## Telegram Bot
+
+- **Bot**: @Myth_vpnbot
+- **Purpose**: User registration and authentication
+- **Flow**: Users register through Telegram bot, then access the panel
+
 ## Related Projects
 
 - [central_manager](../central_manager/) - Backend API
 - [front-admin](../front-admin/) - Admin dashboard
-- [tgvpnbot](../tgvpnbot/) - Telegram bot interface
+- [tgvpnbot](../tgvpnbot/) - Telegram bot (@Myth_vpnbot)

@@ -1,234 +1,255 @@
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { Add as AddIcon, Wifi as WifiIcon } from "@mui/icons-material";
 import {
-  Box,
-  Button,
-  CircularProgress,
-  Grid,
-  Typography,
-  Alert,
-  Paper,
-  FormControlLabel,
-  Switch,
-} from '@mui/material'
-import { Add as AddIcon, Wifi as WifiIcon } from '@mui/icons-material'
-import ConnectionCard from '../components/common/ConnectionCard'
-import NewConnectionModal from '../components/forms/NewConnectionModal'
-import ChangeServerModal from '../components/forms/ChangeServerModal'
-import PaymentInitiationModal from '../components/forms/PaymentInitiationModal'
-import { EmptyState } from '../components/common/EmptyState'
-import { connectionService } from '../services/connectionService'
-import { Connection } from '../types/connection'
-import { staggerContainer } from '../styles/animations'
+	Alert,
+	Box,
+	Button,
+	CircularProgress,
+	FormControlLabel,
+	Grid,
+	Paper,
+	Switch,
+	Typography,
+} from "@mui/material";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import ConnectionCard from "../components/common/ConnectionCard";
+import { EmptyState } from "../components/common/EmptyState";
+import ChangeServerModal from "../components/forms/ChangeServerModal";
+import NewConnectionModal from "../components/forms/NewConnectionModal";
+import PaymentInitiationModal from "../components/forms/PaymentInitiationModal";
+import { connectionService } from "../services/connectionService";
+import { staggerContainer } from "../styles/animations";
+import type { Connection } from "../types/connection";
 
 const Dashboard = () => {
-  const [connections, setConnections] = useState<Connection[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string>('')
-  const [showNewConnectionModal, setShowNewConnectionModal] = useState(false)
-  const [changeServerModalOpen, setChangeServerModalOpen] = useState(false)
-  const [selectedConnection, setSelectedConnection] = useState<Connection | null>(null)
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false)
-  const [paymentConnection, setPaymentConnection] = useState<Connection | null>(null)
-  const [showDeleted, setShowDeleted] = useState(false)
+	const [connections, setConnections] = useState<Connection[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string>("");
+	const [showNewConnectionModal, setShowNewConnectionModal] = useState(false);
+	const [changeServerModalOpen, setChangeServerModalOpen] = useState(false);
+	const [selectedConnection, setSelectedConnection] =
+		useState<Connection | null>(null);
+	const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+	const [paymentConnection, setPaymentConnection] = useState<Connection | null>(
+		null,
+	);
+	const [showDeleted, setShowDeleted] = useState(false);
 
-  const fetchConnections = async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const data = await connectionService.getMyConnections()
-      setConnections(data)
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch connections')
-    } finally {
-      setLoading(false)
-    }
-  }
+	const fetchConnections = async () => {
+		setLoading(true);
+		setError("");
+		try {
+			const data = await connectionService.getMyConnections();
+			setConnections(data);
+		} catch (err: any) {
+			setError(err.message || "Failed to fetch connections");
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  useEffect(() => {
-    fetchConnections()
-  }, [])
+	useEffect(() => {
+		fetchConnections();
+	}, []);
 
-  const handleToggleAutoRenew = async (connectionName: string, autoRenew: boolean) => {
-    try {
-      await connectionService.toggleAutoRenew(connectionName, autoRenew)
-      fetchConnections()
-    } catch (err) {
-      console.error('Failed to toggle auto-renew', err)
-    }
-  }
+	const handleToggleAutoRenew = async (
+		connectionName: string,
+		autoRenew: boolean,
+	) => {
+		try {
+			await connectionService.toggleAutoRenew(connectionName, autoRenew);
+			fetchConnections();
+		} catch (err) {
+			console.error("Failed to toggle auto-renew", err);
+		}
+	};
 
-  const handleToggleEnabled = async (connectionName: string, enabled: boolean) => {
-    try {
-      await connectionService.toggleEnabled(connectionName, enabled)
-      fetchConnections()
-    } catch (err) {
-      console.error('Failed to toggle enabled state', err)
-    }
-  }
+	const handleToggleEnabled = async (
+		connectionName: string,
+		enabled: boolean,
+	) => {
+		try {
+			await connectionService.toggleEnabled(connectionName, enabled);
+			fetchConnections();
+		} catch (err) {
+			console.error("Failed to toggle enabled state", err);
+		}
+	};
 
-  const handleCopyConfig = (connectionString: string) => {
-    console.log('Copy config:', connectionString)
-  }
+	const handleCopyConfig = (connectionString: string) => {
+		console.log("Copy config:", connectionString);
+	};
 
-  const handleExtend = (connectionName: string) => {
-    const conn = connections.find(c => c.connection_name === connectionName)
-    if (conn) {
-      setPaymentConnection(conn)
-      setPaymentModalOpen(true)
-    }
-  }
+	const handleExtend = (connectionName: string) => {
+		const conn = connections.find((c) => c.connection_name === connectionName);
+		if (conn) {
+			setPaymentConnection(conn);
+			setPaymentModalOpen(true);
+		}
+	};
 
-  const handleChangeServer = (connectionName: string) => {
-    const conn = connections.find(c => c.connection_name === connectionName)
-    if (conn) {
-      setSelectedConnection(conn)
-      setChangeServerModalOpen(true)
-    }
-  }
+	const handleChangeServer = (connectionName: string) => {
+		const conn = connections.find((c) => c.connection_name === connectionName);
+		if (conn) {
+			setSelectedConnection(conn);
+			setChangeServerModalOpen(true);
+		}
+	};
 
-  const handleServerChangeSuccess = () => {
-    fetchConnections()
-    setChangeServerModalOpen(false)
-    setSelectedConnection(null)
-  }
+	const handleServerChangeSuccess = () => {
+		fetchConnections();
+		setChangeServerModalOpen(false);
+		setSelectedConnection(null);
+	};
 
-  const handleCloseChangeServerModal = () => {
-    setChangeServerModalOpen(false)
-    setSelectedConnection(null)
-  }
+	const handleCloseChangeServerModal = () => {
+		setChangeServerModalOpen(false);
+		setSelectedConnection(null);
+	};
 
-  const handlePaymentSuccess = (paymentId: number) => {
-    fetchConnections()
-    setPaymentModalOpen(false)
-    setPaymentConnection(null)
-  }
+	const handlePaymentSuccess = (paymentId: number) => {
+		fetchConnections();
+		setPaymentModalOpen(false);
+		setPaymentConnection(null);
+	};
 
-  const handleClosePaymentModal = () => {
-    setPaymentModalOpen(false)
-    setPaymentConnection(null)
-  }
+	const handleClosePaymentModal = () => {
+		setPaymentModalOpen(false);
+		setPaymentConnection(null);
+	};
 
-  // Filter connections based on showDeleted toggle
-  const filteredConnections = showDeleted 
-    ? connections 
-    : connections.filter(c => !c.is_deleted)
+	// Filter connections based on showDeleted toggle
+	const filteredConnections = showDeleted
+		? connections
+		: connections.filter((c) => !c.is_deleted);
 
-  const deletedCount = connections.filter(c => c.is_deleted).length
+	const deletedCount = connections.filter((c) => c.is_deleted).length;
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <CircularProgress />
-      </Box>
-    )
-  }
+	if (loading) {
+		return (
+			<Box
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				minHeight="60vh"
+			>
+				<CircularProgress />
+			</Box>
+		);
+	}
 
-  return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">My Connections</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setShowNewConnectionModal(true)}
-        >
-          New Connection
-        </Button>
-      </Box>
+	return (
+		<Box>
+			<Box
+				sx={{
+					display: "flex",
+					justifyContent: "space-between",
+					alignItems: "center",
+					mb: 3,
+				}}
+			>
+				<Typography variant="h4">My Connections</Typography>
+				<Button
+					variant="contained"
+					startIcon={<AddIcon />}
+					onClick={() => setShowNewConnectionModal(true)}
+				>
+					New Connection
+				</Button>
+			</Box>
 
-      {deletedCount > 0 && (
-        <Box sx={{ mb: 2 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showDeleted}
-                onChange={(e) => setShowDeleted(e.target.checked)}
-              />
-            }
-            label={`Show deleted connections (${deletedCount})`}
-          />
-        </Box>
-      )}
+			{deletedCount > 0 && (
+				<Box sx={{ mb: 2 }}>
+					<FormControlLabel
+						control={
+							<Switch
+								checked={showDeleted}
+								onChange={(e) => setShowDeleted(e.target.checked)}
+							/>
+						}
+						label={`Show deleted connections (${deletedCount})`}
+					/>
+				</Box>
+			)}
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-      {filteredConnections.length === 0 ? (
-        <motion.div
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-        >
-          <EmptyState
-            icon={<WifiIcon />}
-            title={showDeleted ? 'No Connections Found' : 'No Connections Yet'}
-            description={
-              showDeleted
-                ? 'No connections match your filters.'
-                : 'Create your first VPN connection to get started.'
-            }
-            action={
-              !showDeleted && (
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={() => setShowNewConnectionModal(true)}
-                  sx={{ mt: 2 }}
-                >
-                  Create Connection
-                </Button>
-              )
-            }
-          />
-        </motion.div>
-      ) : (
-        <Grid container spacing={3}>
-          {filteredConnections.map((conn) => (
-            <Grid item key={conn.id} xs={12} sm={6} md={4}>
-              <ConnectionCard
-                connection={conn}
-                onToggleAutoRenew={handleToggleAutoRenew}
-                onCopyConfig={handleCopyConfig}
-                onExtend={handleExtend}
-                onChangeServer={handleChangeServer}
-                onToggleEnabled={handleToggleEnabled}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      )}
-      {showNewConnectionModal && (
-        <NewConnectionModal
-          open={showNewConnectionModal}
-          onClose={() => setShowNewConnectionModal(false)}
-          onCreate={fetchConnections}
-        />
-      )}
+			{error && (
+				<Alert severity="error" sx={{ mb: 2 }}>
+					{error}
+				</Alert>
+			)}
+			{filteredConnections.length === 0 ? (
+				<motion.div
+					variants={staggerContainer}
+					initial="initial"
+					animate="animate"
+				>
+					<EmptyState
+						icon={<WifiIcon />}
+						title={showDeleted ? "No Connections Found" : "No Connections Yet"}
+						description={
+							showDeleted
+								? "No connections match your filters."
+								: "Create your first VPN connection to get started."
+						}
+						action={
+							!showDeleted && (
+								<Button
+									variant="contained"
+									startIcon={<AddIcon />}
+									onClick={() => setShowNewConnectionModal(true)}
+									sx={{ mt: 2 }}
+								>
+									Create Connection
+								</Button>
+							)
+						}
+					/>
+				</motion.div>
+			) : (
+				<Grid container spacing={3}>
+					{filteredConnections.map((conn) => (
+						<Grid item key={conn.id} xs={12} sm={6} md={4}>
+							<ConnectionCard
+								connection={conn}
+								onToggleAutoRenew={handleToggleAutoRenew}
+								onCopyConfig={handleCopyConfig}
+								onExtend={handleExtend}
+								onChangeServer={handleChangeServer}
+								onToggleEnabled={handleToggleEnabled}
+							/>
+						</Grid>
+					))}
+				</Grid>
+			)}
+			{showNewConnectionModal && (
+				<NewConnectionModal
+					open={showNewConnectionModal}
+					onClose={() => setShowNewConnectionModal(false)}
+					onCreate={fetchConnections}
+				/>
+			)}
 
-      {changeServerModalOpen && selectedConnection && (
-        <ChangeServerModal
-          open={changeServerModalOpen}
-          onClose={handleCloseChangeServerModal}
-          connectionName={selectedConnection.connection_name}
-          currentServerName={selectedConnection.server_name}
-          onSuccess={handleServerChangeSuccess}
-        />
-      )}
+			{changeServerModalOpen && selectedConnection && (
+				<ChangeServerModal
+					open={changeServerModalOpen}
+					onClose={handleCloseChangeServerModal}
+					connectionName={selectedConnection.connection_name}
+					currentServerName={selectedConnection.server_name}
+					onSuccess={handleServerChangeSuccess}
+				/>
+			)}
 
-      {paymentModalOpen && paymentConnection && (
-        <PaymentInitiationModal
-          open={paymentModalOpen}
-          onClose={handleClosePaymentModal}
-          connectionName={paymentConnection.connection_name}
-          currentPrice={paymentConnection.price}
-          onSuccess={handlePaymentSuccess}
-        />
-      )}
-    </Box>
-  )
-}
+			{paymentModalOpen && paymentConnection && (
+				<PaymentInitiationModal
+					open={paymentModalOpen}
+					onClose={handleClosePaymentModal}
+					connectionName={paymentConnection.connection_name}
+					currentPrice={paymentConnection.price}
+					onSuccess={handlePaymentSuccess}
+				/>
+			)}
+		</Box>
+	);
+};
 
-export default Dashboard
+export default Dashboard;
