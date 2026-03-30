@@ -398,8 +398,8 @@ const Support = () => {
 			status: conversation.status,
 			created_at: conversation.created_at,
 			updated_at: conversation.updated_at,
-			last_message: conversation.messages[0]?.message || null,
-			last_message_at: conversation.messages[0]?.created_at || null,
+			last_message: conversation.messages?.[0]?.message || null,
+			last_message_at: conversation.messages?.[0]?.created_at || null,
 		};
 		setConversations((prev) => [listItem, ...prev]);
 		setSelectedConversation(conversation);
@@ -739,7 +739,7 @@ const Support = () => {
 													: "background.default",
 										}}
 									>
-										{selectedConversation.messages.map((message) =>
+										{(selectedConversation.messages || []).map((message) =>
 											renderMessage(message, !message.is_from_admin),
 										)}
 										<div ref={messagesEndRef} />
