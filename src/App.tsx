@@ -4,6 +4,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 // Context
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ConnectionStatusProvider } from "./contexts/ConnectionStatusContext";
 import { pageVariants } from "./styles/animations";
 
 // Layout
@@ -154,7 +155,9 @@ function AppRoutes() {
 function App() {
 	return (
 		<AuthProvider>
-			<AppRoutes />
+			<ConnectionStatusProvider enabled={true}>
+				<AppRoutes />
+			</ConnectionStatusProvider>
 		</AuthProvider>
 	);
 }

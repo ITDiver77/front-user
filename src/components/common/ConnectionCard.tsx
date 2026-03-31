@@ -2,7 +2,6 @@ import {
 	Check as CheckIcon,
 	ContentCopy as CopyIcon,
 	Payment as PaymentIcon,
-	Refresh as RefreshIcon,
 	Settings as SettingsIcon,
 	Wifi as WifiIcon,
 	WifiOff as WifiOffIcon,
@@ -22,7 +21,11 @@ import {
 } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { cardVariants, copySuccessVariants } from "../../styles/animations";
+import {
+	cardVariants,
+	copySuccessVariants,
+	pulseVariants,
+} from "../../styles/animations";
 import type { Connection } from "../../types/connection";
 import {
 	formatDate,
@@ -38,6 +41,8 @@ interface ConnectionCardProps {
 	onExtend: (connectionName: string) => void;
 	onChangeServer: (connectionName: string) => void;
 	onToggleEnabled: (connectionName: string, enabled: boolean) => void;
+	showStatusAnimation?: boolean;
+	onAnimationComplete?: () => void;
 }
 
 const ConnectionCard = ({
@@ -47,6 +52,8 @@ const ConnectionCard = ({
 	onExtend,
 	onChangeServer,
 	onToggleEnabled,
+	showStatusAnimation = false,
+	onAnimationComplete,
 }: ConnectionCardProps) => {
 	const [autoRenew, setAutoRenew] = useState(connection.auto_renew ?? false);
 	const [enabled, setEnabled] = useState(connection.enabled);
@@ -147,6 +154,13 @@ const ConnectionCard = ({
 												? `0 2px 8px ${theme.palette[statusColor]?.main}40`
 												: undefined,
 									}}
+									component={showStatusAnimation ? motion.div : "div"}
+									initial={showStatusAnimation ? "initial" : undefined}
+									animate={showStatusAnimation ? "pulse" : undefined}
+									variants={showStatusAnimation ? pulseVariants : undefined}
+									onAnimationComplete={
+										showStatusAnimation ? onAnimationComplete : undefined
+									}
 								/>
 							</motion.div>
 						</Box>

@@ -1,4 +1,4 @@
-import { Add as AddIcon, Wifi as WifiIcon } from "@mui/icons-material";
+import { Add as AddIcon, Sync as SyncIcon, Wifi as WifiIcon } from "@mui/icons-material";
 import {
 	Alert,
 	Box,
@@ -6,12 +6,13 @@ import {
 	CircularProgress,
 	FormControlLabel,
 	Grid,
-	Paper,
+	IconButton,
 	Switch,
+	Tooltip,
 	Typography,
 } from "@mui/material";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ConnectionCard from "../components/common/ConnectionCard";
 import { EmptyState } from "../components/common/EmptyState";
 import ChangeServerModal from "../components/forms/ChangeServerModal";
@@ -20,11 +21,21 @@ import PaymentInitiationModal from "../components/forms/PaymentInitiationModal";
 import { connectionService } from "../services/connectionService";
 import { staggerContainer } from "../styles/animations";
 import type { Connection } from "../types/connection";
+import { useConnectionStatusContext } from "../contexts/ConnectionStatusContext";
 
 const Dashboard = () => {
-	const [connections, setConnections] = useState<Connection[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string>("");
+	const {
+		connections,
+		loading: contextLoading,
+		error: contextError,
+		lastUpdated,
+		isActive,
+		setIsActive,
+		refresh,
+		isStatusChanged,
+		acknowledgeStatusChange,
+	} = useConnectionStatusContext();
+
 	const [showNewConnectionModal, setShowNewConnectionModal] = useState(false);
 	const [changeServerModalOpen, setChangeServerModalOpen] = useState(false);
 	const [selectedConnection, setSelectedConnection] =
@@ -34,23 +45,22 @@ const Dashboard = () => {
 		null,
 	);
 	const [showDeleted, setShowDeleted] = useState(false);
+	const [localError, setLocalError] = useState<string>("");
 
-	const fetchConnections = async () => {
-		setLoading(true);
-		setError("");
+	const loading = contextLoading;
+	const error = contextError || localError;
+
+	const fetchConnections = useCallback(async () => {
 		try {
-			const data = await connectionService.getMyConnections();
-			setConnections(data);
+			await refresh();
 		} catch (err: any) {
-			setError(err.message || "Failed to fetch connections");
-		} finally {
-			setLoading(false);
+			setLocalError(err.message || "Failed to fetch connections");
 		}
-	};
+	}, [refresh]);
 
 	useEffect(() => {
 		fetchConnections();
-	}, []);
+	}, [fetchConnections]);
 
 	const handleToggleAutoRenew = async (
 		connectionName: string,
@@ -146,16 +156,50 @@ const Dashboard = () => {
 					justifyContent: "space-between",
 					alignItems: "center",
 					mb: 3,
+					flexWrap: "wrap",
+					gap: 2,
 				}}
 			>
 				<Typography variant="h4">My Connections</Typography>
-				<Button
-					variant="contained"
-					startIcon={<AddIcon />}
-					onClick={() => setShowNewConnectionModal(true)}
-				>
-					New Connection
-				</Button>
+				<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+					{lastUpdated && (
+						<Typography variant="caption" color="text.secondary">
+							Updated: {lastUpdated.toLocaleTimeString()}
+						</Typography>
+					)}
+					<Tooltip title={isActive ? "Disable auto-refresh" : "Enable auto-refresh"}>
+						<FormControlLabel
+							control={
+								<Switch
+									checked={isActive}
+									onChange={(e) => setIsActive(e.target.checked)}
+									size="small"
+									color="success"
+								/>
+							}
+							label={isActive ? "Live" : "Paused"}
+							sx={{ mr: 1 }}
+						/>
+					</Tooltip>
+					<Tooltip title="Refresh now">
+						<IconButton
+							onClick={() => refresh()}
+							size="small"
+							component={motion.button}
+							whileHover={{ rotate: 180 }}
+							transition={{ duration: 0.3 }}
+						>
+							<SyncIcon fontSize="small" />
+						</IconButton>
+					</Tooltip>
+					<Button
+						variant="contained"
+						startIcon={<AddIcon />}
+						onClick={() => setShowNewConnectionModal(true)}
+					>
+						New Connection
+					</Button>
+				</Box>
 			</Box>
 
 			{deletedCount > 0 && (
@@ -216,6 +260,10 @@ const Dashboard = () => {
 								onExtend={handleExtend}
 								onChangeServer={handleChangeServer}
 								onToggleEnabled={handleToggleEnabled}
+								showStatusAnimation={isStatusChanged(conn.connection_name)}
+								onAnimationComplete={() =>
+									acknowledgeStatusChange(conn.connection_name)
+								}
 							/>
 						</Grid>
 					))}

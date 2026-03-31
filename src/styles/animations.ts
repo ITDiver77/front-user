@@ -262,6 +262,39 @@ export const skeletonVariants: Variants = {
 	},
 };
 
+export const statusChangeVariants: Variants = {
+	initial: {
+		scale: 1,
+		boxShadow: "0 0 0 0 rgba(76, 175, 80, 0)",
+	},
+	active: {
+		scale: [1, 1.02, 1],
+		boxShadow: [
+			"0 0 0 0 rgba(76, 175, 80, 0)",
+			"0 0 0 8px rgba(76, 175, 80, 0.3)",
+			"0 0 0 0 rgba(76, 175, 80, 0)",
+		],
+		transition: {
+			duration: 0.6,
+			times: [0, 0.4, 1],
+		},
+	},
+};
+
+export const pulseVariants: Variants = {
+	initial: {
+		opacity: 1,
+	},
+	pulse: {
+		opacity: [1, 0.6, 1],
+		transition: {
+			duration: 1.5,
+			repeat: Infinity,
+			ease: "easeInOut",
+		},
+	},
+};
+
 export const transition = {
 	fast: { duration: 0.15, ease: "easeOut" },
 	normal: { duration: 0.25, ease: "easeOut" },
