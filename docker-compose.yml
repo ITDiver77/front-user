@@ -1,0 +1,40 @@
+# Front-User Portal
+# Usage: docker compose up -d
+# Part of master compose via `include`
+
+services:
+  front-user:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL:-/api/v1}
+        - VITE_PAYMENT_SUCCESS_URL=${VITE_PAYMENT_SUCCESS_URL:-https://portal.mythicuser.cloudns.nz/payment/success}
+        - VITE_PAYMENT_FAIL_URL=${VITE_PAYMENT_FAIL_URL:-https://portal.mythicuser.cloudns.nz/payment/fail}
+        - VITE_APP_TITLE=${VITE_APP_TITLE:-VPN User Panel}
+        - VITE_MOCK_AUTH=${VITE_MOCK_AUTH:-false}
+    container_name: vpn_front_user
+    restart: unless-stopped
+    ports:
+      - "9556:80"
+    environment:
+      - TZ=${TZ:-Europe/Moscow}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "-q", "http://localhost:80/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - vpn_network
+    depends_on:
+      - central_manager
+
+networks:
+  vpn_network:
+    name: vpn_network
+    external: true

@@ -413,9 +413,16 @@ const Layout = () => {
 			{isMobile && <Box sx={{ height: 56 }} />}
 			<Box
 				component="footer"
-				sx={{ py: 2, px: 3, backgroundColor: "grey.100", textAlign: "center" }}
+				sx={{
+					py: 2,
+					px: 3,
+					textAlign: "center",
+					backgroundColor: theme.palette.background.default,
+					color: theme.palette.text.secondary,
+					borderTop: `1px solid ${theme.palette.divider}`,
+				}}
 			>
-				<Typography variant="body2" color="textSecondary">
+				<Typography variant="body2" color="inherit">
 					© {new Date().getFullYear()} VPN Service
 				</Typography>
 			</Box>

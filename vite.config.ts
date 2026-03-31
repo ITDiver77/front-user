@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
 		server: {
 			port: 9556,
 			host: true,
-			origin: "https://front-user.mythicuser.cloudns.nz:9443",
+			origin: "https://front-user.mythicuser.cloudns.nz",
 			allowedHosts: [
 				"front-user.mythicuser.cloudns.nz",
 				"devel.mythicuser.cloudns.nz",

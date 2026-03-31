@@ -6,6 +6,17 @@ export { violetTheme } from "./themes/violet";
 export { darkBlueTheme } from "./themes/darkBlue";
 export { darkPurpleTheme } from "./themes/darkPurple";
 export { darkTealTheme } from "./themes/darkTeal";
+export { amberGoldTheme } from "./themes/amberGold";
+export { greenMintTheme } from "./themes/greenMint";
+export { rosePinkTheme } from "./themes/rosePink";
+export { indigoSlateTheme } from "./themes/indigoSlate";
+export { orangeDeepTheme } from "./themes/orangeDeep";
+export { cyanBlueTheme } from "./themes/cyanBlue";
+export { redCrimsonTheme } from "./themes/redCrimson";
+export { limeGreenTheme } from "./themes/limeGreen";
+export { brownCoffeeTheme } from "./themes/brownCoffee";
+export { pinkPurpleTheme } from "./themes/pinkPurple";
+export { greySteelTheme } from "./themes/greySteel";
 
 export { ThemeContext, useTheme, CustomThemeProvider } from "./ThemeContext";
 export type { ThemeName, ThemeMode, ThemeConfig, ThemeContextType, TelegramThemeParams } from "./types";

@@ -131,7 +131,7 @@ export const cuteTransitions = {
 	slow: "0.5s ease",
 };
 
-export type ThemeName = "violet" | "teal" | "telegram" | "light" | "dark" | "darkBlue" | "darkPurple" | "darkTeal";
+export type ThemeName = "violet" | "teal" | "telegram" | "light" | "dark" | "darkBlue" | "darkPurple" | "darkTeal" | "amberGold" | "greenMint" | "rosePink" | "indigoSlate" | "orangeDeep" | "cyanBlue" | "redCrimson" | "limeGreen" | "brownCoffee" | "pinkPurple" | "greySteel";
 
 export type ThemeMode = "light" | "dark" | "system";
 
@@ -172,6 +172,61 @@ export const availableThemes: ThemeConfig[] = [
 		name: "darkTeal",
 		label: "Dark Teal",
 		description: "Dark theme with teal accent",
+	},
+	{
+		name: "amberGold",
+		label: "Amber Gold",
+		description: "Dark theme with warm amber accent",
+	},
+	{
+		name: "greenMint",
+		label: "Green Mint",
+		description: "Dark theme with fresh mint accent",
+	},
+	{
+		name: "rosePink",
+		label: "Rose Pink",
+		description: "Light theme with soft pink accent",
+	},
+	{
+		name: "indigoSlate",
+		label: "Indigo Slate",
+		description: "Dark theme with indigo blue accent",
+	},
+	{
+		name: "orangeDeep",
+		label: "Orange Deep",
+		description: "Dark theme with vibrant orange accent",
+	},
+	{
+		name: "cyanBlue",
+		label: "Cyan Blue",
+		description: "Dark theme with cyan accent",
+	},
+	{
+		name: "redCrimson",
+		label: "Red Crimson",
+		description: "Dark theme with bold red accent",
+	},
+	{
+		name: "limeGreen",
+		label: "Lime Green",
+		description: "Light theme with lime green accent",
+	},
+	{
+		name: "brownCoffee",
+		label: "Brown Coffee",
+		description: "Dark theme with warm brown accent",
+	},
+	{
+		name: "pinkPurple",
+		label: "Pink Purple",
+		description: "Dark theme with pink-purple accent",
+	},
+	{
+		name: "greySteel",
+		label: "Grey Steel",
+		description: "Dark theme with grey metallic accent",
 	},
 ];
 
