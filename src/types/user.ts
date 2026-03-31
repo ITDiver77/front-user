@@ -41,3 +41,17 @@ export interface RegistrationStatusResponse {
 	connection_name?: string;
 	connection_string?: string;
 }
+
+export interface EmailRegisterStartResponse {
+	message: string;
+	email: string;
+}
+
+export interface EmailVerificationResponse {
+	success: boolean;
+	username: string;
+	access_token?: string;
+	temp_password?: string;
+	connection_name?: string;
+	connection_string?: string;
+}

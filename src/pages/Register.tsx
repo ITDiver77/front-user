@@ -25,10 +25,16 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import {
+	Link as RouterLink,
+	useNavigate,
+	useSearchParams,
+} from "react-router-dom";
 import { z } from "zod";
 import { authService } from "../services/authService";
 import type {
+	EmailRegisterStartResponse,
+	EmailVerificationResponse,
 	RegisterStartResponse,
 	RegistrationStatusResponse,
 } from "../types/user";
@@ -42,6 +48,27 @@ const usernameSchema = z.object({
 });
 
 type UsernameFormData = z.infer<typeof usernameSchema>;
+
+// Email registration schema (username + email)
+const emailSchema = z.object({
+	username: z
+		.string()
+		.min(3, "Username must be at least 3 characters")
+		.max(50, "Username must be less than 50 characters"),
+	email: z.string().email("Please enter a valid email address"),
+});
+
+type EmailFormData = z.infer<typeof emailSchema>;
+
+// Verification code schema (4 digits)
+const verifyCodeSchema = z.object({
+	code: z
+		.string()
+		.length(4, "Code must be 4 digits")
+		.regex(/^\d{4}$/, "Code must be 4 digits"),
+});
+
+type VerifyCodeFormData = z.infer<typeof verifyCodeSchema>;
 
 // Password registration schema (without Telegram)
 const passwordSchema = z
@@ -81,13 +108,17 @@ interface SiteRegisterResponse {
 const Register = () => {
 	const navigate = useNavigate();
 	const [registrationMethod, setRegistrationMethod] = useState<
-		"telegram" | "site"
+		"telegram" | "email" | "site"
 	>("telegram");
-	const [step, setStep] = useState<"username" | "telegram">("username");
+	const [step, setStep] = useState<
+		"username" | "telegram" | "email" | "verifycode"
+	>("username");
 	const [error, setError] = useState<string>("");
 	const [loading, setLoading] = useState(false);
 	const [registerResponse, setRegisterResponse] =
 		useState<RegisterStartResponse | null>(null);
+	const [emailRegisterResponse, setEmailRegisterResponse] =
+		useState<EmailRegisterStartResponse | null>(null);
 	const [siteRegisterResponse, setSiteRegisterResponse] =
 		useState<SiteRegisterResponse | null>(null);
 	const [showPassword, setShowPassword] = useState(false);
@@ -97,6 +128,8 @@ const Register = () => {
 	>("pending");
 	const [telegramCredentials, setTelegramCredentials] =
 		useState<RegistrationStatusResponse | null>(null);
+	const [emailVerificationResult, setEmailVerificationResult] =
+		useState<EmailVerificationResponse | null>(null);
 
 	const {
 		register: registerPasswordForm,
@@ -154,6 +187,28 @@ const Register = () => {
 		}
 	}, [pollingStatus, telegramCredentials, navigate]);
 
+	// Check for email verification token in URL on mount
+	const [searchParams] = useSearchParams();
+	useEffect(() => {
+		const verifyToken = searchParams.get("verify");
+		if (verifyToken) {
+			setLoading(true);
+			authService
+				.verifyEmailLink(verifyToken)
+				.then((result) => {
+					setEmailVerificationResult(result);
+				})
+				.catch((err: unknown) => {
+					const errorMessage =
+						err instanceof Error ? err.message : "Email verification failed";
+					setError(errorMessage);
+				})
+				.finally(() => {
+					setLoading(false);
+				});
+		}
+	}, [searchParams]);
+
 	const {
 		register,
 		handleSubmit,
@@ -162,6 +217,29 @@ const Register = () => {
 		resolver: zodResolver(usernameSchema),
 		defaultValues: {
 			username: "",
+		},
+	});
+
+	const {
+		register: registerEmailForm,
+		handleSubmit: handleEmailSubmit,
+		formState: { errors: emailErrors },
+	} = useForm<EmailFormData>({
+		resolver: zodResolver(emailSchema),
+		defaultValues: {
+			username: "",
+			email: "",
+		},
+	});
+
+	const {
+		register: registerVerifyCodeForm,
+		handleSubmit: handleVerifyCodeSubmit,
+		formState: { errors: verifyCodeErrors },
+	} = useForm<VerifyCodeFormData>({
+		resolver: zodResolver(verifyCodeSchema),
+		defaultValues: {
+			code: "",
 		},
 	});
 
@@ -207,9 +285,45 @@ const Register = () => {
 		}
 	};
 
+	const onSubmitEmail = async (data: EmailFormData) => {
+		setError("");
+		setLoading(true);
+		try {
+			const response = await authService.startEmailRegistration({
+				username: data.username,
+				email: data.email,
+			});
+			setEmailRegisterResponse(response);
+			setStep("verifycode");
+		} catch (err: unknown) {
+			const errorMessage =
+				err instanceof Error
+					? err.message
+					: "Failed to start email registration";
+			setError(errorMessage);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const onSubmitVerifyCode = async (data: VerifyCodeFormData) => {
+		setError("");
+		setLoading(true);
+		try {
+			const response = await authService.verifyEmailCode(data.code);
+			setEmailVerificationResult(response);
+		} catch (err: unknown) {
+			const errorMessage =
+				err instanceof Error ? err.message : "Verification failed";
+			setError(errorMessage);
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	const handleMethodChange = (
 		_: React.MouseEvent<HTMLElement>,
-		newMethod: "telegram" | "site" | null,
+		newMethod: "telegram" | "email" | "site" | null,
 	) => {
 		if (newMethod !== null) {
 			setRegistrationMethod(newMethod);
@@ -224,6 +338,14 @@ const Register = () => {
 			navigate("/");
 		}
 	}, [siteRegisterResponse, navigate]);
+
+	// Auto-login and redirect for email verification
+	useEffect(() => {
+		if (emailVerificationResult?.access_token) {
+			localStorage.setItem("token", emailVerificationResult.access_token);
+			navigate("/");
+		}
+	}, [emailVerificationResult, navigate]);
 
 	// Success page for site registration
 	if (siteRegisterResponse) {
@@ -253,6 +375,178 @@ const Register = () => {
 						<Typography variant="body2" color="textSecondary">
 							Setting up your account and logging you in.
 						</Typography>
+					</Paper>
+				</Box>
+			</Container>
+		);
+	}
+
+	// Success page for email verification
+	if (
+		emailVerificationResult?.success &&
+		!emailVerificationResult?.access_token
+	) {
+		return (
+			<Container component="main" maxWidth="sm">
+				<Box
+					sx={{
+						marginTop: 8,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
+					<Paper
+						sx={{
+							p: 4,
+							width: "100%",
+							textAlign: "center",
+							background: "linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)",
+							borderRadius: 3,
+						}}
+					>
+						<CheckCircle sx={{ fontSize: 48, color: "#4caf50", mb: 2 }} />
+						<Typography component="h1" variant="h5" gutterBottom>
+							Email Verified!
+						</Typography>
+						<Typography variant="body2" color="textSecondary" paragraph>
+							Your email has been verified successfully.
+						</Typography>
+						{emailVerificationResult.temp_password && (
+							<Box
+								sx={{
+									mt: 2,
+									textAlign: "left",
+									backgroundColor: "#fff",
+									p: 2,
+									borderRadius: 2,
+								}}
+							>
+								<Typography variant="subtitle2" gutterBottom>
+									Your temporary credentials:
+								</Typography>
+								<Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+									Username: {emailVerificationResult.username}
+								</Typography>
+								<Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+									Password: {emailVerificationResult.temp_password}
+								</Typography>
+							</Box>
+						)}
+						<Button
+							component={RouterLink}
+							to="/login"
+							variant="contained"
+							fullWidth
+							sx={{ mt: 3, borderRadius: 2 }}
+						>
+							Go to Login
+						</Button>
+					</Paper>
+				</Box>
+			</Container>
+		);
+	}
+
+	// Step: Email verification code entry
+	if (step === "verifycode" && emailRegisterResponse) {
+		return (
+			<Container component="main" maxWidth="sm">
+				<Box
+					sx={{
+						marginTop: 8,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
+					<Typography component="h1" variant="h5" gutterBottom>
+						Verify Your Email
+					</Typography>
+
+					<Alert severity="success" sx={{ mb: 3, width: "100%" }}>
+						Code sent to {emailRegisterResponse.email}
+					</Alert>
+
+					<Paper sx={{ p: 3, width: "100%", borderRadius: 3 }}>
+						<Box sx={{ textAlign: "center", mb: 3 }}>
+							<EmailIcon sx={{ fontSize: 48, color: "#e65100", mb: 2 }} />
+							<Typography variant="h6" gutterBottom>
+								Enter Verification Code
+							</Typography>
+							<Typography variant="body2" color="textSecondary" paragraph>
+								Enter the 4-digit code we sent to your email. You can also click
+								the verification link in your email.
+							</Typography>
+						</Box>
+
+						<Box
+							component="form"
+							onSubmit={handleVerifyCodeSubmit(onSubmitVerifyCode)}
+						>
+							{error && (
+								<Alert severity="error" sx={{ mb: 2 }}>
+									{error}
+								</Alert>
+							)}
+
+							<TextField
+								margin="normal"
+								required
+								fullWidth
+								id="code"
+								label="4-Digit Code"
+								autoComplete="one-time-code"
+								autoFocus
+								inputProps={{
+									maxLength: 4,
+									inputMode: "numeric",
+									pattern: "[0-9]*",
+								}}
+								{...registerVerifyCodeForm("code")}
+								error={!!verifyCodeErrors.code}
+								helperText={verifyCodeErrors.code?.message}
+								sx={{
+									textAlign: "center",
+									"& .MuiInputBase-input": {
+										textAlign: "center",
+										letterSpacing: "0.5em",
+									},
+								}}
+							/>
+
+							<Button
+								type="submit"
+								fullWidth
+								variant="contained"
+								sx={{
+									mt: 3,
+									mb: 2,
+									borderRadius: 2,
+									backgroundColor: "#e65100",
+								}}
+								disabled={loading}
+							>
+								{loading ? <CircularProgress size={24} /> : "Verify Code"}
+							</Button>
+						</Box>
+
+						<Divider sx={{ my: 2 }} />
+
+						<Typography variant="body2" color="textSecondary" paragraph>
+							Didn't receive the email? Check your spam folder or try
+							registering again with a different email.
+						</Typography>
+
+						<Button
+							component={RouterLink}
+							to="/register"
+							variant="outlined"
+							fullWidth
+							sx={{ borderRadius: 2 }}
+						>
+							Start Over
+						</Button>
 					</Paper>
 				</Box>
 			</Container>
@@ -440,6 +734,23 @@ const Register = () => {
 						Telegram
 					</ToggleButton>
 					<ToggleButton
+						value="email"
+						sx={{
+							px: 3,
+							borderRadius: "20px !important",
+							"&.Mui-selected": {
+								backgroundColor: "#fff3e0",
+								color: "#e65100",
+								"&:hover": {
+									backgroundColor: "#ffe0b2",
+								},
+							},
+						}}
+					>
+						<EmailIcon sx={{ mr: 1 }} />
+						Email
+					</ToggleButton>
+					<ToggleButton
 						value="site"
 						sx={{
 							px: 3,
@@ -453,8 +764,7 @@ const Register = () => {
 							},
 						}}
 					>
-						<EmailIcon sx={{ mr: 1 }} />
-						Without Telegram
+						Password
 					</ToggleButton>
 				</ToggleButtonGroup>
 
@@ -498,6 +808,67 @@ const Register = () => {
 								<CircularProgress size={24} />
 							) : (
 								"Continue with Telegram"
+							)}
+						</Button>
+
+						<Box sx={{ textAlign: "center" }}>
+							<Link component={RouterLink} to="/login" variant="body2">
+								Already have an account? Sign In
+							</Link>
+						</Box>
+					</Box>
+				) : registrationMethod === "email" ? (
+					<Box
+						component="form"
+						onSubmit={handleEmailSubmit(onSubmitEmail)}
+						sx={{ mt: 1, width: "100%" }}
+					>
+						{error && (
+							<Alert severity="error" sx={{ mb: 2 }}>
+								{error}
+							</Alert>
+						)}
+
+						<Alert severity="info" sx={{ mb: 2 }}>
+							Enter your username and email to receive a verification code.
+						</Alert>
+
+						<TextField
+							margin="normal"
+							required
+							fullWidth
+							id="username"
+							label="Username"
+							autoComplete="username"
+							autoFocus
+							{...registerEmailForm("username")}
+							error={!!emailErrors.username}
+							helperText={emailErrors.username?.message}
+						/>
+
+						<TextField
+							margin="normal"
+							required
+							fullWidth
+							id="email"
+							label="Email Address"
+							autoComplete="email"
+							{...registerEmailForm("email")}
+							error={!!emailErrors.email}
+							helperText={emailErrors.email?.message}
+						/>
+
+						<Button
+							type="submit"
+							fullWidth
+							variant="contained"
+							sx={{ mt: 3, mb: 2, borderRadius: 2, backgroundColor: "#e65100" }}
+							disabled={loading}
+						>
+							{loading ? (
+								<CircularProgress size={24} />
+							) : (
+								"Send Verification Code"
 							)}
 						</Button>
 

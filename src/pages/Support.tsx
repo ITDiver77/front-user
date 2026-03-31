@@ -341,6 +341,9 @@ const Support = () => {
 		try {
 			const conversation = await supportService.getConversation(id);
 			setSelectedConversation(conversation);
+			setConversations((prev) =>
+				prev.map((c) => (c.id === id ? { ...c, has_unread_answers: false } : c))
+			);
 		} catch (err: any) {
 			console.error("Failed to load conversation:", err);
 			setError(err?.message || "Failed to load conversation");
@@ -601,7 +604,7 @@ const Support = () => {
 															variant="dot"
 															invisible={!conv.has_unread_answers}
 														>
-															<Avatar sx={{ bgcolor: conv.has_unread_answers ? "success.main" : "grey.500" }}>
+															<Avatar sx={{ bgcolor: conv.status === "closed" ? "grey.500" : conv.has_unread_answers ? "success.main" : "primary.main" }}>
 																<SupportAgentIcon />
 															</Avatar>
 														</Badge>

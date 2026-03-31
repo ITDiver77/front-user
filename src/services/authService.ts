@@ -1,4 +1,6 @@
 import type {
+	EmailRegisterStartResponse,
+	EmailVerificationResponse,
 	RegisterStartResponse,
 	RegistrationStatusResponse,
 	TelegramRegisterResponse,
@@ -12,6 +14,15 @@ export interface LoginRequest {
 
 export interface RegisterStartRequest {
 	username: string;
+}
+
+export interface EmailRegisterStartRequest {
+	username: string;
+	email: string;
+}
+
+export interface EmailVerifyCodeRequest {
+	code: string;
 }
 
 export interface RegisterRequest {
@@ -92,6 +103,61 @@ export const authService = {
 			return response.data;
 		} catch (error: any) {
 			throw new Error(error.message || "Registration failed");
+		}
+	},
+
+	/**
+	 * Start email registration flow - sends verification code to email
+	 * @param data Username and email for registration
+	 * @returns Confirmation message
+	 * @throws {Error} On network or API error with descriptive message
+	 */
+	async startEmailRegistration(
+		data: EmailRegisterStartRequest,
+	): Promise<EmailRegisterStartResponse> {
+		try {
+			const response = await api.post<EmailRegisterStartResponse>(
+				"/auth/register/start/email",
+				data,
+			);
+			return response.data;
+		} catch (error: any) {
+			throw new Error(error.message || "Email registration start failed");
+		}
+	},
+
+	/**
+	 * Verify email registration with 4-digit code
+	 * @param code 4-digit verification code
+	 * @returns Verification result with credentials if successful
+	 * @throws {Error} On network or API error with descriptive message
+	 */
+	async verifyEmailCode(code: string): Promise<EmailVerificationResponse> {
+		try {
+			const response = await api.post<EmailVerificationResponse>(
+				"/auth/register/verify/code",
+				{ code },
+			);
+			return response.data;
+		} catch (error: any) {
+			throw new Error(error.message || "Email verification failed");
+		}
+	},
+
+	/**
+	 * Verify email registration with token from email link
+	 * @param token Verification token from email link
+	 * @returns Verification result with credentials if successful
+	 * @throws {Error} On network or API error with descriptive message
+	 */
+	async verifyEmailLink(token: string): Promise<EmailVerificationResponse> {
+		try {
+			const response = await api.get<EmailVerificationResponse>(
+				`/auth/register/verify/${token}`,
+			);
+			return response.data;
+		} catch (error: any) {
+			throw new Error(error.message || "Email verification failed");
 		}
 	},
 
