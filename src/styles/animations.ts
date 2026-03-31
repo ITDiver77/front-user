@@ -293,6 +293,9 @@ export const pulseVariants: Variants = {
 			ease: "easeInOut",
 		},
 	},
+	exit: {
+		opacity: 1,
+	},
 };
 
 export const transition = {

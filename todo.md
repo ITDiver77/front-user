@@ -29,9 +29,31 @@ Current tasks, planned features, and deferred work.
 
 ## Medium Priority
 
-- [ ] Payment history with filtering
-- [ ] Push notifications for payment reminders
-- [ ] Connection status real-time updates
+- [x] Payment history with filtering
+- [x] Push notifications for payment reminders
+- [x] Connection status real-time updates
+
+### Registration Flow Fix
+- [x] Implement seamless registration between frontend and bot
+- [x] Backend: Add registration status polling endpoint
+- [x] Frontend: Add polling for Telegram verification
+- [x] Frontend: Auto-login after site registration
+- [x] Frontend: Auto-login after Telegram verification
+- [ ] Test registration flow end-to-end
+
+### Conversation Visibility
+- [x] Backend: Add user_viewed_at field for unread tracking
+- [x] Backend: Calculate has_unread_answers in list_my_conversations
+- [x] Frontend: Green dot indicator for unread answers
+- [x] Frontend: Remove green dot when conversation is viewed
+- [x] Fix dark theme conversation sidebar styling
+
+### Theme System
+- [x] Add darkBlue dark theme
+- [x] Add darkPurple dark theme
+- [x] Add darkTeal dark theme
+- [x] Remove "Classic Light" theme (too similar to Telegram)
+- [x] Update ThemeSelector to show only dark themes
 
 ## Low Priority / Backlog
 

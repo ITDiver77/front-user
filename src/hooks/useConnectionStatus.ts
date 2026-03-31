@@ -40,6 +40,7 @@ export function useConnectionStatus(
 	const intervalRef = useRef<NodeJS.Timeout | null>(null);
 	const retryCountRef = useRef(0);
 	const maxRetries = 5;
+	const isActiveRef = useRef(true);
 
 	const fetchConnections = useCallback(async () => {
 		try {
@@ -92,11 +93,13 @@ export function useConnectionStatus(
 	useEffect(() => {
 		if (!enabled) {
 			if (intervalRef.current) {
-				clearInterval(intervalRef.current);
+				clearTimeout(intervalRef.current);
 				intervalRef.current = null;
 			}
 			return;
 		}
+
+		isActiveRef.current = true;
 
 		const startPolling = async () => {
 			setLoading(true);
@@ -107,8 +110,10 @@ export function useConnectionStatus(
 		startPolling();
 
 		const scheduleNextFetch = () => {
+			if (!isActiveRef.current) return;
 			const interval = calculateInterval();
 			intervalRef.current = setTimeout(async () => {
+				if (!isActiveRef.current) return;
 				await fetchConnections();
 				scheduleNextFetch();
 			}, interval);
@@ -117,6 +122,7 @@ export function useConnectionStatus(
 		scheduleNextFetch();
 
 		return () => {
+			isActiveRef.current = false;
 			if (intervalRef.current) {
 				clearTimeout(intervalRef.current);
 				intervalRef.current = null;
