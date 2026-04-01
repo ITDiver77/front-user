@@ -19,6 +19,7 @@ import ChangeServerModal from "../components/forms/ChangeServerModal";
 import NewConnectionModal from "../components/forms/NewConnectionModal";
 import PaymentInitiationModal from "../components/forms/PaymentInitiationModal";
 import { connectionService } from "../services/connectionService";
+import { paymentService } from "../services/paymentService";
 import { staggerContainer } from "../styles/animations";
 import type { Connection } from "../types/connection";
 import { useConnectionStatusContext } from "../contexts/ConnectionStatusContext";
@@ -46,6 +47,8 @@ const Dashboard = () => {
 	);
 	const [showDeleted, setShowDeleted] = useState(false);
 	const [localError, setLocalError] = useState<string>("");
+	const [hasPaidConnections, setHasPaidConnections] = useState<boolean | null>(null);
+	const [showNoPaidWarning, setShowNoPaidWarning] = useState(false);
 
 	const loading = contextLoading;
 	const error = contextError || localError;
@@ -58,9 +61,24 @@ const Dashboard = () => {
 		}
 	}, [refresh]);
 
+	const checkHasPaidConnections = useCallback(async () => {
+		try {
+			const response = await paymentService.getMyPayments(100, 0);
+			const hasPaid = response.payments.some((p) => p.status === "COMPLETED");
+			setHasPaidConnections(hasPaid);
+		} catch (err) {
+			console.error("Failed to check payment history", err);
+			setHasPaidConnections(false);
+		}
+	}, []);
+
 	useEffect(() => {
 		fetchConnections();
 	}, [fetchConnections]);
+
+	useEffect(() => {
+		checkHasPaidConnections();
+	}, [checkHasPaidConnections]);
 
 	const handleToggleAutoRenew = async (
 		connectionName: string,
@@ -117,7 +135,7 @@ const Dashboard = () => {
 		setSelectedConnection(null);
 	};
 
-	const handlePaymentSuccess = (paymentId: number) => {
+	const handlePaymentSuccess = (_paymentId: number) => {
 		fetchConnections();
 		setPaymentModalOpen(false);
 		setPaymentConnection(null);
@@ -126,6 +144,17 @@ const Dashboard = () => {
 	const handleClosePaymentModal = () => {
 		setPaymentModalOpen(false);
 		setPaymentConnection(null);
+	};
+
+	const handleOpenNewConnectionModal = () => {
+		if (hasPaidConnections === null) {
+			return;
+		}
+		if (!hasPaidConnections) {
+			setShowNoPaidWarning(true);
+			return;
+		}
+		setShowNewConnectionModal(true);
 	};
 
 	// Filter connections based on showDeleted toggle
@@ -195,7 +224,7 @@ const Dashboard = () => {
 					<Button
 						variant="contained"
 						startIcon={<AddIcon />}
-						onClick={() => setShowNewConnectionModal(true)}
+						onClick={handleOpenNewConnectionModal}
 					>
 						New Connection
 					</Button>
@@ -221,6 +250,16 @@ const Dashboard = () => {
 					{error}
 				</Alert>
 			)}
+
+			{showNoPaidWarning && (
+				<Alert
+					severity="warning"
+					sx={{ mb: 2 }}
+					onClose={() => setShowNoPaidWarning(false)}
+				>
+					Для использования «Обещанного платежа» необходимо сначала совершить оплату. Пожалуйста, оплатите существующее подключение или подождите, пока оно станет активным.
+				</Alert>
+			)}
 			{filteredConnections.length === 0 ? (
 				<motion.div
 					variants={staggerContainer}
@@ -240,7 +279,7 @@ const Dashboard = () => {
 								<Button
 									variant="contained"
 									startIcon={<AddIcon />}
-									onClick={() => setShowNewConnectionModal(true)}
+									onClick={handleOpenNewConnectionModal}
 									sx={{ mt: 2 }}
 								>
 									Create Connection

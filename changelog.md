@@ -15,6 +15,7 @@
 - Email link verification via URL param (?verify=token)
 - Delete conversation functionality for support chat
 - "Обещанный платёж" (promised payment) option: creates connection with grace period without immediate payment
+- Warning alert shown when user without paid connections tries to create new connection
 
 ### Fixed
 - Docker file watcher issue (ENOSPC) by increasing fs.inotify.max_user_watches

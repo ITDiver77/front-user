@@ -115,10 +115,8 @@ const NewConnectionModal = ({
 		setError("");
 		try {
 			const paymentResponse = await paymentService.initiatePayment({
-				connection_name: data.connectionName || undefined,
 				server_name: data.serverName,
 				months: data.months,
-				payment_method: "card",
 				grace_period: true,
 			});
 
