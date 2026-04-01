@@ -47,10 +47,10 @@ export const connectionService = {
 		await api.delete(`/connections/${connectionName}`);
 	},
 
-	// Toggle auto-renew
+	// Toggle auto-renew (dedicated endpoint - does NOT affect VPN connection state)
 	toggleAutoRenew: async (connectionName: string, autoRenew: boolean) => {
-		const response = await api.put<Connection>(
-			`/connections/${connectionName}`,
+		const response = await api.post<{ connection_name: string; auto_renew: boolean }>(
+			`/connections/my/${connectionName}/toggle-auto-renew`,
 			{ auto_renew: autoRenew },
 		);
 		return response.data;

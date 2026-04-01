@@ -19,7 +19,6 @@ import ChangeServerModal from "../components/forms/ChangeServerModal";
 import NewConnectionModal from "../components/forms/NewConnectionModal";
 import PaymentInitiationModal from "../components/forms/PaymentInitiationModal";
 import { connectionService } from "../services/connectionService";
-import { paymentService } from "../services/paymentService";
 import { staggerContainer } from "../styles/animations";
 import type { Connection } from "../types/connection";
 import { useConnectionStatusContext } from "../contexts/ConnectionStatusContext";
@@ -47,7 +46,6 @@ const Dashboard = () => {
 	);
 	const [showDeleted, setShowDeleted] = useState(false);
 	const [localError, setLocalError] = useState<string>("");
-	const [hasPaidConnections, setHasPaidConnections] = useState<boolean | null>(null);
 	const [showNoPaidWarning, setShowNoPaidWarning] = useState(false);
 
 	const loading = contextLoading;
@@ -61,24 +59,15 @@ const Dashboard = () => {
 		}
 	}, [refresh]);
 
-	const checkHasPaidConnections = useCallback(async () => {
-		try {
-			const response = await paymentService.getMyPayments(100, 0);
-			const hasPaid = response.payments.some((p) => p.status === "COMPLETED");
-			setHasPaidConnections(hasPaid);
-		} catch (err) {
-			console.error("Failed to check payment history", err);
-			setHasPaidConnections(false);
-		}
-	}, []);
+	const hasPaidConnections = connections.some((conn) => {
+		if (conn.is_deleted) return false;
+		const payDate = new Date(conn.paydate);
+		return payDate > new Date();
+	});
 
 	useEffect(() => {
 		fetchConnections();
 	}, [fetchConnections]);
-
-	useEffect(() => {
-		checkHasPaidConnections();
-	}, [checkHasPaidConnections]);
 
 	const handleToggleAutoRenew = async (
 		connectionName: string,
@@ -147,9 +136,6 @@ const Dashboard = () => {
 	};
 
 	const handleOpenNewConnectionModal = () => {
-		if (hasPaidConnections === null) {
-			return;
-		}
 		if (!hasPaidConnections) {
 			setShowNoPaidWarning(true);
 			return;
