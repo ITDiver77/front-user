@@ -342,8 +342,11 @@ const Support = () => {
 			const conversation = await supportService.getConversation(id);
 			setSelectedConversation(conversation);
 			setConversations((prev) =>
-				prev.map((c) => (c.id === id ? { ...c, has_unread_answers: false } : c))
+				prev.map((c) =>
+					c.id === id ? { ...c, has_unread_answers: false } : c,
+				),
 			);
+			window.dispatchEvent(new CustomEvent("support-messages-read"));
 		} catch (err: any) {
 			console.error("Failed to load conversation:", err);
 			setError(err?.message || "Failed to load conversation");
@@ -356,8 +359,13 @@ const Support = () => {
 
 		setSending(true);
 		try {
-			await supportService.sendMessage(selectedConversation.id, newMessage.trim());
-			const updated = await supportService.getConversation(selectedConversation.id);
+			await supportService.sendMessage(
+				selectedConversation.id,
+				newMessage.trim(),
+			);
+			const updated = await supportService.getConversation(
+				selectedConversation.id,
+			);
 			setSelectedConversation(updated);
 			setNewMessage("");
 			fetchConversations();
@@ -598,17 +606,26 @@ const Support = () => {
 															},
 														}}
 													>
-													<ListItemAvatar>
-														<Badge
-															color="primary"
-															variant="dot"
-															invisible={!conv.has_unread_answers}
-														>
-															<Avatar sx={{ bgcolor: conv.status === "closed" ? "grey.500" : conv.has_unread_answers ? "success.main" : "primary.main" }}>
-																<SupportAgentIcon />
-															</Avatar>
-														</Badge>
-													</ListItemAvatar>
+														<ListItemAvatar>
+															<Badge
+																color="primary"
+																variant="dot"
+																invisible={!conv.has_unread_answers}
+															>
+																<Avatar
+																	sx={{
+																		bgcolor:
+																			conv.status === "closed"
+																				? "grey.500"
+																				: conv.has_unread_answers
+																					? "success.main"
+																					: "primary.main",
+																	}}
+																>
+																	<SupportAgentIcon />
+																</Avatar>
+															</Badge>
+														</ListItemAvatar>
 														<ListItemText
 															primary={
 																<Box

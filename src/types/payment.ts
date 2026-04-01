@@ -32,9 +32,16 @@ export interface PaymentInitiationRequest {
 	server_name?: string;
 	months: number;
 	payment_method?: string;
+	grace_period?: boolean;
 }
 
 export interface PaymentInitiationResponse {
-	payment_id: number;
-	redirect_url: string;
+	payment_id: number | null;
+	transaction_id: string | null;
+	status: string;
+	redirect_url: string | null;
+	expires_in?: number;
+	payment_details?: unknown;
+	connection_name?: string;
+	message?: string;
 }

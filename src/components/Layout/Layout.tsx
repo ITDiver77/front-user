@@ -84,7 +84,19 @@ const Layout = () => {
 
 		fetchUnreadCount();
 		const interval = setInterval(fetchUnreadCount, 30000);
-		return () => clearInterval(interval);
+
+		const handleSupportMessagesRead = () => {
+			fetchUnreadCount();
+		};
+		window.addEventListener("support-messages-read", handleSupportMessagesRead);
+
+		return () => {
+			clearInterval(interval);
+			window.removeEventListener(
+				"support-messages-read",
+				handleSupportMessagesRead,
+			);
+		};
 	}, []);
 
 	const handleDrawerToggle = () => {
@@ -112,7 +124,7 @@ const Layout = () => {
 		}
 	};
 
-	const getMenuIcon = (item: typeof menuItems[number]) => {
+	const getMenuIcon = (item: (typeof menuItems)[number]) => {
 		let badgeContent = 0;
 		let showBadge = false;
 

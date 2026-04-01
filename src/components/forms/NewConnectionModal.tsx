@@ -17,7 +17,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { paymentService } from "../../services/paymentService";
@@ -42,6 +42,7 @@ const NewConnectionModal = ({
 }: NewConnectionModalProps) => {
 	const [servers, setServers] = useState<Server[]>([]);
 	const [loading, setLoading] = useState(false);
+	const [graceLoading, setGraceLoading] = useState(false);
 	const [error, setError] = useState<string>("");
 	const [serverLoading, setServerLoading] = useState(true);
 
@@ -64,15 +65,7 @@ const NewConnectionModal = ({
 	const months = watch("months");
 	const totalPrice = months * PRICE_PER_MONTH;
 
-	useEffect(() => {
-		if (open) {
-			fetchServers();
-			reset();
-			setError("");
-		}
-	}, [open, reset]);
-
-	const fetchServers = async () => {
+	const fetchServers = useCallback(async () => {
 		setServerLoading(true);
 		try {
 			const data = await serverService.getActiveServers();
@@ -83,25 +76,30 @@ const NewConnectionModal = ({
 		} finally {
 			setServerLoading(false);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		if (open) {
+			fetchServers();
+			reset();
+			setError("");
+		}
+	}, [open, reset, fetchServers]);
 
 	const onSubmit = async (data: NewConnectionFormData) => {
 		setLoading(true);
 		setError("");
 		try {
-			// Initiate payment first
 			const paymentResponse = await paymentService.initiatePayment({
 				connection_name: data.connectionName || undefined,
 				server_name: data.serverName,
 				months: data.months,
-				payment_method: "card", // Default payment method
+				payment_method: "card",
 			});
 
-			// If payment initiated successfully, redirect to payment gateway
 			if (paymentResponse.redirect_url) {
 				window.location.href = paymentResponse.redirect_url;
 			} else {
-				// No redirect needed, just refresh connections
 				onCreate();
 				onClose();
 			}
@@ -109,6 +107,31 @@ const NewConnectionModal = ({
 			setError(err.message || "Failed to create connection");
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const onSubmitGracePeriod = async (data: NewConnectionFormData) => {
+		setGraceLoading(true);
+		setError("");
+		try {
+			const paymentResponse = await paymentService.initiatePayment({
+				connection_name: data.connectionName || undefined,
+				server_name: data.serverName,
+				months: data.months,
+				payment_method: "card",
+				grace_period: true,
+			});
+
+			if (paymentResponse.redirect_url) {
+				window.location.href = paymentResponse.redirect_url;
+			} else {
+				onCreate();
+				onClose();
+			}
+		} catch (err: any) {
+			setError(err.message || "Failed to create connection with grace period");
+		} finally {
+			setGraceLoading(false);
 		}
 	};
 
@@ -189,16 +212,25 @@ const NewConnectionModal = ({
 				</Box>
 			</DialogContent>
 			<DialogActions>
-				<Button onClick={onClose} disabled={loading}>
+				<Button onClick={onClose} disabled={loading || graceLoading}>
 					Cancel
+				</Button>
+				<Button
+					type="button"
+					onClick={handleSubmit(onSubmitGracePeriod)}
+					variant="outlined"
+					disabled={loading || graceLoading || serverLoading}
+					sx={{ mr: 1 }}
+				>
+					{graceLoading ? <CircularProgress size={24} /> : "Обещанный платёж"}
 				</Button>
 				<Button
 					type="submit"
 					form="new-connection-form"
 					variant="contained"
-					disabled={loading || serverLoading}
+					disabled={loading || graceLoading || serverLoading}
 				>
-					{loading ? <CircularProgress size={24} /> : "Proceed to Payment"}
+					{loading ? <CircularProgress size={24} /> : "Оплатить"}
 				</Button>
 			</DialogActions>
 		</Dialog>
