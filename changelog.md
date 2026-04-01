@@ -27,6 +27,8 @@
 - Support chat closed conversation icon color (was gray for all read, now only closed)
 - Support badge "!" not removed when all messages read (now dispatches event to update Layout)
 - Backend: Add read_at column migration for support_messages table
+- Check for paid connections now verifies paydate in future, not just completed payments
+- Auto-renew toggle now uses dedicated endpoint (does NOT affect VPN connection enabled state)
 
 ### Known Issues
 - Bot doesn't use /auth/telegram/callback - breaks registration flow
