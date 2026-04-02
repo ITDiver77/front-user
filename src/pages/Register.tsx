@@ -22,7 +22,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
 	Link as RouterLink,
@@ -181,9 +181,11 @@ const Register = () => {
 		sessionStorage.removeItem(SESSION_KEY);
 	}, []);
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps -- pollingStatus managed internally
+	const pollingStatusRef = useRef(pollingStatus);
+	pollingStatusRef.current = pollingStatus;
+
 	useEffect(() => {
-		if (step !== "telegram_wait" || !telegramResponse || pollingStatus !== "pending") {
+		if (step !== "telegram_wait" || !telegramResponse || pollingStatusRef.current !== "pending") {
 			return;
 		}
 
