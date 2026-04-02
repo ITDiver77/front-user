@@ -4,7 +4,7 @@ const mockImportMeta = {
 	url: "http://localhost",
 };
 
-// @ts-expect-error
+// @ts-expect-error importMeta is not typed in vitest environment
 globalThis.importMeta = mockImportMeta;
 
 // Mock window.location

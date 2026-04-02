@@ -35,7 +35,7 @@ export const redCrimsonTheme = createTheme({
 				root: { textTransform: "none", fontWeight: 600, borderRadius: 10 },
 				contained: {
 					background: "linear-gradient(135deg, #EF5350 0%, #C62828 100%)",
-				 "&:hover": {
+					"&:hover": {
 						transform: "translateY(-1px)",
 						boxShadow: "0 4px 12px rgba(239, 83, 80, 0.4)",
 					},

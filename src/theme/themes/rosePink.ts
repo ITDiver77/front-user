@@ -32,7 +32,7 @@ export const rosePinkTheme = createTheme({
 				root: { textTransform: "none", fontWeight: 600, borderRadius: 10 },
 				contained: {
 					background: "linear-gradient(135deg, #E91E63 0%, #C2185B 100%)",
-				 "&:hover": {
+					"&:hover": {
 						transform: "translateY(-1px)",
 						boxShadow: "0 4px 12px rgba(233, 30, 99, 0.4)",
 					},
