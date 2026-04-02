@@ -4,6 +4,12 @@ Current tasks, planned features, and deferred work.
 
 ## High Priority
 
+### Security Fixes (P0/P1)
+- [x] AuthContext: Remove client-side JWT parsing, use /users/me API instead
+- [x] Register.tsx: Fix polling race condition
+- [ ] Profile.tsx: Wire relink dialog to backend (waiting for backend CR-1)
+- [ ] NewConnectionModal: Fetch price dynamically (waiting for backend CR-3)
+
 ### Registration Flow Fix
 - [ ] Implement seamless registration between frontend and bot
 - [ ] Test registration flow end-to-end
@@ -20,6 +26,8 @@ Current tasks, planned features, and deferred work.
 - [x] Framer-motion animations
 - [x] ConnectionCard hover animations and status icons
 - [x] Auto-detection of Telegram environment
+- [x] AuthContext: Remove client-side JWT parsing, use /users/me API
+- [x] Register.tsx: Fix polling race condition
 
 ### Support Chat
 - [x] Support page with 2 UI variants (Telegram-like and modern cards)

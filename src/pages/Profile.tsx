@@ -15,11 +15,12 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
 import { userService } from "../services/userService";
+import { authService } from "../services/authService";
 import type { User, UserUpdateRequest } from "../types/user";
 import { changePasswordSchema } from "../utils/validation";
 
@@ -41,6 +42,9 @@ const Profile = () => {
 	const [profile, setProfile] = useState<User | null>(null);
 	const [relinkDialogOpen, setRelinkDialogOpen] = useState(false);
 	const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+	const [rebindLink, setRebindLink] = useState<string | null>(null);
+	const [rebindToken, setRebindToken] = useState<string | null>(null);
+	const [rebinding, setRebinding] = useState(false);
 
 	const {
 		register: registerProfile,
@@ -90,6 +94,45 @@ const Profile = () => {
 			setProfileLoading(false);
 		}
 	};
+
+	const handleStartRelink = async () => {
+		setRebinding(true);
+		try {
+			const response = await userService.rebindTelegram();
+			setRebindLink(response.link);
+			setRebindToken(response.rebind_token);
+		} catch (err: any) {
+			setProfileError(err.message || "Failed to start Telegram rebind");
+			setRelinkDialogOpen(false);
+		} finally {
+			setRebinding(false);
+		}
+	};
+
+	const pollRebindStatus = useCallback(async () => {
+		if (!rebindToken) return;
+
+		try {
+			const status = await authService.getRegistrationStatus(rebindToken);
+			if (status.status === "completed") {
+				const data = await userService.getMyProfile();
+				setProfile(data);
+				updateUser({ telegram_verified: data.telegram_verified });
+				setRebindLink(null);
+				setRebindToken(null);
+				setRelinkDialogOpen(false);
+			}
+		} catch {
+			// Continue polling
+		}
+	}, [rebindToken, updateUser]);
+
+	useEffect(() => {
+		if (!rebindToken) return;
+
+		const interval = setInterval(pollRebindStatus, 3000);
+		return () => clearInterval(interval);
+	}, [rebindToken, pollRebindStatus]);
 
 	const onProfileSubmit = async (data: ProfileFormData) => {
 		setLoading(true);

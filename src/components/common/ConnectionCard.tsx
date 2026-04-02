@@ -37,10 +37,9 @@ import {
 interface ConnectionCardProps {
 	connection: Connection;
 	onToggleAutoRenew: (connectionName: string, autoRenew: boolean) => void;
-	onCopyConfig: (connectionString: string) => void;
 	onExtend: (connectionName: string) => void;
 	onChangeServer: (connectionName: string) => void;
-	onToggleEnabled: (connectionName: string, enabled: boolean) => void;
+	onRequestGrace: (connectionName: string) => void;
 	showStatusAnimation?: boolean;
 	onAnimationComplete?: () => void;
 }
@@ -48,21 +47,22 @@ interface ConnectionCardProps {
 const ConnectionCard = ({
 	connection,
 	onToggleAutoRenew,
-	onCopyConfig,
 	onExtend,
 	onChangeServer,
-	onToggleEnabled,
+	onRequestGrace,
 	showStatusAnimation = false,
 	onAnimationComplete,
 }: ConnectionCardProps) => {
 	const [autoRenew, setAutoRenew] = useState(connection.auto_renew ?? false);
-	const [enabled, setEnabled] = useState(connection.enabled);
 	const [copySuccess, setCopySuccess] = useState(false);
 
+	const enabled = connection.enabled;
+	const hasGraceDate = connection.grace_date !== null && connection.grace_date !== undefined;
 	const status = getConnectionStatus(
 		connection.enabled,
 		connection.is_active,
 		connection.paydate,
+		connection.grace_date,
 	);
 	const daysRemaining = getDaysRemaining(connection.paydate);
 	const statusColor = getStatusColor(status);
@@ -73,10 +73,13 @@ const ConnectionCard = ({
 		onToggleAutoRenew(connection.connection_name, newValue);
 	};
 
-	const handleToggleEnabled = () => {
-		const newValue = !enabled;
-		setEnabled(newValue);
-		onToggleEnabled(connection.connection_name, newValue);
+	const handleDoubleClick = () => {
+		if (connection.connection_string) {
+			navigator.clipboard.writeText(connection.connection_string).then(() => {
+				setCopySuccess(true);
+				setTimeout(() => setCopySuccess(false), 2000);
+			});
+		}
 	};
 
 	const handleCopyConfig = () => {
@@ -107,6 +110,7 @@ const ConnectionCard = ({
 					position: "relative",
 					overflow: "visible",
 				}}
+				onDoubleClick={handleDoubleClick}
 			>
 				<CardContent>
 					<Box
@@ -172,9 +176,15 @@ const ConnectionCard = ({
 					<Typography variant="body2">
 						Price: <strong>${connection.price}</strong> per month
 					</Typography>
-					<Typography variant="body2" color="text.secondary">
-						Next payment: {formatDate(connection.paydate)}
-					</Typography>
+					{hasGraceDate ? (
+						<Typography variant="body2" color="info.main">
+							Grace period: {formatDate(connection.grace_date!)}
+						</Typography>
+					) : (
+						<Typography variant="body2" color="text.secondary">
+							Next payment: {formatDate(connection.paydate)}
+						</Typography>
+					)}
 					<Typography
 						variant="body2"
 						fontWeight={500}
@@ -215,7 +225,7 @@ const ConnectionCard = ({
 							checked={autoRenew}
 							onChange={handleToggleAutoRenew}
 							size="small"
-							disabled={!enabled || isDeleted}
+							disabled={isDeleted}
 						/>
 						<Typography variant="body2" color="text.secondary">
 							{autoRenew ? "On" : "Off"}
@@ -291,18 +301,26 @@ const ConnectionCard = ({
 						</span>
 					</Tooltip>
 					<Box sx={{ flexGrow: 1 }} />
-					<Button
-						variant="outlined"
-						size="small"
-						disabled={isDeleted}
-						onClick={handleToggleEnabled}
-						color={enabled ? "warning" : "success"}
-						component={motion.button}
-						whileHover={{ scale: 1.02 }}
-						whileTap={{ scale: 0.98 }}
-					>
-						{enabled ? "Disable" : "Enable"}
-					</Button>
+					{!hasGraceDate && !isDeleted && (
+						(() => {
+							const payDate = new Date(connection.paydate);
+							const now = new Date();
+							const oneDayFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+							// Show grace button if paydate is within 1 day or in the past
+							const canRequestGrace = payDate <= oneDayFromNow;
+							return canRequestGrace ? (
+								<Button
+									variant="contained"
+									size="small"
+									color="info"
+									onClick={() => onRequestGrace(connection.connection_name)}
+									sx={{ mr: 1 }}
+								>
+									Обещанный платёж
+								</Button>
+							) : null;
+						})()
+					)}
 				</CardActions>
 			</Card>
 		</motion.div>

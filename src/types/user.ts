@@ -55,3 +55,14 @@ export interface EmailVerificationResponse {
 	connection_name?: string;
 	connection_string?: string;
 }
+
+export interface TelegramRebindResponse {
+	success: boolean;
+	rebind_token: string;
+	link: string;
+}
+
+export interface TelegramRebindStatusResponse {
+	status: "pending" | "completed" | "expired";
+	telegram_id: number | null;
+}

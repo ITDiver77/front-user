@@ -73,4 +73,17 @@ export const connectionService = {
 		);
 		return response.data;
 	},
+
+	// Request grace period for unpaid connection
+	requestGrace: async (connectionName: string) => {
+		const response = await api.post<{ 
+			connection_name: string; 
+			grace_date: string;
+			message: string;
+		}>(
+			`/connections/my/${connectionName}/request-grace`,
+			{},
+		);
+		return response.data;
+	},
 };

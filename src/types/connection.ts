@@ -6,6 +6,7 @@ export interface Connection {
 	short_id: string;
 	price: number;
 	paydate: string;
+	grace_date: string | null;
 	enabled: boolean;
 	is_active: boolean;
 	created_at: string;

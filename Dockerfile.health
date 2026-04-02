@@ -1,0 +1,21 @@
+# Health server for front-user
+# Provides CPU/memory health endpoint for central manager monitoring
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package.health.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy server
+COPY server.js ./
+
+# Expose port
+EXPOSE 3001
+
+# Run health server
+CMD ["node", "server.js"]

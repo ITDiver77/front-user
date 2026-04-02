@@ -1,18 +1,12 @@
 import {
 	createContext,
 	type ReactNode,
+	useCallback,
 	useContext,
 	useEffect,
 	useState,
 } from "react";
-import {
-	authService,
-	ChangePasswordRequest,
-	ForgotPasswordRequest,
-	LoginRequest,
-	RegisterRequest,
-	ResetPasswordRequest,
-} from "../services/authService";
+import { authService } from "../services/authService";
 import { userService } from "../services/userService";
 import type { TelegramRegisterResponse } from "../types/user";
 
@@ -46,6 +40,7 @@ interface AuthContextType {
 		newPassword: string,
 	) => Promise<boolean>;
 	updateUser: (userData: Partial<User>) => void;
+	setAuthFromToken: (token: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -74,27 +69,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 	const [loading, setLoading] = useState(true);
 	const [user, setUser] = useState<User | null>(null);
 
-	const loadUserData = (): StoredUserData | null => {
-		const stored = localStorage.getItem(STORAGE_KEY);
-		if (stored) {
-			try {
-				return JSON.parse(stored);
-			} catch {
-				return null;
-			}
-		}
-		const sessionStored = sessionStorage.getItem(STORAGE_KEY);
-		if (sessionStored) {
-			try {
-				return JSON.parse(sessionStored);
-			} catch {
-				return null;
-			}
-		}
-		return null;
-	};
-
-	const saveUserData = (userData: StoredUserData, rememberMe: boolean) => {
+	const saveUserData = useCallback((userData: StoredUserData, rememberMe: boolean) => {
 		const data = JSON.stringify(userData);
 		if (rememberMe) {
 			localStorage.setItem(STORAGE_KEY, data);
@@ -103,48 +78,41 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 			sessionStorage.setItem(STORAGE_KEY, data);
 			localStorage.removeItem(STORAGE_KEY);
 		}
-	};
+	}, []);
 
-	const clearUserData = () => {
+	const clearUserData = useCallback(() => {
 		localStorage.removeItem(STORAGE_KEY);
 		sessionStorage.removeItem(STORAGE_KEY);
-	};
-
-	const fetchUserProfile = async () => {
-		try {
-			const profile = await userService.getMyProfile();
-			setUser((prev) => {
-				if (!prev) return null;
-				const updated = { ...prev, telegram_verified: profile.telegram_verified };
-				const rememberMe = !!localStorage.getItem("token");
-				saveUserData(updated, rememberMe);
-				return updated;
-			});
-		} catch (err) {
-			console.error("Failed to fetch user profile:", err);
-		}
-	};
+	}, []);
 
 	useEffect(() => {
-		const token =
-			localStorage.getItem("token") || sessionStorage.getItem("token");
-		if (token) {
+		const restoreSession = async () => {
+			const token =
+				localStorage.getItem("token") || sessionStorage.getItem("token");
+			if (!token) {
+				setLoading(false);
+				return;
+			}
+
 			try {
-				const payload = JSON.parse(atob(token.split(".")[1]));
-				const storedUser = loadUserData();
+				const profile = await userService.getMyProfile();
 				setUser({
-					username: payload.sub || payload.username,
-					telegram_verified: storedUser?.telegram_verified,
+					username: profile.username,
+					telegram_verified: profile.telegram_verified,
 				});
 				setIsAuthenticated(true);
-				fetchUserProfile();
 			} catch (e) {
-				console.error("Invalid token", e);
+				console.error("Invalid token or session expired", e);
 				localStorage.removeItem("token");
 				sessionStorage.removeItem("token");
+				localStorage.removeItem(STORAGE_KEY);
+				sessionStorage.removeItem(STORAGE_KEY);
+			} finally {
+				setLoading(false);
 			}
-		}
-		setLoading(false);
+		};
+
+		restoreSession();
 	}, []);
 
 	const storeToken = (token: string, rememberMe: boolean) => {
@@ -270,6 +238,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		});
 	};
 
+	const setAuthFromToken = async (token: string) => {
+		try {
+			localStorage.setItem("token", token);
+			sessionStorage.removeItem("token");
+			const profile = await userService.getMyProfile();
+			setUser({
+				username: profile.username,
+				telegram_verified: profile.telegram_verified,
+			});
+			setIsAuthenticated(true);
+			setLoading(false);
+		} catch (e) {
+			console.error("Invalid token", e);
+		}
+	};
+
 	return (
 		<AuthContext.Provider
 			value={{
@@ -283,6 +267,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 				resetPassword,
 				changePassword,
 				updateUser,
+				setAuthFromToken,
 			}}
 		>
 			{children}

@@ -1,4 +1,4 @@
-import type { User, UserUpdateRequest } from "../types/user";
+import type { User, UserUpdateRequest, TelegramRebindResponse } from "../types/user";
 import api from "./api";
 
 export const userService = {
@@ -30,6 +30,21 @@ export const userService = {
 		} catch (error) {
 			const err = error as any;
 			throw new Error(`Failed to update profile: ${err.message}`);
+		}
+	},
+
+	/**
+	 * Start Telegram rebind flow
+	 * @returns {Promise<TelegramRebindResponse>} Rebind token and link
+	 * @throws {Error} When network error or API error occurs
+	 */
+	rebindTelegram: async () => {
+		try {
+			const response = await api.post<TelegramRebindResponse>("/users/me/telegram/rebind");
+			return response.data;
+		} catch (error) {
+			const err = error as any;
+			throw new Error(`Failed to start Telegram rebind: ${err.message}`);
 		}
 	},
 

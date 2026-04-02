@@ -81,22 +81,6 @@ const Dashboard = () => {
 		}
 	};
 
-	const handleToggleEnabled = async (
-		connectionName: string,
-		enabled: boolean,
-	) => {
-		try {
-			await connectionService.toggleEnabled(connectionName, enabled);
-			fetchConnections();
-		} catch (err) {
-			console.error("Failed to toggle enabled state", err);
-		}
-	};
-
-	const handleCopyConfig = (connectionString: string) => {
-		console.log("Copy config:", connectionString);
-	};
-
 	const handleExtend = (connectionName: string) => {
 		const conn = connections.find((c) => c.connection_name === connectionName);
 		if (conn) {
@@ -110,6 +94,16 @@ const Dashboard = () => {
 		if (conn) {
 			setSelectedConnection(conn);
 			setChangeServerModalOpen(true);
+		}
+	};
+
+	const handleRequestGrace = async (connectionName: string) => {
+		try {
+			const result = await connectionService.requestGrace(connectionName);
+			alert(result.message);
+			fetchConnections();
+		} catch (err: any) {
+			alert(err.response?.data?.detail || "Failed to request grace period");
 		}
 	};
 
@@ -281,10 +275,9 @@ const Dashboard = () => {
 							<ConnectionCard
 								connection={conn}
 								onToggleAutoRenew={handleToggleAutoRenew}
-								onCopyConfig={handleCopyConfig}
 								onExtend={handleExtend}
 								onChangeServer={handleChangeServer}
-								onToggleEnabled={handleToggleEnabled}
+								onRequestGrace={handleRequestGrace}
 								showStatusAnimation={isStatusChanged(conn.connection_name)}
 								onAnimationComplete={() =>
 									acknowledgeStatusChange(conn.connection_name)
@@ -318,6 +311,7 @@ const Dashboard = () => {
 					onClose={handleClosePaymentModal}
 					connectionName={paymentConnection.connection_name}
 					currentPrice={paymentConnection.price}
+					connections={connections}
 					onSuccess={handlePaymentSuccess}
 				/>
 			)}

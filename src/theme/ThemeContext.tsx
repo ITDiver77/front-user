@@ -7,13 +7,24 @@ import React, {
 	useMemo,
 	useState,
 } from "react";
-import { lightTheme } from "./themes/light";
-import { tealTheme } from "./themes/teal";
-import { createTelegramTheme } from "./themes/telegram";
-import { violetTheme } from "./themes/violet";
+import { amberGoldTheme } from "./themes/amberGold";
+import { brownCoffeeTheme } from "./themes/brownCoffee";
+import { cyanBlueTheme } from "./themes/cyanBlue";
 import { darkBlueTheme } from "./themes/darkBlue";
 import { darkPurpleTheme } from "./themes/darkPurple";
 import { darkTealTheme } from "./themes/darkTeal";
+import { greenMintTheme } from "./themes/greenMint";
+import { greySteelTheme } from "./themes/greySteel";
+import { indigoSlateTheme } from "./themes/indigoSlate";
+import { lightTheme } from "./themes/light";
+import { limeGreenTheme } from "./themes/limeGreen";
+import { orangeDeepTheme } from "./themes/orangeDeep";
+import { pinkPurpleTheme } from "./themes/pinkPurple";
+import { redCrimsonTheme } from "./themes/redCrimson";
+import { rosePinkTheme } from "./themes/rosePink";
+import { tealTheme } from "./themes/teal";
+import { createTelegramTheme } from "./themes/telegram";
+import { violetTheme } from "./themes/violet";
 import type { TelegramThemeParams, ThemeName } from "./types";
 
 interface ThemeContextValue {
@@ -31,10 +42,28 @@ const THEME_STORAGE_KEY = "vpn-user-theme";
 function getInitialTheme(): ThemeName {
 	if (typeof window === "undefined") return "violet";
 	const stored = localStorage.getItem(THEME_STORAGE_KEY);
-	if (
-		stored &&
-		["violet", "teal", "telegram", "light", "dark", "darkBlue", "darkPurple", "darkTeal"].includes(stored)
-	) {
+	const validThemes = [
+		"violet",
+		"teal",
+		"telegram",
+		"light",
+		"dark",
+		"darkBlue",
+		"darkPurple",
+		"darkTeal",
+		"amberGold",
+		"greenMint",
+		"rosePink",
+		"indigoSlate",
+		"orangeDeep",
+		"cyanBlue",
+		"redCrimson",
+		"limeGreen",
+		"brownCoffee",
+		"pinkPurple",
+		"greySteel",
+	];
+	if (stored && validThemes.includes(stored)) {
 		return stored as ThemeName;
 	}
 	return "violet";
@@ -127,6 +156,8 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 					);
 				}
 				return createTelegramTheme({}, false);
+			case "light":
+				return lightTheme;
 			case "dark":
 				return createTheme({
 					...lightTheme,
@@ -138,11 +169,48 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 				return darkPurpleTheme;
 			case "darkTeal":
 				return darkTealTheme;
-			case "light":
+			case "amberGold":
+				return amberGoldTheme;
+			case "greenMint":
+				return greenMintTheme;
+			case "rosePink":
+				return rosePinkTheme;
+			case "indigoSlate":
+				return indigoSlateTheme;
+			case "orangeDeep":
+				return orangeDeepTheme;
+			case "cyanBlue":
+				return cyanBlueTheme;
+			case "redCrimson":
+				return redCrimsonTheme;
+			case "limeGreen":
+				return limeGreenTheme;
+			case "brownCoffee":
+				return brownCoffeeTheme;
+			case "pinkPurple":
+				return pinkPurpleTheme;
+			case "greySteel":
+				return greySteelTheme;
 			default:
-				return lightTheme;
+				return violetTheme;
 		}
 	}, [themeName, telegramState]);
+
+	const darkThemes = [
+		"dark",
+		"darkBlue",
+		"darkPurple",
+		"darkTeal",
+		"amberGold",
+		"greenMint",
+		"indigoSlate",
+		"orangeDeep",
+		"cyanBlue",
+		"redCrimson",
+		"brownCoffee",
+		"pinkPurple",
+		"greySteel",
+	];
 
 	const contextValue: ThemeContextValue = {
 		themeName,
@@ -150,7 +218,7 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 		isDark:
 			themeName === "telegram"
 				? telegramState.isDark
-				: ["dark", "darkBlue", "darkPurple", "darkTeal"].includes(themeName),
+				: darkThemes.includes(themeName),
 		isTelegram: telegramState.isTelegram,
 		telegramThemeParams: telegramState.params,
 	};

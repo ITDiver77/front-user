@@ -152,12 +152,20 @@ function AppRoutes() {
 	);
 }
 
+function AppContent() {
+	const { isAuthenticated, loading } = useAuth();
+
+	return (
+		<ConnectionStatusProvider enabled={isAuthenticated && !loading}>
+			<AppRoutes />
+		</ConnectionStatusProvider>
+	);
+}
+
 function App() {
 	return (
 		<AuthProvider>
-			<ConnectionStatusProvider enabled={true}>
-				<AppRoutes />
-			</ConnectionStatusProvider>
+			<AppContent />
 		</AuthProvider>
 	);
 }

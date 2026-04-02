@@ -34,6 +34,27 @@ services:
     depends_on:
       - central_manager
 
+  front-user-health:
+    build:
+      context: .
+      dockerfile: Dockerfile.health
+    container_name: vpn_front_user_health
+    restart: unless-stopped
+    ports:
+      - "9558:3001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health/live"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - vpn_network
+
 networks:
   vpn_network:
     name: vpn_network

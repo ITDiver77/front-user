@@ -9,23 +9,27 @@ import {
 	DialogContent,
 	DialogTitle,
 	FormControl,
+	FormControlLabel,
 	InputLabel,
 	MenuItem,
 	Select,
 	TextField,
 	Typography,
+	Checkbox,
 } from "@mui/material";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { paymentService } from "../../services/paymentService";
 import { paymentInitiationSchema } from "../../utils/validation";
+import type { Connection } from "../../types/connection";
 
 interface PaymentInitiationModalProps {
 	open: boolean;
 	onClose: () => void;
 	connectionName: string;
 	currentPrice: number;
+	connections: Connection[];
 	onSuccess: (paymentId: number) => void;
 }
 
@@ -42,11 +46,13 @@ const PaymentInitiationModal = ({
 	onClose,
 	connectionName,
 	currentPrice,
+	connections,
 	onSuccess,
 }: PaymentInitiationModalProps) => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string>("");
 	const [polling, setPolling] = useState(false);
+	const [payForAll, setPayForAll] = useState(true);
 
 	const {
 		register,
@@ -63,7 +69,14 @@ const PaymentInitiationModal = ({
 	});
 
 	const months = watch("months");
-	const totalAmount = currentPrice * months;
+
+	const activeConnections = connections.filter((c) => !c.is_deleted && c.auto_renew);
+	const totalPriceAll = activeConnections.reduce((sum, c) => sum + c.price, 0);
+	const totalAmount = payForAll ? totalPriceAll * months : currentPrice * months;
+
+	const paymentDescription = payForAll
+		? `Pay for all connections with auto-renew (${activeConnections.length})`
+		: `Pay for connection "${connectionName}"`;
 
 	const onSubmit = async (data: PaymentInitiationFormData) => {
 		setLoading(true);
@@ -75,11 +88,9 @@ const PaymentInitiationModal = ({
 				payment_method: data.paymentMethod,
 			});
 
-			// If redirect URL provided, redirect to payment gateway
 			if (response.redirect_url) {
 				window.location.href = response.redirect_url;
 			} else {
-				// No redirect, start polling for payment completion
 				startPolling(response.payment_id);
 			}
 		} catch (err: any) {
@@ -104,20 +115,31 @@ const PaymentInitiationModal = ({
 	const handleClose = () => {
 		reset();
 		setError("");
+		setPayForAll(true);
 		onClose();
 	};
 
 	return (
 		<Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-			<DialogTitle>Extend Connection: {connectionName}</DialogTitle>
+			<DialogTitle>Extend Connection</DialogTitle>
 			<DialogContent>
 				{error && (
 					<Alert severity="error" sx={{ mb: 2 }}>
 						{error}
 					</Alert>
 				)}
+				<FormControlLabel
+					control={
+						<Checkbox
+							checked={payForAll}
+							onChange={(e) => setPayForAll(e.target.checked)}
+						/>
+					}
+					label="Pay for all connections"
+					sx={{ mb: 2 }}
+				/>
 				<Typography variant="body2" sx={{ mb: 2 }}>
-					Current monthly price: <strong>${currentPrice}</strong>
+					{paymentDescription}
 				</Typography>
 				<form id="payment-initiation-form" onSubmit={handleSubmit(onSubmit)}>
 					<TextField
@@ -153,7 +175,17 @@ const PaymentInitiationModal = ({
 						</Typography>
 						<Typography variant="h5">${totalAmount.toFixed(2)}</Typography>
 						<Typography variant="caption" color="textSecondary">
-							{months} month{months !== 1 ? "s" : ""} × ${currentPrice}/month
+							{payForAll ? (
+								<>
+									{months} month{months !== 1 ? "s" : ""} × $
+									{totalPriceAll}/month ({activeConnections.length} connections)
+								</>
+							) : (
+								<>
+									{months} month{months !== 1 ? "s" : ""} × $
+									{currentPrice}/month
+								</>
+							)}
 						</Typography>
 					</Box>
 				</form>

@@ -13,12 +13,14 @@ export interface LoginRequest {
 }
 
 export interface RegisterStartRequest {
-	username: string;
+	username?: string;
+	referrer_id?: string;
 }
 
 export interface EmailRegisterStartRequest {
 	username: string;
 	email: string;
+	referrer_id?: string;
 }
 
 export interface EmailVerifyCodeRequest {

@@ -42,7 +42,6 @@ const NewConnectionModal = ({
 }: NewConnectionModalProps) => {
 	const [servers, setServers] = useState<Server[]>([]);
 	const [loading, setLoading] = useState(false);
-	const [graceLoading, setGraceLoading] = useState(false);
 	const [error, setError] = useState<string>("");
 	const [serverLoading, setServerLoading] = useState(true);
 
@@ -107,29 +106,6 @@ const NewConnectionModal = ({
 			setError(err.message || "Failed to create connection");
 		} finally {
 			setLoading(false);
-		}
-	};
-
-	const onSubmitGracePeriod = async (data: NewConnectionFormData) => {
-		setGraceLoading(true);
-		setError("");
-		try {
-			const paymentResponse = await paymentService.initiatePayment({
-				server_name: data.serverName,
-				months: data.months,
-				grace_period: true,
-			});
-
-			if (paymentResponse.redirect_url) {
-				window.location.href = paymentResponse.redirect_url;
-			} else {
-				onCreate();
-				onClose();
-			}
-		} catch (err: any) {
-			setError(err.message || "Failed to create connection with grace period");
-		} finally {
-			setGraceLoading(false);
 		}
 	};
 
@@ -210,23 +186,14 @@ const NewConnectionModal = ({
 				</Box>
 			</DialogContent>
 			<DialogActions>
-				<Button onClick={onClose} disabled={loading || graceLoading}>
+				<Button onClick={onClose} disabled={loading || serverLoading}>
 					Cancel
-				</Button>
-				<Button
-					type="button"
-					onClick={handleSubmit(onSubmitGracePeriod)}
-					variant="outlined"
-					disabled={loading || graceLoading || serverLoading}
-					sx={{ mr: 1 }}
-				>
-					{graceLoading ? <CircularProgress size={24} /> : "Обещанный платёж"}
 				</Button>
 				<Button
 					type="submit"
 					form="new-connection-form"
 					variant="contained"
-					disabled={loading || graceLoading || serverLoading}
+					disabled={loading || serverLoading}
 				>
 					{loading ? <CircularProgress size={24} /> : "Оплатить"}
 				</Button>

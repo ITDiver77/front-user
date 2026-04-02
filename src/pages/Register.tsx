@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
 	CheckCircle,
+	ContentCopy as CopyIcon,
 	Email as EmailIcon,
 	Telegram as TelegramIcon,
 	Visibility,
@@ -19,17 +20,16 @@ import {
 	Link,
 	Paper,
 	TextField,
-	ToggleButton,
-	ToggleButtonGroup,
 	Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
 	Link as RouterLink,
 	useNavigate,
 	useSearchParams,
 } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { z } from "zod";
 import { authService } from "../services/authService";
 import type {
@@ -39,44 +39,26 @@ import type {
 	RegistrationStatusResponse,
 } from "../types/user";
 
-// Step 1: username only (for Telegram flow)
-const usernameSchema = z.object({
-	username: z
-		.string()
-		.min(3, "Username must be at least 3 characters")
-		.max(50, "Username must be less than 50 characters"),
-});
+const SESSION_KEY = "vpn_registration_state";
 
-type UsernameFormData = z.infer<typeof usernameSchema>;
+interface RegistrationState {
+	method: "email" | "telegram";
+	username?: string;
+	email?: string;
+	password?: string;
+	confirmPassword?: string;
+	referrer_id?: string;
+	registrationToken?: string;
+	telegramLink?: string;
+}
 
-// Email registration schema (username + email)
-const emailSchema = z.object({
-	username: z
-		.string()
-		.min(3, "Username must be at least 3 characters")
-		.max(50, "Username must be less than 50 characters"),
-	email: z.string().email("Please enter a valid email address"),
-});
-
-type EmailFormData = z.infer<typeof emailSchema>;
-
-// Verification code schema (4 digits)
-const verifyCodeSchema = z.object({
-	code: z
-		.string()
-		.length(4, "Code must be 4 digits")
-		.regex(/^\d{4}$/, "Code must be 4 digits"),
-});
-
-type VerifyCodeFormData = z.infer<typeof verifyCodeSchema>;
-
-// Password registration schema (without Telegram)
-const passwordSchema = z
+const emailPasswordSchema = z
 	.object({
 		username: z
 			.string()
 			.min(3, "Username must be at least 3 characters")
 			.max(50, "Username must be less than 50 characters"),
+		email: z.string().email("Please enter a valid email address"),
 		password: z
 			.string()
 			.min(8, "Password must be at least 8 characters")
@@ -91,69 +73,117 @@ const passwordSchema = z
 		path: ["confirmPassword"],
 	});
 
-type PasswordFormData = z.infer<typeof passwordSchema>;
+type EmailPasswordFormData = z.infer<typeof emailPasswordSchema>;
 
-// Extended response type for site registration
-interface SiteRegisterResponse {
-	access_token: string;
-	token_type: string;
-	password: string;
-	connection: {
-		name: string;
-		server: string;
-		enabled: boolean;
-	};
+const telegramSchema = z.object({
+	referrer_id: z.string().optional(),
+});
+
+type TelegramFormData = z.infer<typeof telegramSchema>;
+
+const verifyCodeSchema = z.object({
+	code: z
+		.string()
+		.length(4, "Code must be 4 digits")
+		.regex(/^\d{4}$/, "Code must be 4 digits"),
+});
+
+type VerifyCodeFormData = z.infer<typeof verifyCodeSchema>;
+
+interface EmailVerificationState {
+	email: string;
+	registrationToken?: string;
 }
 
 const Register = () => {
 	const navigate = useNavigate();
-	const [registrationMethod, setRegistrationMethod] = useState<
-		"telegram" | "email" | "site"
-	>("telegram");
-	const [step, setStep] = useState<
-		"username" | "telegram" | "email" | "verifycode"
-	>("username");
+	const [searchParams] = useSearchParams();
+	const { setAuthFromToken } = useAuth();
+
+	const referrerId = searchParams.get("ref") || "";
+
+	const [registrationMethod, setRegistrationMethod] = useState<"email" | "telegram">("telegram");
+	const [step, setStep] = useState<"form" | "telegram_wait" | "verify_code">("form");
 	const [error, setError] = useState<string>("");
 	const [loading, setLoading] = useState(false);
-	const [registerResponse, setRegisterResponse] =
-		useState<RegisterStartResponse | null>(null);
-	const [emailRegisterResponse, setEmailRegisterResponse] =
-		useState<EmailRegisterStartResponse | null>(null);
-	const [siteRegisterResponse, setSiteRegisterResponse] =
-		useState<SiteRegisterResponse | null>(null);
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-	const [pollingStatus, setPollingStatus] = useState<
-		"pending" | "checking" | "completed"
-	>("pending");
-	const [telegramCredentials, setTelegramCredentials] =
-		useState<RegistrationStatusResponse | null>(null);
-	const [emailVerificationResult, setEmailVerificationResult] =
-		useState<EmailVerificationResponse | null>(null);
+	const [showTempPassword, setShowTempPassword] = useState(false);
 
-	const {
-		register: registerPasswordForm,
-		handleSubmit: handlePasswordSubmit,
-		formState: { errors: passwordErrors },
-		watch,
-	} = useForm<PasswordFormData>({
-		resolver: zodResolver(passwordSchema),
+	const [telegramResponse, setTelegramResponse] = useState<RegisterStartResponse | null>(null);
+	const [telegramCredentials, setTelegramCredentials] = useState<RegistrationStatusResponse | null>(null);
+	const [pollingStatus, setPollingStatus] = useState<"pending" | "checking" | "completed">("pending");
+
+	const [emailVerification, setEmailVerification] = useState<EmailVerificationState | null>(null);
+	const [emailVerificationResult, setEmailVerificationResult] = useState<EmailVerificationResponse | null>(null);
+
+	const [tempCredentials, setTempCredentials] = useState<{
+		username: string;
+		password: string;
+		connectionName?: string;
+		connectionString?: string;
+	} | null>(null);
+
+	const passwordForm = useForm<EmailPasswordFormData>({
+		resolver: zodResolver(emailPasswordSchema),
 		defaultValues: {
 			username: "",
+			email: "",
 			password: "",
 			confirmPassword: "",
 		},
 	});
 
-	const passwordValue = watch("password", "");
+	const telegramForm = useForm<TelegramFormData>({
+		resolver: zodResolver(telegramSchema),
+		defaultValues: {
+			referrer_id: referrerId || "",
+		},
+	});
 
-	// Polling effect for Telegram registration status
+	const verifyCodeForm = useForm<VerifyCodeFormData>({
+		resolver: zodResolver(verifyCodeSchema),
+		defaultValues: {
+			code: "",
+		},
+	});
+
+	const passwordValue = passwordForm.watch("password", "");
+
 	useEffect(() => {
-		if (
-			step !== "telegram" ||
-			!registerResponse ||
-			pollingStatus !== "pending"
-		) {
+		const savedState = sessionStorage.getItem(SESSION_KEY);
+		if (savedState) {
+			try {
+				const parsed = JSON.parse(savedState) as RegistrationState;
+				if (parsed.method === "telegram" && parsed.registrationToken) {
+					setRegistrationMethod("telegram");
+					setTelegramResponse({
+						telegram_link: parsed.telegramLink || "",
+						registration_token: parsed.registrationToken,
+						message: "",
+					});
+					setStep("telegram_wait");
+					setPollingStatus("pending");
+				} else if (parsed.method === "email" && parsed.email && parsed.username) {
+					setRegistrationMethod("email");
+					setEmailVerification({ email: parsed.email });
+					setStep("verify_code");
+				}
+			} catch {
+				sessionStorage.removeItem(SESSION_KEY);
+			}
+		}
+	}, []);
+
+	const verifyCodeResponse = verifyCodeForm.watch("code", "");
+
+	const clearSession = useCallback(() => {
+		sessionStorage.removeItem(SESSION_KEY);
+	}, []);
+
+	// eslint-disable-next-line react-hooks/exhaustive-deps -- pollingStatus managed internally
+	useEffect(() => {
+		if (step !== "telegram_wait" || !telegramResponse || pollingStatus !== "pending") {
 			return;
 		}
 
@@ -162,7 +192,7 @@ const Register = () => {
 		const pollInterval = setInterval(async () => {
 			try {
 				const status = await authService.getRegistrationStatus(
-					registerResponse.registration_token,
+					telegramResponse.registration_token,
 				);
 				if (status.status === "completed") {
 					setPollingStatus("completed");
@@ -172,134 +202,105 @@ const Register = () => {
 			} catch (err) {
 				console.error("Polling error:", err);
 			}
-		}, 3000); // Poll every 3 seconds
+		}, 3000);
 
 		return () => clearInterval(pollInterval);
-	}, [step, registerResponse, pollingStatus]);
+	}, [step, telegramResponse]);
 
-	// Auto-login and redirect when Telegram verification completes
 	useEffect(() => {
 		if (pollingStatus === "completed" && telegramCredentials?.access_token) {
-			// Store the token
 			localStorage.setItem("token", telegramCredentials.access_token);
-			// Redirect to dashboard
+			setAuthFromToken(telegramCredentials.access_token);
+			clearSession();
 			navigate("/");
-		}
-	}, [pollingStatus, telegramCredentials, navigate]);
-
-	// Check for email verification token in URL on mount
-	const [searchParams] = useSearchParams();
-	useEffect(() => {
-		const verifyToken = searchParams.get("verify");
-		if (verifyToken) {
-			setLoading(true);
-			authService
-				.verifyEmailLink(verifyToken)
-				.then((result) => {
-					setEmailVerificationResult(result);
-				})
-				.catch((err: unknown) => {
-					const errorMessage =
-						err instanceof Error ? err.message : "Email verification failed";
-					setError(errorMessage);
-				})
-				.finally(() => {
-					setLoading(false);
-				});
-		}
-	}, [searchParams]);
-
-	const {
-		register,
-		handleSubmit,
-		formState: { errors },
-	} = useForm<UsernameFormData>({
-		resolver: zodResolver(usernameSchema),
-		defaultValues: {
-			username: "",
-		},
-	});
-
-	const {
-		register: registerEmailForm,
-		handleSubmit: handleEmailSubmit,
-		formState: { errors: emailErrors },
-	} = useForm<EmailFormData>({
-		resolver: zodResolver(emailSchema),
-		defaultValues: {
-			username: "",
-			email: "",
-		},
-	});
-
-	const {
-		register: registerVerifyCodeForm,
-		handleSubmit: handleVerifyCodeSubmit,
-		formState: { errors: verifyCodeErrors },
-	} = useForm<VerifyCodeFormData>({
-		resolver: zodResolver(verifyCodeSchema),
-		defaultValues: {
-			code: "",
-		},
-	});
-
-	const onSubmitUsername = async (data: UsernameFormData) => {
-		setError("");
-		setLoading(true);
-		try {
-			const response = await authService.registerStart({
-				username: data.username,
+		} else if (pollingStatus === "completed" && telegramCredentials?.temp_password) {
+			setTempCredentials({
+				username: telegramCredentials.username || "",
+				password: telegramCredentials.temp_password,
+				connectionName: telegramCredentials.connection_name,
+				connectionString: telegramCredentials.connection_string,
 			});
-			setRegisterResponse(response);
-			setStep("telegram");
-		} catch (err: unknown) {
-			const errorMessage =
-				err instanceof Error ? err.message : "Failed to start registration";
-			setError(errorMessage);
-		} finally {
-			setLoading(false);
+			clearSession();
 		}
+	}, [pollingStatus, telegramCredentials, navigate, clearSession, setAuthFromToken]);
+
+	useEffect(() => {
+		if (emailVerificationResult?.success) {
+			if (emailVerificationResult.access_token) {
+				localStorage.setItem("token", emailVerificationResult.access_token);
+				setAuthFromToken(emailVerificationResult.access_token);
+				clearSession();
+				navigate("/");
+			} else if (emailVerificationResult.temp_password) {
+				setTempCredentials({
+					username: emailVerificationResult.username,
+					password: emailVerificationResult.temp_password,
+					connectionName: emailVerificationResult.connection_name,
+					connectionString: emailVerificationResult.connection_string,
+				});
+				clearSession();
+			}
+		}
+	}, [emailVerificationResult, navigate, setAuthFromToken, clearSession]);
+
+	const handleCopyToClipboard = (text: string) => {
+		navigator.clipboard.writeText(text).then(() => {
+			setShowTempPassword(true);
+			setTimeout(() => setShowTempPassword(false), 2000);
+		});
 	};
 
-	const onSubmitPassword = async (data: PasswordFormData) => {
-		setError("");
-		setLoading(true);
-		try {
-			const registerData = {
-				username: data.username,
-				password: data.password,
-				token: "site",
-			} as unknown as Parameters<typeof authService.register>[0];
-			const response = (await authService.register(
-				registerData,
-			)) as SiteRegisterResponse;
-			setSiteRegisterResponse(response);
-		} catch (err: unknown) {
-			const errorMessage =
-				err instanceof Error
-					? err.message
-					: "Registration failed. Please try again.";
-			setError(errorMessage);
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	const onSubmitEmail = async (data: EmailFormData) => {
+	const onSubmitEmailPassword = async (data: EmailPasswordFormData) => {
 		setError("");
 		setLoading(true);
 		try {
 			const response = await authService.startEmailRegistration({
 				username: data.username,
 				email: data.email,
+				referrer_id: referrerId || undefined,
 			});
-			setEmailRegisterResponse(response);
-			setStep("verifycode");
+			setEmailVerification({ email: response.email });
+			setStep("verify_code");
+			sessionStorage.setItem(
+				SESSION_KEY,
+				JSON.stringify({
+					method: "email",
+					username: data.username,
+					email: data.email,
+				} as RegistrationState),
+			);
 		} catch (err: unknown) {
 			const errorMessage =
-				err instanceof Error
-					? err.message
-					: "Failed to start email registration";
+				err instanceof Error ? err.message : "Registration failed";
+			setError(errorMessage);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const onSubmitTelegram = async (data: TelegramFormData) => {
+		setError("");
+		setLoading(true);
+		try {
+			const effectiveReferrerId = data.referrer_id || referrerId || undefined;
+			const response = await authService.registerStart({
+				referrer_id: effectiveReferrerId,
+			});
+			setTelegramResponse(response);
+			setStep("telegram_wait");
+			setPollingStatus("pending");
+			sessionStorage.setItem(
+				SESSION_KEY,
+				JSON.stringify({
+					method: "telegram",
+					referrer_id: effectiveReferrerId,
+					registrationToken: response.registration_token,
+					telegramLink: response.telegram_link,
+				} as RegistrationState),
+			);
+		} catch (err: unknown) {
+			const errorMessage =
+				err instanceof Error ? err.message : "Registration failed";
 			setError(errorMessage);
 		} finally {
 			setLoading(false);
@@ -321,34 +322,23 @@ const Register = () => {
 		}
 	};
 
-	const handleMethodChange = (
-		_: React.MouseEvent<HTMLElement>,
-		newMethod: "telegram" | "email" | "site" | null,
-	) => {
-		if (newMethod !== null) {
-			setRegistrationMethod(newMethod);
-			setError("");
-		}
+	const handleMethodChange = (newMethod: "email" | "telegram") => {
+		setRegistrationMethod(newMethod);
+		setError("");
 	};
 
-	// Auto-login and redirect for site registration
-	useEffect(() => {
-		if (siteRegisterResponse?.access_token) {
-			localStorage.setItem("token", siteRegisterResponse.access_token);
-			navigate("/");
-		}
-	}, [siteRegisterResponse, navigate]);
+	const handleBack = () => {
+		clearSession();
+		setStep("form");
+		setTelegramResponse(null);
+		setTelegramCredentials(null);
+		setEmailVerification(null);
+		setEmailVerificationResult(null);
+		setTempCredentials(null);
+		setPollingStatus("pending");
+	};
 
-	// Auto-login and redirect for email verification
-	useEffect(() => {
-		if (emailVerificationResult?.access_token) {
-			localStorage.setItem("token", emailVerificationResult.access_token);
-			navigate("/");
-		}
-	}, [emailVerificationResult, navigate]);
-
-	// Success page for site registration
-	if (siteRegisterResponse) {
+	if (tempCredentials) {
 		return (
 			<Container component="main" maxWidth="sm">
 				<Box
@@ -364,75 +354,96 @@ const Register = () => {
 							p: 4,
 							width: "100%",
 							textAlign: "center",
-							background: "linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)",
 							borderRadius: 3,
 						}}
 					>
-						<CircularProgress sx={{ mb: 2 }} />
+						<CheckCircle sx={{ fontSize: 64, color: "#4caf50", mb: 2 }} />
 						<Typography component="h1" variant="h5" gutterBottom>
-							Registering...
-						</Typography>
-						<Typography variant="body2" color="textSecondary">
-							Setting up your account and logging you in.
-						</Typography>
-					</Paper>
-				</Box>
-			</Container>
-		);
-	}
-
-	// Success page for email verification
-	if (
-		emailVerificationResult?.success &&
-		!emailVerificationResult?.access_token
-	) {
-		return (
-			<Container component="main" maxWidth="sm">
-				<Box
-					sx={{
-						marginTop: 8,
-						display: "flex",
-						flexDirection: "column",
-						alignItems: "center",
-					}}
-				>
-					<Paper
-						sx={{
-							p: 4,
-							width: "100%",
-							textAlign: "center",
-							background: "linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)",
-							borderRadius: 3,
-						}}
-					>
-						<CheckCircle sx={{ fontSize: 48, color: "#4caf50", mb: 2 }} />
-						<Typography component="h1" variant="h5" gutterBottom>
-							Email Verified!
+							Registration Complete!
 						</Typography>
 						<Typography variant="body2" color="textSecondary" paragraph>
-							Your email has been verified successfully.
+							Save your temporary credentials below. You will need them to log in.
 						</Typography>
-						{emailVerificationResult.temp_password && (
+
+						<Box
+							sx={{
+								mt: 3,
+								textAlign: "left",
+								backgroundColor: "grey.50",
+								p: 2,
+								borderRadius: 2,
+							}}
+						>
+							<Typography variant="subtitle2" gutterBottom>
+								Your temporary credentials:
+							</Typography>
+							<Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Username:
+								</Typography>
+								<Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+									{tempCredentials.username}
+								</Typography>
+							</Box>
+							<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									Password:
+								</Typography>
+								<Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+									{showTempPassword ? tempCredentials.password : "••••••••"}
+								</Typography>
+								<IconButton
+									size="small"
+									onClick={() => handleCopyToClipboard(tempCredentials.password)}
+								>
+									<CopyIcon fontSize="small" />
+								</IconButton>
+							</Box>
+						</Box>
+
+						{tempCredentials.connectionString && (
 							<Box
 								sx={{
 									mt: 2,
-									textAlign: "left",
-									backgroundColor: "#fff",
 									p: 2,
+									backgroundColor: "#e3f2fd",
 									borderRadius: 2,
+									textAlign: "left",
 								}}
 							>
 								<Typography variant="subtitle2" gutterBottom>
-									Your temporary credentials:
+									Connection Name: {tempCredentials.connectionName}
 								</Typography>
-								<Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-									Username: {emailVerificationResult.username}
-								</Typography>
-								<Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-									Password: {emailVerificationResult.temp_password}
-								</Typography>
+								<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+									<Typography
+										variant="body2"
+										sx={{
+											fontFamily: "monospace",
+											fontSize: "0.75rem",
+											wordBreak: "break-all",
+										}}
+									>
+										{showTempPassword
+											? tempCredentials.connectionString
+											: "••••••••••••••••••••••••••"}
+									</Typography>
+									<IconButton
+										size="small"
+										onClick={() =>
+											handleCopyToClipboard(tempCredentials.connectionString!)
+										}
+									>
+										<CopyIcon fontSize="small" />
+									</IconButton>
+								</Box>
 							</Box>
 						)}
+
+						<Alert severity="warning" sx={{ mt: 3, textAlign: "left" }}>
+							Please save these credentials. For security reasons, you will not be
+							able to see the password again.
+						</Alert>
+
 						<Button
 							component={RouterLink}
 							to="/login"
@@ -448,8 +459,7 @@ const Register = () => {
 		);
 	}
 
-	// Step: Email verification code entry
-	if (step === "verifycode" && emailRegisterResponse) {
+	if (step === "verify_code" && emailVerification) {
 		return (
 			<Container component="main" maxWidth="sm">
 				<Box
@@ -460,29 +470,21 @@ const Register = () => {
 						alignItems: "center",
 					}}
 				>
-					<Typography component="h1" variant="h5" gutterBottom>
-						Verify Your Email
-					</Typography>
-
-					<Alert severity="success" sx={{ mb: 3, width: "100%" }}>
-						Code sent to {emailRegisterResponse.email}
-					</Alert>
-
-					<Paper sx={{ p: 3, width: "100%", borderRadius: 3 }}>
+					<Paper sx={{ p: 4, width: "100%", borderRadius: 3 }}>
 						<Box sx={{ textAlign: "center", mb: 3 }}>
 							<EmailIcon sx={{ fontSize: 48, color: "#e65100", mb: 2 }} />
-							<Typography variant="h6" gutterBottom>
-								Enter Verification Code
-							</Typography>
-							<Typography variant="body2" color="textSecondary" paragraph>
-								Enter the 4-digit code we sent to your email. You can also click
-								the verification link in your email.
+							<Typography component="h1" variant="h5" gutterBottom>
+								Verify Your Email
 							</Typography>
 						</Box>
 
+						<Alert severity="success" sx={{ mb: 3 }}>
+							Verification code sent to {emailVerification.email}
+						</Alert>
+
 						<Box
 							component="form"
-							onSubmit={handleVerifyCodeSubmit(onSubmitVerifyCode)}
+							onSubmit={verifyCodeForm.handleSubmit(onSubmitVerifyCode)}
 						>
 							{error && (
 								<Alert severity="error" sx={{ mb: 2 }}>
@@ -503,9 +505,9 @@ const Register = () => {
 									inputMode: "numeric",
 									pattern: "[0-9]*",
 								}}
-								{...registerVerifyCodeForm("code")}
-								error={!!verifyCodeErrors.code}
-								helperText={verifyCodeErrors.code?.message}
+								{...verifyCodeForm.register("code")}
+								error={!!verifyCodeForm.formState.errors.code}
+								helperText={verifyCodeForm.formState.errors.code?.message}
 								sx={{
 									textAlign: "center",
 									"& .MuiInputBase-input": {
@@ -519,12 +521,7 @@ const Register = () => {
 								type="submit"
 								fullWidth
 								variant="contained"
-								sx={{
-									mt: 3,
-									mb: 2,
-									borderRadius: 2,
-									backgroundColor: "#e65100",
-								}}
+								sx={{ mt: 3, mb: 2, borderRadius: 2, backgroundColor: "#e65100" }}
 								disabled={loading}
 							>
 								{loading ? <CircularProgress size={24} /> : "Verify Code"}
@@ -534,16 +531,15 @@ const Register = () => {
 						<Divider sx={{ my: 2 }} />
 
 						<Typography variant="body2" color="textSecondary" paragraph>
-							Didn't receive the email? Check your spam folder or try
-							registering again with a different email.
+							Didn't receive the email? Check your spam folder or click below to
+							start over.
 						</Typography>
 
 						<Button
-							component={RouterLink}
-							to="/register"
 							variant="outlined"
 							fullWidth
 							sx={{ borderRadius: 2 }}
+							onClick={handleBack}
 						>
 							Start Over
 						</Button>
@@ -553,8 +549,7 @@ const Register = () => {
 		);
 	}
 
-	// Step 2: Show Telegram link
-	if (step === "telegram" && registerResponse) {
+	if (step === "telegram_wait" && telegramResponse) {
 		return (
 			<Container component="main" maxWidth="sm">
 				<Box
@@ -565,44 +560,44 @@ const Register = () => {
 						alignItems: "center",
 					}}
 				>
-					<Typography component="h1" variant="h5" gutterBottom>
-						Verify with Telegram
-					</Typography>
-
-					<Alert severity="info" sx={{ mb: 3, width: "100%" }}>
-						{pollingStatus === "pending" || pollingStatus === "checking"
-							? "Please verify your account through our Telegram bot to complete registration. This page will automatically update when verification is complete."
-							: "Verification complete! Logging you in..."}
-					</Alert>
-
-					<Paper sx={{ p: 3, width: "100%", borderRadius: 3 }}>
+					<Paper sx={{ p: 4, width: "100%", borderRadius: 3 }}>
 						<Box sx={{ textAlign: "center", mb: 3 }}>
 							{pollingStatus === "completed" ? (
-								<CheckCircle sx={{ fontSize: 48, color: "#4caf50", mb: 2 }} />
+								<>
+									<CheckCircle sx={{ fontSize: 64, color: "#4caf50", mb: 2 }} />
+									<Typography component="h1" variant="h5" gutterBottom>
+										Verification Complete!
+									</Typography>
+								</>
 							) : (
-								<TelegramIcon sx={{ fontSize: 48, color: "#0088cc", mb: 2 }} />
+								<>
+									<TelegramIcon sx={{ fontSize: 64, color: "#0088cc", mb: 2 }} />
+									<Typography component="h1" variant="h5" gutterBottom>
+										Verify with Telegram
+									</Typography>
+								</>
 							)}
-							<Typography variant="h6" gutterBottom>
-								{pollingStatus === "completed"
-									? "Verification Complete!"
-									: "Open Telegram Bot"}
-							</Typography>
-							<Typography variant="body2" color="textSecondary" paragraph>
-								{pollingStatus === "completed"
-									? "Your account has been verified. You'll be logged in automatically."
-									: "Click the button below to open our Telegram bot and press /start with your registration token."}
-							</Typography>
 						</Box>
+
+						<Alert
+							severity={pollingStatus === "completed" ? "success" : "info"}
+							sx={{ mb: 3 }}
+						>
+							{pollingStatus === "completed"
+								? "Your account has been verified. You'll be logged in automatically."
+								: "Open our Telegram bot to complete registration."}
+						</Alert>
 
 						{pollingStatus !== "completed" && (
 							<>
 								<Button
 									variant="contained"
 									fullWidth
-									href={registerResponse.telegram_link}
+									href={telegramResponse.telegram_link}
 									target="_blank"
 									rel="noopener noreferrer"
 									sx={{ mb: 2, borderRadius: 2 }}
+									startIcon={<TelegramIcon />}
 								>
 									Open Telegram Bot
 								</Button>
@@ -614,69 +609,46 @@ const Register = () => {
 								</Typography>
 								<ol style={{ margin: 0, paddingLeft: 20 }}>
 									<li>
-										<Typography variant="body2">
-											Click "Open Telegram Bot" above
-										</Typography>
+										<Typography variant="body2">Click "Open Telegram Bot"</Typography>
+									</li>
+									<li>
+										<Typography variant="body2">Press /start in the chat</Typography>
 									</li>
 									<li>
 										<Typography variant="body2">
-											Press /start in the chat
-										</Typography>
-									</li>
-									<li>
-										<Typography variant="body2">
-											Enter the registration token when prompted
-										</Typography>
-									</li>
-									<li>
-										<Typography variant="body2">
-											Receive your temporary credentials from the bot
+											Enter this token:{" "}
+											<strong>{telegramResponse.registration_token}</strong>
 										</Typography>
 									</li>
 								</ol>
 
-								<Box sx={{ mt: 3 }}>
-									<Typography
-										variant="caption"
-										color="textSecondary"
-										display="block"
-										gutterBottom
-									>
-										Registration token (for manual entry):
+								<Box sx={{ mt: 2 }}>
+									<Typography variant="caption" color="textSecondary">
+										Registration token:
 									</Typography>
 									<Paper
 										variant="outlined"
 										sx={{
+											mt: 0.5,
 											p: 1,
 											backgroundColor: "grey.50",
 											fontFamily: "monospace",
 											fontSize: "0.75rem",
 										}}
 									>
-										{registerResponse.registration_token}
+										{telegramResponse.registration_token}
 									</Paper>
 								</Box>
+
+								{pollingStatus === "checking" && (
+									<Box sx={{ textAlign: "center", py: 2 }}>
+										<CircularProgress size={24} sx={{ mb: 1 }} />
+										<Typography variant="body2" color="textSecondary">
+											Waiting for verification...
+										</Typography>
+									</Box>
+								)}
 							</>
-						)}
-
-						<Divider sx={{ my: 2 }} />
-
-						{pollingStatus === "checking" && (
-							<Box sx={{ textAlign: "center", py: 2 }}>
-								<CircularProgress size={24} sx={{ mb: 1 }} />
-								<Typography variant="body2" color="textSecondary">
-									Waiting for verification... Please complete the Telegram step
-									above.
-								</Typography>
-							</Box>
-						)}
-
-						{pollingStatus === "pending" && (
-							<Typography variant="body2" color="textSecondary" paragraph>
-								After verification, you'll receive your login credentials via
-								Telegram. You'll be automatically logged in when verification is
-								complete.
-							</Typography>
 						)}
 
 						<Button
@@ -685,6 +657,7 @@ const Register = () => {
 							variant="outlined"
 							fullWidth
 							sx={{ borderRadius: 2, mt: 2 }}
+							onClick={clearSession}
 						>
 							Back to Login
 						</Button>
@@ -694,7 +667,6 @@ const Register = () => {
 		);
 	}
 
-	// Step 1: Username entry with method selection
 	return (
 		<Container component="main" maxWidth="sm">
 			<Box
@@ -705,74 +677,50 @@ const Register = () => {
 					alignItems: "center",
 				}}
 			>
-				<Typography component="h1" variant="h5" gutterBottom>
+				<Typography component="h1" variant="h4" gutterBottom>
 					Create Account
 				</Typography>
 
-				<ToggleButtonGroup
-					value={registrationMethod}
-					exclusive
-					onChange={handleMethodChange}
-					aria-label="registration method"
-					sx={{ mb: 3 }}
-				>
-					<ToggleButton
-						value="telegram"
+				<Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+					<Button
+						variant={registrationMethod === "email" ? "contained" : "outlined"}
+						onClick={() => handleMethodChange("email")}
+						startIcon={<EmailIcon />}
 						sx={{
+							borderRadius: 3,
 							px: 3,
-							borderRadius: "20px !important",
-							"&.Mui-selected": {
-								backgroundColor: "#e3f2fd",
-								color: "#1976d2",
-								"&:hover": {
-									backgroundColor: "#bbdefb",
-								},
-							},
+							backgroundColor:
+								registrationMethod === "email" ? "#e65100" : undefined,
 						}}
 					>
-						<TelegramIcon sx={{ mr: 1 }} />
+						Email + Password
+					</Button>
+					<Button
+						variant={registrationMethod === "telegram" ? "contained" : "outlined"}
+						onClick={() => handleMethodChange("telegram")}
+						startIcon={<TelegramIcon />}
+						sx={{
+							borderRadius: 3,
+							px: 3,
+							backgroundColor:
+								registrationMethod === "telegram" ? "#0088cc" : undefined,
+						}}
+					>
 						Telegram
-					</ToggleButton>
-					<ToggleButton
-						value="email"
-						sx={{
-							px: 3,
-							borderRadius: "20px !important",
-							"&.Mui-selected": {
-								backgroundColor: "#fff3e0",
-								color: "#e65100",
-								"&:hover": {
-									backgroundColor: "#ffe0b2",
-								},
-							},
-						}}
-					>
-						<EmailIcon sx={{ mr: 1 }} />
-						Email
-					</ToggleButton>
-					<ToggleButton
-						value="site"
-						sx={{
-							px: 3,
-							borderRadius: "20px !important",
-							"&.Mui-selected": {
-								backgroundColor: "#f3e5f5",
-								color: "#7b1fa2",
-								"&:hover": {
-									backgroundColor: "#e1bee7",
-								},
-							},
-						}}
-					>
-						Password
-					</ToggleButton>
-				</ToggleButtonGroup>
+					</Button>
+				</Box>
 
-				{registrationMethod === "telegram" ? (
-					<Box
+				{referrerId && (
+					<Alert severity="info" sx={{ mb: 2, width: "100%" }}>
+						Referrer ID: {referrerId}
+					</Alert>
+				)}
+
+				{registrationMethod === "email" ? (
+					<Paper
 						component="form"
-						onSubmit={handleSubmit(onSubmitUsername)}
-						sx={{ mt: 1, width: "100%" }}
+						onSubmit={passwordForm.handleSubmit(onSubmitEmailPassword)}
+						sx={{ p: 3, width: "100%", borderRadius: 3 }}
 					>
 						{error && (
 							<Alert severity="error" sx={{ mb: 2 }}>
@@ -781,7 +729,7 @@ const Register = () => {
 						)}
 
 						<Alert severity="info" sx={{ mb: 2 }}>
-							Registration requires a Telegram account for verification.
+							Enter your credentials. A verification code will be sent to your email.
 						</Alert>
 
 						<TextField
@@ -792,58 +740,9 @@ const Register = () => {
 							label="Username"
 							autoComplete="username"
 							autoFocus
-							{...register("username")}
-							error={!!errors.username}
-							helperText={errors.username?.message}
-						/>
-
-						<Button
-							type="submit"
-							fullWidth
-							variant="contained"
-							sx={{ mt: 3, mb: 2, borderRadius: 2 }}
-							disabled={loading}
-						>
-							{loading ? (
-								<CircularProgress size={24} />
-							) : (
-								"Continue with Telegram"
-							)}
-						</Button>
-
-						<Box sx={{ textAlign: "center" }}>
-							<Link component={RouterLink} to="/login" variant="body2">
-								Already have an account? Sign In
-							</Link>
-						</Box>
-					</Box>
-				) : registrationMethod === "email" ? (
-					<Box
-						component="form"
-						onSubmit={handleEmailSubmit(onSubmitEmail)}
-						sx={{ mt: 1, width: "100%" }}
-					>
-						{error && (
-							<Alert severity="error" sx={{ mb: 2 }}>
-								{error}
-							</Alert>
-						)}
-
-						<Alert severity="info" sx={{ mb: 2 }}>
-							Enter your username and email to receive a verification code.
-						</Alert>
-
-						<TextField
-							margin="normal"
-							required
-							fullWidth
-							id="username"
-							label="Username"
-							autoComplete="username"
-							autoFocus
-							{...registerEmailForm("username")}
-							error={!!emailErrors.username}
-							helperText={emailErrors.username?.message}
+							{...passwordForm.register("username")}
+							error={!!passwordForm.formState.errors.username}
+							helperText={passwordForm.formState.errors.username?.message}
 						/>
 
 						<TextField
@@ -853,63 +752,9 @@ const Register = () => {
 							id="email"
 							label="Email Address"
 							autoComplete="email"
-							{...registerEmailForm("email")}
-							error={!!emailErrors.email}
-							helperText={emailErrors.email?.message}
-						/>
-
-						<Button
-							type="submit"
-							fullWidth
-							variant="contained"
-							sx={{ mt: 3, mb: 2, borderRadius: 2, backgroundColor: "#e65100" }}
-							disabled={loading}
-						>
-							{loading ? (
-								<CircularProgress size={24} />
-							) : (
-								"Send Verification Code"
-							)}
-						</Button>
-
-						<Box sx={{ textAlign: "center" }}>
-							<Link component={RouterLink} to="/login" variant="body2">
-								Already have an account? Sign In
-							</Link>
-						</Box>
-					</Box>
-				) : (
-					<Paper
-						component="form"
-						onSubmit={handlePasswordSubmit(onSubmitPassword)}
-						sx={{
-							p: 3,
-							width: "100%",
-							borderRadius: 3,
-							backgroundColor: "#fafafa",
-						}}
-					>
-						{error && (
-							<Alert severity="error" sx={{ mb: 2 }}>
-								{error}
-							</Alert>
-						)}
-
-						<Alert severity="success" sx={{ mb: 2 }}>
-							Create your account with a password. No Telegram required!
-						</Alert>
-
-						<TextField
-							margin="normal"
-							required
-							fullWidth
-							id="username"
-							label="Username"
-							autoComplete="username"
-							autoFocus
-							{...registerPasswordForm("username")}
-							error={!!passwordErrors.username}
-							helperText={passwordErrors.username?.message}
+							{...passwordForm.register("email")}
+							error={!!passwordForm.formState.errors.email}
+							helperText={passwordForm.formState.errors.email?.message}
 						/>
 
 						<TextField
@@ -920,9 +765,9 @@ const Register = () => {
 							label="Password"
 							type={showPassword ? "text" : "password"}
 							autoComplete="new-password"
-							{...registerPasswordForm("password")}
-							error={!!passwordErrors.password}
-							helperText={passwordErrors.password?.message}
+							{...passwordForm.register("password")}
+							error={!!passwordForm.formState.errors.password}
+							helperText={passwordForm.formState.errors.password?.message}
 							InputProps={{
 								endAdornment: (
 									<InputAdornment position="end">
@@ -945,16 +790,14 @@ const Register = () => {
 							label="Confirm Password"
 							type={showConfirmPassword ? "text" : "password"}
 							autoComplete="new-password"
-							{...registerPasswordForm("confirmPassword")}
-							error={!!passwordErrors.confirmPassword}
-							helperText={passwordErrors.confirmPassword?.message}
+							{...passwordForm.register("confirmPassword")}
+							error={!!passwordForm.formState.errors.confirmPassword}
+							helperText={passwordForm.formState.errors.confirmPassword?.message}
 							InputProps={{
 								endAdornment: (
 									<InputAdornment position="end">
 										<IconButton
-											onClick={() =>
-												setShowConfirmPassword(!showConfirmPassword)
-											}
+											onClick={() => setShowConfirmPassword(!showConfirmPassword)}
 											edge="end"
 										>
 											{showConfirmPassword ? <VisibilityOff /> : <Visibility />}
@@ -982,13 +825,13 @@ const Register = () => {
 								/>
 								<Chip
 									size="small"
-									label="Uppercase letter"
+									label="Uppercase"
 									sx={{ fontSize: "0.7rem" }}
 									color={/[A-Z]/.test(passwordValue) ? "success" : "default"}
 								/>
 								<Chip
 									size="small"
-									label="Lowercase letter"
+									label="Lowercase"
 									sx={{ fontSize: "0.7rem" }}
 									color={/[a-z]/.test(passwordValue) ? "success" : "default"}
 								/>
@@ -1005,11 +848,55 @@ const Register = () => {
 							type="submit"
 							fullWidth
 							variant="contained"
-							color="secondary"
-							sx={{ mt: 1, mb: 2, borderRadius: 2 }}
+							sx={{ mt: 1, mb: 2, borderRadius: 2, backgroundColor: "#e65100" }}
 							disabled={loading}
 						>
 							{loading ? <CircularProgress size={24} /> : "Create Account"}
+						</Button>
+
+						<Box sx={{ textAlign: "center" }}>
+							<Link component={RouterLink} to="/login" variant="body2">
+								Already have an account? Sign In
+							</Link>
+						</Box>
+					</Paper>
+				) : (
+					<Paper
+						component="form"
+						onSubmit={telegramForm.handleSubmit(onSubmitTelegram)}
+						sx={{ p: 3, width: "100%", borderRadius: 3 }}
+					>
+						{error && (
+							<Alert severity="error" sx={{ mb: 2 }}>
+								{error}
+							</Alert>
+						)}
+
+						<Alert severity="info" sx={{ mb: 2 }}>
+							Verify via Telegram bot to create your account.
+						</Alert>
+
+						<TextField
+							margin="normal"
+							fullWidth
+							id="referrer_id"
+							label="Referrer ID (optional)"
+							autoComplete="off"
+							autoFocus
+							{...telegramForm.register("referrer_id")}
+							error={!!telegramForm.formState.errors.referrer_id}
+							helperText={telegramForm.formState.errors.referrer_id?.message || "Enter referrer ID if you were referred by someone"}
+						/>
+
+						<Button
+							type="submit"
+							fullWidth
+							variant="contained"
+							sx={{ mt: 3, mb: 2, borderRadius: 2, backgroundColor: "#0088cc" }}
+							disabled={loading}
+							startIcon={<TelegramIcon />}
+						>
+							{loading ? <CircularProgress size={24} /> : "Continue with Telegram"}
 						</Button>
 
 						<Box sx={{ textAlign: "center" }}>

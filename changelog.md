@@ -29,6 +29,8 @@
 - Backend: Add read_at column migration for support_messages table
 - Check for paid connections now verifies paydate in future, not just completed payments
 - Auto-renew toggle now uses dedicated endpoint (does NOT affect VPN connection enabled state)
+- AuthContext: Removed client-side JWT parsing, now uses /users/me API for session restoration
+- Register.tsx: Fixed polling race condition by removing pollingStatus from useEffect deps
 
 ### Known Issues
 - Bot doesn't use /auth/telegram/callback - breaks registration flow
