@@ -11,7 +11,7 @@ import {
 	RadioGroup,
 	Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { connectionService } from "../../services/connectionService";
 
 interface MakePaymentModalProps {
@@ -37,14 +37,7 @@ const MakePaymentModal = ({
 	const [selectedMonths, setSelectedMonths] = useState<number>(1);
 	const [_loading, setLoading] = useState(false);
 
-	useEffect(() => {
-		if (open) {
-			fetchMonthlyTotal();
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [open]);
-
-	const fetchMonthlyTotal = async () => {
+	const fetchMonthlyTotal = useCallback(async () => {
 		setLoading(true);
 		try {
 			const connections = await connectionService.getMyConnections();
@@ -58,7 +51,13 @@ const MakePaymentModal = ({
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		if (open) {
+			fetchMonthlyTotal();
+		}
+	}, [open, fetchMonthlyTotal]);
 
 	const handleProceed = () => {
 		const amount = getPrice(selectedMonths, monthlyTotal);
