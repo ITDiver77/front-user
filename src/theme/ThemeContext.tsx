@@ -40,7 +40,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 const THEME_STORAGE_KEY = "vpn-user-theme";
 
 function getInitialTheme(): ThemeName {
-	if (typeof window === "undefined") return "violet";
+	if (typeof window === "undefined") return "greySteel";
 	const stored = localStorage.getItem(THEME_STORAGE_KEY);
 	const validThemes = [
 		"violet",
@@ -66,7 +66,7 @@ function getInitialTheme(): ThemeName {
 	if (stored && validThemes.includes(stored)) {
 		return stored as ThemeName;
 	}
-	return "violet";
+	return "greySteel";
 }
 
 function detectTelegramTheme(): {
@@ -119,7 +119,7 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 		setTelegramState(detected);
 
 		// Auto-switch to telegram theme if in Telegram and theme is default
-		if (detected.isTelegram && themeName === "violet") {
+		if (detected.isTelegram && themeName === "greySteel") {
 			setThemeNameState("telegram");
 		}
 	}, [themeName]);
