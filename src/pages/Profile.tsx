@@ -367,18 +367,58 @@ const Profile = () => {
 			<Dialog open={relinkDialogOpen} onClose={() => setRelinkDialogOpen(false)}>
 				<DialogTitle>Relink Telegram Account?</DialogTitle>
 				<DialogContent>
-					<Typography>
-						This will generate a new verification link. Your old Telegram bot link will
-						remain active until you successfully verify with the new one.
-					</Typography>
-					<Typography sx={{ mt: 2, color: "warning.main" }}>
-						⚠️ Don't relink unless you've lost access to your old Telegram account or
-						want to receive notifications on a new account.
-					</Typography>
+					{rebinding ? (
+						<Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 2 }}>
+							<CircularProgress size={24} />
+							<Typography>Generating rebind link...</Typography>
+						</Box>
+					) : rebindLink ? (
+						<>
+							<Typography sx={{ mb: 2 }}>
+								Click the link below to verify with Telegram:
+							</Typography>
+							<Button
+								variant="contained"
+								href={rebindLink}
+								target="_blank"
+								rel="noopener noreferrer"
+								fullWidth
+							>
+								Open Telegram Bot
+							</Button>
+							<Typography sx={{ mt: 2, fontSize: "0.875rem", color: "text.secondary" }}>
+								Complete verification in Telegram, then return here. This dialog will
+								close automatically.
+							</Typography>
+						</>
+					) : (
+						<>
+							<Typography>
+								This will generate a new verification link. Your old Telegram bot link will
+								remain active until you successfully verify with the new one.
+							</Typography>
+							<Typography sx={{ mt: 2, color: "warning.main" }}>
+								⚠️ Don't relink unless you've lost access to your old Telegram account or
+								want to receive notifications on a new account.
+							</Typography>
+						</>
+					)}
 				</DialogContent>
 				<DialogActions>
-					<Button onClick={() => setRelinkDialogOpen(false)}>Cancel</Button>
-					<Button onClick={() => setRelinkDialogOpen(false)}>Confirm</Button>
+					<Button
+						onClick={() => {
+							setRelinkDialogOpen(false);
+							setRebindLink(null);
+							setRebindToken(null);
+						}}
+					>
+						{rebindLink ? "Close" : "Cancel"}
+					</Button>
+					{!rebindLink && !rebinding && (
+						<Button onClick={handleStartRelink} variant="contained">
+							Confirm
+						</Button>
+					)}
 				</DialogActions>
 			</Dialog>
 
