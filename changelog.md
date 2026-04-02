@@ -30,7 +30,9 @@
 - Check for paid connections now verifies paydate in future, not just completed payments
 - Auto-renew toggle now uses dedicated endpoint (does NOT affect VPN connection enabled state)
 - AuthContext: Removed client-side JWT parsing, now uses /users/me API for session restoration
-- Register.tsx: Fixed polling race condition by removing pollingStatus from useEffect deps
+- Register.tsx: Fixed polling race condition by using ref to track pollingStatus without triggering effect re-runs
+- Profile.tsx: Wired Telegram relink dialog to backend endpoint (POST /users/me/telegram/rebind)
+- NewConnectionModal: Dynamic pricing fetched from API (GET /users/me/price) instead of hardcoded
 
 ### Known Issues
 - Bot doesn't use /auth/telegram/callback - breaks registration flow

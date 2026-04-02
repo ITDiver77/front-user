@@ -7,11 +7,11 @@ Current tasks, planned features, and deferred work.
 ### Security Fixes (P0/P1)
 - [x] AuthContext: Remove client-side JWT parsing, use /users/me API instead
 - [x] Register.tsx: Fix polling race condition
-- [ ] Profile.tsx: Wire relink dialog to backend (waiting for backend CR-1)
-- [ ] NewConnectionModal: Fetch price dynamically (waiting for backend CR-3)
+- [x] Profile.tsx: Wire relink dialog to backend (backend endpoint: POST /users/me/telegram/rebind)
+- [x] NewConnectionModal: Fetch price dynamically (backend endpoint: GET /users/me/price)
 
 ### Registration Flow Fix
-- [ ] Implement seamless registration between frontend and bot
+- [x] Implement seamless registration between frontend and bot
 - [ ] Test registration flow end-to-end
 
 ### Completed
@@ -28,6 +28,8 @@ Current tasks, planned features, and deferred work.
 - [x] Auto-detection of Telegram environment
 - [x] AuthContext: Remove client-side JWT parsing, use /users/me API
 - [x] Register.tsx: Fix polling race condition
+- [x] Profile.tsx: Wire relink dialog to backend (POST /users/me/telegram/rebind)
+- [x] NewConnectionModal: Dynamic pricing from API (GET /users/me/price)
 
 ### Support Chat
 - [x] Support page with 2 UI variants (Telegram-like and modern cards)
