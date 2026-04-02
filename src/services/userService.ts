@@ -1,4 +1,4 @@
-import type { User, UserUpdateRequest, TelegramRebindResponse } from "../types/user";
+import type { User, UserUpdateRequest, TelegramRebindResponse, UserPriceResponse } from "../types/user";
 import api from "./api";
 
 export const userService = {
@@ -45,6 +45,21 @@ export const userService = {
 		} catch (error) {
 			const err = error as any;
 			throw new Error(`Failed to start Telegram rebind: ${err.message}`);
+		}
+	},
+
+	/**
+	 * Get current user's price for new connection
+	 * @returns {Promise<UserPriceResponse>} Price information
+	 * @throws {Error} When network error or API error occurs
+	 */
+	getUserPrice: async () => {
+		try {
+			const response = await api.get<UserPriceResponse>("/users/me/price");
+			return response.data;
+		} catch (error) {
+			const err = error as any;
+			throw new Error(`Failed to fetch user price: ${err.message}`);
 		}
 	},
 

@@ -66,3 +66,10 @@ export interface TelegramRebindStatusResponse {
 	status: "pending" | "completed" | "expired";
 	telegram_id: number | null;
 }
+
+export interface UserPriceResponse {
+	price: number;
+	price_type: "default" | "min" | "inviter";
+	inviter_price: number | null;
+	reason: string;
+}

@@ -22,6 +22,7 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { paymentService } from "../../services/paymentService";
 import { serverService } from "../../services/serverService";
+import { userService } from "../../services/userService";
 import type { Server } from "../../types/server";
 import { newConnectionSchema } from "../../utils/validation";
 
@@ -33,8 +34,6 @@ interface NewConnectionModalProps {
 
 type NewConnectionFormData = z.infer<typeof newConnectionSchema>;
 
-const PRICE_PER_MONTH = 5;
-
 const NewConnectionModal = ({
 	open,
 	onClose,
@@ -44,6 +43,7 @@ const NewConnectionModal = ({
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string>("");
 	const [serverLoading, setServerLoading] = useState(true);
+	const [priceInfo, setPriceInfo] = useState<{ price: number; reason: string } | null>(null);
 
 	const {
 		register,
@@ -62,13 +62,18 @@ const NewConnectionModal = ({
 	});
 
 	const months = watch("months");
-	const totalPrice = months * PRICE_PER_MONTH;
+	const pricePerMonth = priceInfo?.price ?? 0;
+	const totalPrice = months * pricePerMonth;
 
 	const fetchServers = useCallback(async () => {
 		setServerLoading(true);
 		try {
-			const data = await serverService.getActiveServers();
-			setServers(data);
+			const [serversData, priceData] = await Promise.all([
+				serverService.getActiveServers(),
+				userService.getUserPrice(),
+			]);
+			setServers(serversData);
+			setPriceInfo({ price: priceData.price, reason: priceData.reason });
 		} catch (err: any) {
 			setError("Failed to load servers");
 			console.error(err);
@@ -172,16 +177,24 @@ const NewConnectionModal = ({
 					<Box
 						sx={{ mt: 2, p: 2, backgroundColor: "grey.50", borderRadius: 1 }}
 					>
-						<Typography variant="body2" color="textSecondary">
-							Price per month: ${PRICE_PER_MONTH}
-						</Typography>
-						<Typography variant="h6">
-							Total: ${totalPrice.toFixed(2)} for {months} month
-							{months !== 1 ? "s" : ""}
-						</Typography>
-						<Typography variant="caption" color="textSecondary">
-							Payment will be processed after you confirm.
-						</Typography>
+						{serverLoading ? (
+							<CircularProgress size={20} />
+						) : (
+							<>
+								<Typography variant="body2" color="textSecondary">
+									Price per month: {pricePerMonth} ₽
+								</Typography>
+								<Typography variant="h6">
+									Total: {totalPrice} ₽ for {months} month
+									{months !== 1 ? "s" : ""}
+								</Typography>
+								{priceInfo?.reason && (
+									<Typography variant="caption" color="textSecondary">
+										{priceInfo.reason}
+									</Typography>
+								)}
+							</>
+						)}
 					</Box>
 				</Box>
 			</DialogContent>
