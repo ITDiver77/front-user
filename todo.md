@@ -59,11 +59,15 @@ Current tasks, planned features, and deferred work.
 - [x] Fix dark theme conversation sidebar styling
 
 ### Theme System
-- [x] Add darkBlue dark theme
-- [x] Add darkPurple dark theme
-- [x] Add darkTeal dark theme
-- [x] Remove "Classic Light" theme (too similar to Telegram)
-- [x] Update ThemeSelector to show only dark themes
+- [x] Two-column theme selector layout (dark left, light right)
+- [x] Fixed double open/close bug in theme selector
+- [x] Default theme changed to greySteel (dark steel)
+- [x] Telegram users auto-use Telegram theme colors
+- [x] Equal theme count: 13 dark + 12 light themes
+- [x] Added light themes: honey, ocean, lavender, sunset, coral, skyBlue, peach, sage
+- [x] Restored violet and teal as light themes
+- [x] Removed "Classic Light" theme
+- [x] Removed duplicate themes (matcha too similar to limeGreen, mint too similar to ocean)
 
 ## Low Priority / Backlog
 

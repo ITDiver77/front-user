@@ -15,16 +15,23 @@ import { darkPurpleTheme } from "./themes/darkPurple";
 import { darkTealTheme } from "./themes/darkTeal";
 import { greenMintTheme } from "./themes/greenMint";
 import { greySteelTheme } from "./themes/greySteel";
+import { honeyTheme } from "./themes/honey";
 import { indigoSlateTheme } from "./themes/indigoSlate";
-import { lightTheme } from "./themes/light";
+import { lavenderTheme } from "./themes/lavender";
 import { limeGreenTheme } from "./themes/limeGreen";
+import { oceanTheme } from "./themes/ocean";
 import { orangeDeepTheme } from "./themes/orangeDeep";
 import { pinkPurpleTheme } from "./themes/pinkPurple";
 import { redCrimsonTheme } from "./themes/redCrimson";
 import { rosePinkTheme } from "./themes/rosePink";
+import { sunsetTheme } from "./themes/sunset";
 import { tealTheme } from "./themes/teal";
 import { createTelegramTheme } from "./themes/telegram";
 import { violetTheme } from "./themes/violet";
+import { coralTheme } from "./themes/coral";
+import { skyBlueTheme } from "./themes/skyBlue";
+import { peachTheme } from "./themes/peach";
+import { sageTheme } from "./themes/sage";
 import type { TelegramThemeParams, ThemeName } from "./types";
 
 interface ThemeContextValue {
@@ -46,7 +53,6 @@ function getInitialTheme(): ThemeName {
 		"violet",
 		"teal",
 		"telegram",
-		"light",
 		"dark",
 		"darkBlue",
 		"darkPurple",
@@ -62,6 +68,14 @@ function getInitialTheme(): ThemeName {
 		"brownCoffee",
 		"pinkPurple",
 		"greySteel",
+		"honey",
+		"ocean",
+		"lavender",
+		"sunset",
+		"coral",
+		"skyBlue",
+		"peach",
+		"sage",
 	];
 	if (stored && validThemes.includes(stored)) {
 		return stored as ThemeName;
@@ -156,13 +170,8 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 					);
 				}
 				return createTelegramTheme({}, false);
-			case "light":
-				return lightTheme;
 			case "dark":
-				return createTheme({
-					...lightTheme,
-					palette: { mode: "dark" },
-				});
+				return greySteelTheme;
 			case "darkBlue":
 				return darkBlueTheme;
 			case "darkPurple":
@@ -191,6 +200,22 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 				return pinkPurpleTheme;
 			case "greySteel":
 				return greySteelTheme;
+			case "honey":
+				return honeyTheme;
+			case "ocean":
+				return oceanTheme;
+			case "lavender":
+				return lavenderTheme;
+			case "sunset":
+				return sunsetTheme;
+			case "coral":
+				return coralTheme;
+			case "skyBlue":
+				return skyBlueTheme;
+			case "peach":
+				return peachTheme;
+			case "sage":
+				return sageTheme;
 			default:
 				return violetTheme;
 		}

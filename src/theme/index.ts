@@ -1,5 +1,4 @@
 export { baseSettings } from "./themes/base";
-export { lightTheme } from "./themes/light";
 export { tealTheme } from "./themes/teal";
 export { telegramDarkTheme, telegramLightTheme, createTelegramTheme } from "./themes/telegram";
 export { violetTheme } from "./themes/violet";
@@ -17,6 +16,14 @@ export { limeGreenTheme } from "./themes/limeGreen";
 export { brownCoffeeTheme } from "./themes/brownCoffee";
 export { pinkPurpleTheme } from "./themes/pinkPurple";
 export { greySteelTheme } from "./themes/greySteel";
+export { honeyTheme } from "./themes/honey";
+export { oceanTheme } from "./themes/ocean";
+export { lavenderTheme } from "./themes/lavender";
+export { sunsetTheme } from "./themes/sunset";
+export { coralTheme } from "./themes/coral";
+export { skyBlueTheme } from "./themes/skyBlue";
+export { peachTheme } from "./themes/peach";
+export { sageTheme } from "./themes/sage";
 
 export { ThemeContext, useTheme, CustomThemeProvider } from "./ThemeContext";
 export type { ThemeName, ThemeMode, ThemeConfig, ThemeContextType, TelegramThemeParams } from "./types";

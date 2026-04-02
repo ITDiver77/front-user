@@ -131,7 +131,7 @@ export const cuteTransitions = {
 	slow: "0.5s ease",
 };
 
-export type ThemeName = "violet" | "teal" | "telegram" | "light" | "dark" | "darkBlue" | "darkPurple" | "darkTeal" | "amberGold" | "greenMint" | "rosePink" | "indigoSlate" | "orangeDeep" | "cyanBlue" | "redCrimson" | "limeGreen" | "brownCoffee" | "pinkPurple" | "greySteel";
+export type ThemeName = "violet" | "teal" | "telegram" | "dark" | "darkBlue" | "darkPurple" | "darkTeal" | "amberGold" | "greenMint" | "rosePink" | "indigoSlate" | "orangeDeep" | "cyanBlue" | "redCrimson" | "limeGreen" | "brownCoffee" | "pinkPurple" | "greySteel" | "honey" | "ocean" | "lavender" | "sunset" | "coral" | "skyBlue" | "peach" | "sage";
 
 export type ThemeMode = "light" | "dark" | "system";
 
@@ -152,11 +152,6 @@ export const availableThemes: ThemeConfig[] = [
 		name: "telegram",
 		label: "Telegram",
 		description: "Matches your Telegram app theme",
-	},
-	{
-		name: "light",
-		label: "Classic Light",
-		description: "Traditional blue theme",
 	},
 	{
 		name: "darkBlue",
@@ -227,6 +222,56 @@ export const availableThemes: ThemeConfig[] = [
 		name: "greySteel",
 		label: "Grey Steel",
 		description: "Dark theme with grey metallic accent",
+	},
+	{
+		name: "violet",
+		label: "Violet",
+		description: "Soft purple, cute and modern",
+	},
+	{
+		name: "teal",
+		label: "Teal",
+		description: "Fresh and clean teal tones",
+	},
+	{
+		name: "honey",
+		label: "Honey",
+		description: "Warm golden honey tones",
+	},
+	{
+		name: "ocean",
+		label: "Ocean",
+		description: "Deep ocean teal and blue",
+	},
+	{
+		name: "lavender",
+		label: "Lavender",
+		description: "Soft purple lavender",
+	},
+	{
+		name: "sunset",
+		label: "Sunset",
+		description: "Warm sunset orange",
+	},
+	{
+		name: "coral",
+		label: "Coral",
+		description: "Coral reef inspired tones",
+	},
+	{
+		name: "skyBlue",
+		label: "Sky Blue",
+		description: "Clear sky blue tones",
+	},
+	{
+		name: "peach",
+		label: "Peach",
+		description: "Soft peach tones",
+	},
+	{
+		name: "sage",
+		label: "Sage",
+		description: "Calming sage green",
 	},
 ];
 

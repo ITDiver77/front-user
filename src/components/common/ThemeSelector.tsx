@@ -33,19 +33,7 @@ const darkThemes: ThemeName[] = [
 	"redCrimson",
 ];
 
-const lightThemes: ThemeName[] = ["light", "limeGreen", "rosePink"];
-
-const themePairs: { dark: ThemeName; light: ThemeName }[] = [
-	{ dark: "greenMint", light: "limeGreen" },
-	{ dark: "pinkPurple", light: "rosePink" },
-];
-
-const otherDarkThemes = darkThemes.filter(
-	(d) => !themePairs.some((p) => p.dark === d),
-);
-const otherLightThemes = lightThemes.filter(
-	(l) => !themePairs.some((p) => p.light === l),
-);
+const lightThemes: ThemeName[] = ["limeGreen", "rosePink", "honey", "ocean", "lavender", "sunset", "violet", "teal", "coral", "skyBlue", "peach", "sage"];
 
 function getThemeConfig(name: ThemeName) {
 	return availableThemes.find((t) => t.name === name);
@@ -73,6 +61,16 @@ export function ThemeSelector() {
 		return null;
 	}
 
+	const darkSorted = darkThemes
+		.map(getThemeConfig)
+		.filter(Boolean)
+		.sort((a, b) => a!.label.localeCompare(b!.label));
+
+	const lightSorted = lightThemes
+		.map(getThemeConfig)
+		.filter(Boolean)
+		.sort((a, b) => a!.label.localeCompare(b!.label));
+
 	return (
 		<>
 			<Tooltip title="Change theme">
@@ -85,67 +83,32 @@ export function ThemeSelector() {
 				open={Boolean(anchorEl)}
 				onClose={handleClose}
 				PaperProps={{
-					sx: { borderRadius: 2, minWidth: 360, p: 1 },
+					sx: { borderRadius: 2, minWidth: 400, p: 1 },
 				}}
 			>
-				<Typography variant="caption" color="text.secondary" sx={{ px: 1, pb: 1 }}>
-					Dark
-				</Typography>
-				<Grid container spacing={0.5}>
-					{themePairs.map(({ dark, light }) => {
-						const darkTheme = getThemeConfig(dark);
-						const lightTheme = getThemeConfig(light);
-						if (!darkTheme || !lightTheme) return null;
-						return (
-							<Grid item xs={6} key={dark}>
+				<Grid container spacing={1}>
+					<Grid item xs={6}>
+						<Typography
+							variant="caption"
+							color="text.secondary"
+							sx={{ px: 1, pb: 0.5, display: "block" }}
+						>
+							Dark
+						</Typography>
+						{darkSorted.map((theme) => {
+							if (!theme) return null;
+							return (
 								<MenuItem
-									onClick={() => handleSelectTheme(darkTheme.name)}
-									selected={themeName === darkTheme.name}
+									key={theme.name}
+									onClick={() => handleSelectTheme(theme.name)}
+									selected={themeName === theme.name}
 									sx={{ borderRadius: 1, mb: 0.5 }}
 								>
 									<ListItemText
-										primary={darkTheme.label}
-										primaryTypographyProps={{ fontWeight: 500, fontSize: 13 }}
-									/>
-									{themeName === darkTheme.name && (
-										<ListItemIcon sx={{ minWidth: "auto" }}>
-											<CheckIcon color="primary" fontSize="small" />
-										</ListItemIcon>
-									)}
-								</MenuItem>
-								<MenuItem
-									onClick={() => handleSelectTheme(lightTheme.name)}
-									selected={themeName === lightTheme.name}
-									sx={{ borderRadius: 1 }}
-								>
-									<ListItemText
-										primary={lightTheme.label}
-										secondary={lightTheme.description}
+										primary={theme.label}
+										secondary={theme.description}
 										primaryTypographyProps={{ fontWeight: 500, fontSize: 13 }}
 										secondaryTypographyProps={{ variant: "caption" }}
-									/>
-									{themeName === lightTheme.name && (
-										<ListItemIcon sx={{ minWidth: "auto" }}>
-											<CheckIcon color="primary" fontSize="small" />
-										</ListItemIcon>
-									)}
-								</MenuItem>
-							</Grid>
-						);
-					})}
-					{otherDarkThemes.map((name) => {
-						const theme = getThemeConfig(name);
-						if (!theme) return null;
-						return (
-							<Grid item xs={6} key={name}>
-								<MenuItem
-									onClick={() => handleSelectTheme(theme.name)}
-									selected={themeName === theme.name}
-									sx={{ borderRadius: 1 }}
-								>
-									<ListItemText
-										primary={theme.label}
-										primaryTypographyProps={{ fontWeight: 500, fontSize: 13 }}
 									/>
 									{themeName === theme.name && (
 										<ListItemIcon sx={{ minWidth: "auto" }}>
@@ -153,44 +116,42 @@ export function ThemeSelector() {
 										</ListItemIcon>
 									)}
 								</MenuItem>
-							</Grid>
-						);
-					})}
-				</Grid>
-				{otherLightThemes.length > 0 && (
-					<>
-						<Typography variant="caption" color="text.secondary" sx={{ px: 1, pt: 1 }}>
+							);
+						})}
+					</Grid>
+					<Grid item xs={6}>
+						<Typography
+							variant="caption"
+							color="text.secondary"
+							sx={{ px: 1, pb: 0.5, display: "block" }}
+						>
 							Light
 						</Typography>
-						<Grid container spacing={0.5} sx={{ mt: 0 }}>
-							{otherLightThemes.map((name) => {
-								const theme = getThemeConfig(name);
-								if (!theme) return null;
-								return (
-									<Grid item xs={6} key={name}>
-										<MenuItem
-											onClick={() => handleSelectTheme(theme.name)}
-											selected={themeName === theme.name}
-											sx={{ borderRadius: 1 }}
-										>
-											<ListItemText
-												primary={theme.label}
-												secondary={theme.description}
-												primaryTypographyProps={{ fontWeight: 500, fontSize: 13 }}
-												secondaryTypographyProps={{ variant: "caption" }}
-											/>
-											{themeName === theme.name && (
-												<ListItemIcon sx={{ minWidth: "auto" }}>
-													<CheckIcon color="primary" fontSize="small" />
-												</ListItemIcon>
-											)}
-										</MenuItem>
-									</Grid>
-								);
-							})}
-						</Grid>
-					</>
-				)}
+						{lightSorted.map((theme) => {
+							if (!theme) return null;
+							return (
+								<MenuItem
+									key={theme.name}
+									onClick={() => handleSelectTheme(theme.name)}
+									selected={themeName === theme.name}
+									sx={{ borderRadius: 1, mb: 0.5 }}
+								>
+									<ListItemText
+										primary={theme.label}
+										secondary={theme.description}
+										primaryTypographyProps={{ fontWeight: 500, fontSize: 13 }}
+										secondaryTypographyProps={{ variant: "caption" }}
+									/>
+									{themeName === theme.name && (
+										<ListItemIcon sx={{ minWidth: "auto" }}>
+											<CheckIcon color="primary" fontSize="small" />
+										</ListItemIcon>
+									)}
+								</MenuItem>
+							);
+						})}
+					</Grid>
+				</Grid>
 			</Menu>
 		</>
 	);

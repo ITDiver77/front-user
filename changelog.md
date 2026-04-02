@@ -3,7 +3,9 @@
 ## [Unreleased]
 
 ### Added
-- Multi-theme system (Violet, Teal, Telegram, Light themes)
+- Multi-theme system with 25 themes (13 dark, 12 light)
+- New light themes: honey, ocean, lavender, sunset, coral, skyBlue, peach, sage
+- Restored violet and teal as light themes
 - Telegram WebApp SDK integration (@tma.js/sdk)
 - Framer-motion animations for pages and components
 - ThemeSelector component for theme switching
