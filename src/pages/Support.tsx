@@ -38,6 +38,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { EmptyState } from "../components/common/EmptyState";
+import { useLanguage } from "../i18n/LanguageContext";
 import { supportService } from "../services/supportService";
 import { pageVariants, staggerItem } from "../styles/animations";
 import type {
@@ -124,6 +125,7 @@ const TelegramBubble = ({
 
 // Component for message bubble - Variant B (Modern Cards)
 const CardBubble = ({ message }: { message: SupportMessage }) => {
+	const { t } = useLanguage();
 	const theme = useTheme();
 	const isFromSupport = message.is_from_admin;
 
@@ -157,7 +159,7 @@ const CardBubble = ({ message }: { message: SupportMessage }) => {
 						)}
 					</Avatar>
 					<Typography variant="caption" fontWeight={600} color="text.secondary">
-						{isFromSupport ? "Support" : "You"}
+						{isFromSupport ? t("support.supportAgent") : t("support.you")}
 					</Typography>
 					<Typography variant="caption" color="text.disabled" sx={{ ml: 1 }}>
 						{new Date(message.created_at).toLocaleString()}
@@ -202,6 +204,7 @@ const NewConversationDialog = ({
 	onClose,
 	onCreated,
 }: NewConversationDialogProps) => {
+	const { t } = useLanguage();
 	const [message, setMessage] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
@@ -219,7 +222,7 @@ const NewConversationDialog = ({
 			setMessage("");
 			onClose();
 		} catch (err: any) {
-			const errorMessage = err?.message || "Failed to create conversation";
+			const errorMessage = err?.message || t("support.ticketCreateFailed");
 			setError(errorMessage);
 		} finally {
 			setLoading(false);
@@ -235,7 +238,7 @@ const NewConversationDialog = ({
 
 	return (
 		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-			<DialogTitle>Start New Conversation</DialogTitle>
+			<DialogTitle>{t("support.startNewConversation")}</DialogTitle>
 			<DialogContent>
 				{error && (
 					<Alert severity="error" sx={{ mb: 2 }}>
@@ -243,15 +246,14 @@ const NewConversationDialog = ({
 					</Alert>
 				)}
 				<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-					Describe your issue or question, and our support team will get back to
-					you.
+					{t("support.describeIssue")}
 				</Typography>
 				<TextField
 					autoFocus
 					multiline
 					rows={4}
 					fullWidth
-					placeholder="Type your message here..."
+					placeholder={t("support.typeMessagePlaceholder")}
 					value={message}
 					onChange={(e) => setMessage(e.target.value)}
 					onKeyDown={handleKeyDown}
@@ -259,7 +261,7 @@ const NewConversationDialog = ({
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={onClose} disabled={loading}>
-					Cancel
+					{t("common.cancel")}
 				</Button>
 				<Button
 					variant="contained"
@@ -267,7 +269,7 @@ const NewConversationDialog = ({
 					disabled={loading || !message.trim()}
 					startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
 				>
-					Send Message
+					{t("support.sendMessage")}
 				</Button>
 			</DialogActions>
 		</Dialog>
@@ -276,6 +278,7 @@ const NewConversationDialog = ({
 
 // Main Support Page
 const Support = () => {
+	const { t } = useLanguage();
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -312,14 +315,14 @@ const Support = () => {
 			try {
 				await fetchConversations();
 			} catch (err: any) {
-				const errorMessage = err?.message || "Failed to load conversations";
+				const errorMessage = err?.message || t("support.loadFailed");
 				setError(errorMessage);
 			} finally {
 				setLoading(false);
 			}
 		};
 		init();
-	}, []);
+	}, [t]);
 
 	// Auto-scroll to bottom when messages change
 	useEffect(() => {
@@ -349,7 +352,7 @@ const Support = () => {
 			window.dispatchEvent(new CustomEvent("support-messages-read"));
 		} catch (err: any) {
 			console.error("Failed to load conversation:", err);
-			setError(err?.message || "Failed to load conversation");
+			setError(err?.message || t("support.loadConversationFailed"));
 		}
 	};
 
@@ -371,7 +374,7 @@ const Support = () => {
 			fetchConversations();
 		} catch (err: any) {
 			console.error("Failed to send message:", err);
-			setError(err?.message || "Failed to send message");
+			setError(err?.message || t("support.sendMessageFailed"));
 		} finally {
 			setSending(false);
 		}
@@ -443,7 +446,7 @@ const Support = () => {
 				minute: "2-digit",
 			});
 		} else if (days === 1) {
-			return "Yesterday";
+			return t("support.yesterday");
 		} else if (days < 7) {
 			return date.toLocaleDateString([], { weekday: "short" });
 		} else {
@@ -496,7 +499,7 @@ const Support = () => {
 					}}
 				>
 					<Typography variant="h5" fontWeight={600}>
-						Support Chat
+						{t("support.title")}
 					</Typography>
 					<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
 						<ToggleButtonGroup
@@ -507,11 +510,11 @@ const Support = () => {
 						>
 							<ToggleButton value="telegram">
 								<ViewListIcon sx={{ mr: 0.5, fontSize: 18 }} />
-								Telegram
+								{t("support.chatVariantTelegram")}
 							</ToggleButton>
 							<ToggleButton value="cards">
 								<ViewModuleIcon sx={{ mr: 0.5, fontSize: 18 }} />
-								Cards
+								{t("support.chatVariantCards")}
 							</ToggleButton>
 						</ToggleButtonGroup>
 						<Button
@@ -520,7 +523,7 @@ const Support = () => {
 							onClick={() => setShowNewDialog(true)}
 							size="small"
 						>
-							New Chat
+							{t("support.newChat")}
 						</Button>
 					</Box>
 				</Box>
@@ -560,15 +563,15 @@ const Support = () => {
 								sx={{ p: 2, borderBottom: "1px solid", borderColor: "divider" }}
 							>
 								<Typography variant="subtitle2" color="text.secondary">
-									Your Conversations
+									{t("support.yourConversations")}
 								</Typography>
 							</Box>
 
 							{conversations.length === 0 ? (
 								<EmptyState
 									icon={<ChatIcon />}
-									title="No conversations yet"
-									description="Start a new conversation to get help from our support team"
+									title={t("support.noConversations")}
+									description={t("support.startConversationDesc")}
 									action={
 										<Button
 											variant="outlined"
@@ -576,7 +579,7 @@ const Support = () => {
 											startIcon={<AddIcon />}
 											onClick={() => setShowNewDialog(true)}
 										>
-											Start Chat
+											{t("support.startChat")}
 										</Button>
 									}
 								/>
@@ -641,10 +644,10 @@ const Support = () => {
 																		noWrap
 																		sx={{ maxWidth: 140 }}
 																	>
-																		Conversation #{conv.id}
+																		{t("support.conversation")} #{conv.id}
 																	</Typography>
 																	<Chip
-																		label={conv.status}
+																		label={t(`support.${conv.status}`)}
 																		size="small"
 																		color={
 																			conv.status === "open"
@@ -662,7 +665,7 @@ const Support = () => {
 																	noWrap
 																	sx={{ display: "block" }}
 																>
-																	{conv.last_message || "No messages yet"}
+																	{conv.last_message || t("support.noMessages")}
 																</Typography>
 															}
 														/>
@@ -717,12 +720,12 @@ const Support = () => {
 											</Avatar>
 											<Box>
 												<Typography variant="subtitle1" fontWeight={600}>
-													Support #{selectedConversation.id}
+													{t("support.support")} #{selectedConversation.id}
 												</Typography>
 												<Typography variant="caption" color="text.secondary">
 													{selectedConversation.status === "open"
-														? "Active"
-														: "Closed"}
+														? t("support.active")
+														: t("support.closed")}
 												</Typography>
 											</Box>
 										</Box>
@@ -734,7 +737,7 @@ const Support = () => {
 												startIcon={<DeleteIcon />}
 												onClick={handleDeleteConversation}
 											>
-												Delete
+												{t("common.delete")}
 											</Button>
 											{selectedConversation.status === "open" && (
 												<Button
@@ -744,7 +747,7 @@ const Support = () => {
 													startIcon={<CloseIcon />}
 													onClick={handleCloseConversation}
 												>
-													Close
+													{t("support.close")}
 												</Button>
 											)}
 										</Box>
@@ -784,7 +787,7 @@ const Support = () => {
 												<TextField
 													fullWidth
 													size="small"
-													placeholder="Type your message..."
+													placeholder={t("support.typeMessage")}
 													value={newMessage}
 													onChange={(e) => setNewMessage(e.target.value)}
 													onKeyDown={handleKeyDown}
@@ -827,12 +830,12 @@ const Support = () => {
 											}}
 										>
 											<Typography variant="body2" color="text.secondary">
-												This conversation has been closed.{" "}
+												{t("support.conversationClosed")}
 												<Button
 													size="small"
 													onClick={() => setShowNewDialog(true)}
 												>
-													Start new
+													{t("support.startNew")}
 												</Button>
 											</Typography>
 										</Box>
@@ -841,15 +844,15 @@ const Support = () => {
 							) : (
 								<EmptyState
 									icon={<ChatIcon sx={{ fontSize: 40 }} />}
-									title="Select a conversation"
-									description="Choose from your existing conversations or start a new one"
+									title={t("support.selectConversation")}
+									description={t("support.selectConversationDesc")}
 									action={
 										<Button
 											variant="contained"
 											startIcon={<AddIcon />}
 											onClick={() => setShowNewDialog(true)}
 										>
-											New Conversation
+											{t("support.newConversation")}
 										</Button>
 									}
 								/>

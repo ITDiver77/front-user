@@ -19,6 +19,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../i18n";
 import { userService } from "../services/userService";
 import { authService } from "../services/authService";
 import type { User, UserUpdateRequest } from "../types/user";
@@ -33,8 +34,9 @@ type ProfileFormData = {
 type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
 const Profile = () => {
-	const { user, changePassword, updateUser } = useAuth();
-	const [loading, setLoading] = useState(false);
+ 	const { user, changePassword, updateUser } = useAuth();
+ 	const { t } = useLanguage();
+ 	const [loading, setLoading] = useState(false);
 	const [profileLoading, setProfileLoading] = useState(true);
 	const [profileError, setProfileError] = useState<string>("");
 	const [passwordError, setPasswordError] = useState<string>("");
@@ -190,9 +192,9 @@ const Profile = () => {
 
 	return (
 		<Box>
-			<Typography variant="h4" sx={{ mb: 3 }}>
-				Profile Settings
-			</Typography>
+<Typography variant="h4" sx={{ mb: 3 }}>
+ 				{t("profile.title")}
+ 			</Typography>
 			{profileError && (
 				<Alert severity="error" sx={{ mb: 2 }}>
 					{profileError}
@@ -210,243 +212,238 @@ const Profile = () => {
 			)}
 			<Grid container spacing={4}>
 				<Grid item xs={12} md={6}>
-					<Paper sx={{ p: 3 }}>
-						<Typography variant="h5" gutterBottom>
-							Profile Information
-						</Typography>
-						<Typography variant="body2" color="textSecondary" paragraph>
-							Update your contact details.
-						</Typography>
+<Paper sx={{ p: 3 }}>
+ 						<Typography variant="h5" gutterBottom>
+ 							{t("profile.personalInfo")}
+ 						</Typography>
+ 						<Typography variant="body2" color="textSecondary" paragraph>
+ 							{t("profile.updateContactDetails")}
+ 						</Typography>
 
-						{/* Telegram Verification Status */}
-						{profile && (
-							<Box sx={{ mb: 3 }}>
-								<Typography
-									variant="subtitle2"
-									color="textSecondary"
-									gutterBottom
-								>
-									Telegram Verification
-								</Typography>
-								<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-									{profile.telegram_verified ? (
-										<>
-											<Chip
-												icon={<CheckIcon />}
-												label="Verified"
-												color="success"
-												size="small"
-											/>
-											<Button
-												variant="outlined"
-												size="small"
-												onClick={() => setRelinkDialogOpen(true)}
-											>
-												Relink Telegram Account
-											</Button>
-										</>
-									) : (
-										<>
-											<Chip
-												icon={<CloseIcon />}
-												label="Not Verified"
-												color="default"
-												size="small"
-											/>
-											<Button
-												variant="contained"
-												size="small"
-												onClick={() => setLinkDialogOpen(true)}
-											>
-												Link Telegram Account
-											</Button>
-										</>
-									)}
-								</Box>
-							</Box>
-						)}
+ 						{/* Telegram Verification Status */}
+ 						{profile && (
+ 							<Box sx={{ mb: 3 }}>
+ 								<Typography
+ 									variant="subtitle2"
+ 									color="textSecondary"
+ 									gutterBottom
+ 								>
+ 									{t("profile.telegramVerification")}
+ 								</Typography>
+ 								<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+ 									{profile.telegram_verified ? (
+ 										<>
+ 											<Chip
+ 												icon={<CheckIcon />}
+ 												label={t("profile.verified")}
+ 												color="success"
+ 												size="small"
+ 											/>
+ 											<Button
+ 												variant="outlined"
+ 												size="small"
+ 												onClick={() => setRelinkDialogOpen(true)}
+ 											>
+ 												{t("profile.relinkTelegram")}
+ 											</Button>
+ 										</>
+ 									) : (
+ 										<>
+ 											<Chip
+ 												icon={<CloseIcon />}
+ 												label={t("profile.notVerified")}
+ 												color="default"
+ 												size="small"
+ 											/>
+ 											<Button
+ 												variant="contained"
+ 												size="small"
+ 												onClick={() => setLinkDialogOpen(true)}
+ 											>
+ 												{t("profile.linkTelegram")}
+ 											</Button>
+ 										</>
+ 									)}
+ 								</Box>
+ 							</Box>
+ 						)}
 
-						<form onSubmit={handleProfileSubmit(onProfileSubmit)}>
-							<TextField
-								margin="normal"
-								fullWidth
-								label="Login"
-								value={user?.username || ""}
-								disabled
-							/>
-							<TextField
-								margin="normal"
-								fullWidth
-								label="Display Name"
-								inputProps={{ maxLength: 50 }}
-								{...registerProfile("displayName")}
-								error={!!profileErrors.displayName}
-								helperText={
-									profileErrors.displayName?.message ||
-									`${profile.display_name?.length || 0}/50 characters`
-								}
-							/>
-							<TextField
-								margin="normal"
-								fullWidth
-								label="First Name"
-								inputProps={{ maxLength: 100 }}
-								{...registerProfile("firstName")}
-								error={!!profileErrors.firstName}
-								helperText={profileErrors.firstName?.message}
-							/>
-							<TextField
-								margin="normal"
-								fullWidth
-								label="Last Name"
-								inputProps={{ maxLength: 100 }}
-								{...registerProfile("lastName")}
-								error={!!profileErrors.lastName}
-								helperText={profileErrors.lastName?.message}
-							/>
-							<Button
-								type="submit"
-								variant="contained"
-								sx={{ mt: 2 }}
-								disabled={loading}
-							>
-								{loading ? <CircularProgress size={24} /> : "Update Profile"}
-							</Button>
-						</form>
-					</Paper>
+ 						<form onSubmit={handleProfileSubmit(onProfileSubmit)}>
+ 							<TextField
+ 								margin="normal"
+ 								fullWidth
+ 								label={t("auth.username")}
+ 								value={user?.username || ""}
+ 								disabled
+ 							/>
+ 							<TextField
+ 								margin="normal"
+ 								fullWidth
+ 								label={t("profile.displayName")}
+ 								inputProps={{ maxLength: 50 }}
+ 								{...registerProfile("displayName")}
+ 								error={!!profileErrors.displayName}
+ 								helperText={
+ 									profileErrors.displayName?.message ||
+ 									`${profile.display_name?.length || 0}/50 characters`
+ 								}
+ 							/>
+ 							<TextField
+ 								margin="normal"
+ 								fullWidth
+ 								label={t("profile.firstName")}
+ 								inputProps={{ maxLength: 100 }}
+ 								{...registerProfile("firstName")}
+ 								error={!!profileErrors.firstName}
+ 								helperText={profileErrors.firstName?.message}
+ 							/>
+ 							<TextField
+ 								margin="normal"
+ 								fullWidth
+								label={t("profile.lastName")}
+ 								inputProps={{ maxLength: 100 }}
+ 								{...registerProfile("lastName")}
+ 								error={!!profileErrors.lastName}
+ 								helperText={profileErrors.lastName?.message}
+ 							/>
+ 							<Button
+ 								type="submit"
+ 								variant="contained"
+ 								sx={{ mt: 2 }}
+ 								disabled={loading}
+ 							>
+ 								{loading ? <CircularProgress size={24} /> : t("profile.updateProfile")}
+ 							</Button>
+ 						</form>
+ 					</Paper>
 				</Grid>
 				<Grid item xs={12} md={6}>
-					<Paper sx={{ p: 3 }}>
-						<Typography variant="h5" gutterBottom>
-							Change Password
-						</Typography>
-						<Typography variant="body2" color="textSecondary" paragraph>
-							Enter your current password and choose a new one.
-						</Typography>
-						<form onSubmit={handlePasswordSubmit(onPasswordSubmit)}>
-							<TextField
-								margin="normal"
-								fullWidth
-								label="Current Password"
-								type="password"
-								{...registerPassword("oldPassword")}
-								error={!!passwordErrors.oldPassword}
-								helperText={passwordErrors.oldPassword?.message}
-							/>
-							<TextField
-								margin="normal"
-								fullWidth
-								label="New Password"
-								type="password"
-								{...registerPassword("newPassword")}
-								error={!!passwordErrors.newPassword}
-								helperText={passwordErrors.newPassword?.message}
-							/>
-							<TextField
-								margin="normal"
-								fullWidth
-								label="Confirm New Password"
-								type="password"
-								{...registerPassword("confirmPassword")}
-								error={!!passwordErrors.confirmPassword}
-								helperText={passwordErrors.confirmPassword?.message}
-							/>
-							<Button
-								type="submit"
-								variant="contained"
-								sx={{ mt: 2 }}
-								disabled={loading}
-							>
-								{loading ? <CircularProgress size={24} /> : "Change Password"}
-							</Button>
-						</form>
-					</Paper>
+<Paper sx={{ p: 3 }}>
+ 						<Typography variant="h5" gutterBottom>
+ 							{t("profile.changePassword")}
+ 						</Typography>
+ 						<Typography variant="body2" color="textSecondary" paragraph>
+ 							{t("profile.enterCurrentPassword")}
+ 						</Typography>
+ 						<form onSubmit={handlePasswordSubmit(onPasswordSubmit)}>
+ 							<TextField
+ 								margin="normal"
+ 								fullWidth
+ 								label={t("profile.currentPassword")}
+ 								type="password"
+ 								{...registerPassword("oldPassword")}
+ 								error={!!passwordErrors.oldPassword}
+ 								helperText={passwordErrors.oldPassword?.message}
+ 							/>
+ 							<TextField
+ 								margin="normal"
+ 								fullWidth
+								label={t("profile.newPassword")}
+ 								type="password"
+ 								{...registerPassword("newPassword")}
+ 								error={!!passwordErrors.newPassword}
+ 								helperText={passwordErrors.newPassword?.message}
+ 							/>
+ 							<TextField
+ 								margin="normal"
+ 								fullWidth
+								label={t("profile.confirmNewPassword")}
+ 								type="password"
+ 								{...registerPassword("confirmPassword")}
+ 								error={!!passwordErrors.confirmPassword}
+ 								helperText={passwordErrors.confirmPassword?.message}
+ 							/>
+ 							<Button
+ 								type="submit"
+ 								variant="contained"
+ 								sx={{ mt: 2 }}
+ 								disabled={loading}
+ 							>
+ 								{loading ? <CircularProgress size={24} /> : t("profile.changePassword")}
+ 							</Button>
+ 						</form>
+ 					</Paper>
 				</Grid>
 			</Grid>
 
-			<Dialog open={relinkDialogOpen} onClose={() => setRelinkDialogOpen(false)}>
-				<DialogTitle>Relink Telegram Account?</DialogTitle>
-				<DialogContent>
-					{rebinding ? (
-						<Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 2 }}>
-							<CircularProgress size={24} />
-							<Typography>Generating rebind link...</Typography>
-						</Box>
-					) : rebindLink ? (
-						<>
-							<Typography sx={{ mb: 2 }}>
-								Click the link below to verify with Telegram:
-							</Typography>
-							<Button
-								variant="contained"
-								href={rebindLink}
-								target="_blank"
-								rel="noopener noreferrer"
-								fullWidth
-							>
-								Open Telegram Bot
-							</Button>
-							<Typography sx={{ mt: 2, fontSize: "0.875rem", color: "text.secondary" }}>
-								Complete verification in Telegram, then return here. This dialog will
-								close automatically.
-							</Typography>
-						</>
-					) : (
-						<>
-							<Typography>
-								This will generate a new verification link. Your old Telegram bot link will
-								remain active until you successfully verify with the new one.
-							</Typography>
-							<Typography sx={{ mt: 2, color: "warning.main" }}>
-								⚠️ Don't relink unless you've lost access to your old Telegram account or
-								want to receive notifications on a new account.
-							</Typography>
-						</>
-					)}
-				</DialogContent>
-				<DialogActions>
-					<Button
-						onClick={() => {
-							setRelinkDialogOpen(false);
-							setRebindLink(null);
-							setRebindToken(null);
-						}}
-					>
-						{rebindLink ? "Close" : "Cancel"}
-					</Button>
-					{!rebindLink && !rebinding && (
-						<Button onClick={handleStartRelink} variant="contained">
-							Confirm
-						</Button>
-					)}
-				</DialogActions>
-			</Dialog>
+<Dialog open={relinkDialogOpen} onClose={() => setRelinkDialogOpen(false)}>
+ 				<DialogTitle>{t("profile.relinkTelegramTitle")}</DialogTitle>
+ 				<DialogContent>
+ 					{rebinding ? (
+ 						<Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 2 }}>
+ 							<CircularProgress size={24} />
+ 							<Typography>{t("profile.generatingRebind")}</Typography>
+ 						</Box>
+ 					) : rebindLink ? (
+ 						<>
+ 							<Typography sx={{ mb: 2 }}>
+ 								{t("profile.clickToVerify")}
+ 							</Typography>
+ 							<Button
+ 								variant="contained"
+ 								href={rebindLink}
+ 								target="_blank"
+ 								rel="noopener noreferrer"
+ 								fullWidth
+ 							>
+ 								{t("profile.openTelegramBot")}
+ 							</Button>
+ 							<Typography sx={{ mt: 2, fontSize: "0.875rem", color: "text.secondary" }}>
+ 								{t("profile.completeVerification")}
+ 							</Typography>
+ 						</>
+ 					) : (
+ 						<>
+ 							<Typography>
+ 								{t("profile.newVerificationLink")}
+ 							</Typography>
+ 							<Typography sx={{ mt: 2, color: "warning.main" }}>
+ 								⚠️ {t("profile.dontRelinkWarning")}
+ 							</Typography>
+ 						</>
+ 					)}
+ 				</DialogContent>
+ 				<DialogActions>
+ 					<Button
+ 						onClick={() => {
+ 							setRelinkDialogOpen(false);
+ 							setRebindLink(null);
+ 							setRebindToken(null);
+ 						}}
+ 					>
+ 						{rebindLink ? t("common.close") : t("common.cancel")}
+ 					</Button>
+ 					{!rebindLink && !rebinding && (
+ 						<Button onClick={handleStartRelink} variant="contained">
+ 							{t("common.confirm")}
+ 						</Button>
+ 					)}
+ 				</DialogActions>
+ 			</Dialog>
 
-			<Dialog open={linkDialogOpen} onClose={() => setLinkDialogOpen(false)}>
-				<DialogTitle>Link Telegram Account</DialogTitle>
-				<DialogContent>
-					<Typography>
-						To link your account with Telegram, please contact support. They will help you
-						set up Telegram verification for your existing account.
-					</Typography>
-					<Typography sx={{ mt: 2 }}>
-						Alternatively, you can create a new account using the Telegram bot and our
-						support team can transfer your services.
-					</Typography>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => setLinkDialogOpen(false)}>Close</Button>
-					<Button
-						onClick={() => {
-							setLinkDialogOpen(false);
-							window.location.href = "/support";
-						}}
-						variant="contained"
-					>
-						Contact Support
-					</Button>
-				</DialogActions>
-			</Dialog>
+ 			<Dialog open={linkDialogOpen} onClose={() => setLinkDialogOpen(false)}>
+ 				<DialogTitle>{t("profile.linkTelegramTitle")}</DialogTitle>
+ 				<DialogContent>
+ 					<Typography>
+ 						{t("profile.linkTelegramDesc")}
+ 					</Typography>
+ 					<Typography sx={{ mt: 2 }}>
+ 						{t("profile.linkTelegramAlt")}
+ 					</Typography>
+ 				</DialogContent>
+ 				<DialogActions>
+ 					<Button onClick={() => setLinkDialogOpen(false)}>{t("common.close")}</Button>
+ 					<Button
+ 						onClick={() => {
+ 							setLinkDialogOpen(false);
+ 							window.location.href = "/support";
+ 						}}
+ 						variant="contained"
+ 					>
+ 						{t("profile.contactSupport")}
+ 					</Button>
+ 				</DialogActions>
+ 			</Dialog>
 		</Box>
 	);
 };

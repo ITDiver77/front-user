@@ -15,20 +15,23 @@ import {
 	Paper,
 	Typography,
 } from "@mui/material";
+import { useLanguage } from "../i18n/LanguageContext";
 
 const Instructions = () => {
+	const { t } = useLanguage();
+
 	return (
 		<Box>
 			<Typography variant="h4" sx={{ mb: 3 }}>
-				Instructions & Guides
+				{t("instructions.title")}
 			</Typography>
 			<Paper sx={{ p: 3, mb: 4 }}>
 				<Typography variant="h5" gutterBottom>
 					<Security sx={{ verticalAlign: "middle", mr: 1 }} />
-					Getting Started with VPN
+					{t("instructions.subtitle")}
 				</Typography>
 				<Typography variant="body1" paragraph>
-					Follow these steps to configure your VPN connection on your device.
+					{t("instructions.gettingStarted")}
 				</Typography>
 				<List>
 					<ListItem>
@@ -36,8 +39,8 @@ const Instructions = () => {
 							<Download />
 						</ListItemIcon>
 						<ListItemText
-							primary="Step 1: Download a WireGuard client"
-							secondary="WireGuard is available for Windows, macOS, Linux, iOS, and Android. Download the official client from your app store or wireguard.com."
+							primary={t("instructions.step1Title")}
+							secondary={t("instructions.step1Desc")}
 						/>
 					</ListItem>
 					<ListItem>
@@ -45,8 +48,8 @@ const Instructions = () => {
 							<Settings />
 						</ListItemIcon>
 						<ListItemText
-							primary="Step 2: Import connection configuration"
-							secondary="Copy your connection string from the dashboard and import it into the WireGuard app. On most clients, you can scan a QR code or paste the configuration file."
+							primary={t("instructions.step2Title")}
+							secondary={t("instructions.step2Desc")}
 						/>
 					</ListItem>
 					<ListItem>
@@ -54,8 +57,8 @@ const Instructions = () => {
 							<CheckCircle />
 						</ListItemIcon>
 						<ListItemText
-							primary="Step 3: Activate the connection"
-							secondary="Toggle the connection to 'Active' within the WireGuard app. Your traffic will now be routed through the VPN server."
+							primary={t("instructions.step3Title")}
+							secondary={t("instructions.step3Desc")}
 						/>
 					</ListItem>
 				</List>
@@ -63,54 +66,50 @@ const Instructions = () => {
 
 			<Paper sx={{ p: 3, mb: 4 }}>
 				<Typography variant="h5" gutterBottom>
-					Troubleshooting
+					{t("instructions.troubleshooting")}
 				</Typography>
 				<Typography variant="body2" paragraph>
-					<strong>Connection fails or times out</strong>
-					<br />• Ensure your device has internet access.
-					<br />• Verify that the VPN server is active (check dashboard status).
-					<br />• Try switching to a different server location.
+					<strong>{t("instructions.connectionFails")}</strong>
+					<br />• {t("instructions.connectionFailsTip1")}
+					<br />• {t("instructions.connectionFailsTip2")}
+					<br />• {t("instructions.connectionFailsTip3")}
 				</Typography>
 				<Typography variant="body2" paragraph>
-					<strong>Slow speeds</strong>
-					<br />• Connect to a server geographically closer to you.
-					<br />• Avoid peak hours when server load may be higher.
+					<strong>{t("instructions.slowSpeeds")}</strong>
+					<br />• {t("instructions.slowSpeedsTip1")}
+					<br />• {t("instructions.slowSpeedsTip2")}
 				</Typography>
 				<Typography variant="body2" paragraph>
-					<strong>Configuration errors</strong>
-					<br />• Make sure you copied the entire connection string.
-					<br />• If you changed servers, generate a new connection string.
+					<strong>{t("instructions.configErrors")}</strong>
+					<br />• {t("instructions.configErrorsTip1")}
+					<br />• {t("instructions.configErrorsTip2")}
 				</Typography>
 			</Paper>
 
 			<Paper sx={{ p: 3 }}>
 				<Typography variant="h5" gutterBottom>
 					<Help sx={{ verticalAlign: "middle", mr: 1 }} />
-					FAQ
+					{t("instructions.faq")}
 				</Typography>
 				<Typography variant="body2" paragraph>
-					<strong>Q: How many devices can I use simultaneously?</strong>
+					<strong>{t("instructions.faqDevicesQ")}</strong>
 					<br />
-					A: Each connection is intended for a single device. You can purchase
-					additional connections for multiple devices.
+					{t("instructions.faqDevicesA")}
 				</Typography>
 				<Typography variant="body2" paragraph>
-					<strong>Q: Can I change servers after creating a connection?</strong>
+					<strong>{t("instructions.faqChangeServerQ")}</strong>
 					<br />
-					A: Yes, use the "Change Server" button on the connection card. This
-					will generate a new configuration.
+					{t("instructions.faqChangeServerA")}
 				</Typography>
 				<Typography variant="body2" paragraph>
-					<strong>Q: What happens when my subscription expires?</strong>
+					<strong>{t("instructions.faqExpirationQ")}</strong>
 					<br />
-					A: The connection will be disabled until you make a new payment. You
-					can renew before expiration to avoid interruption.
+					{t("instructions.faqExpirationA")}
 				</Typography>
 				<Typography variant="body2" paragraph>
-					<strong>Q: Is my data logged?</strong>
+					<strong>{t("instructions.faqLoggingQ")}</strong>
 					<br />
-					A: We operate a strict no‑logging policy. Your privacy is our
-					priority.
+					{t("instructions.faqLoggingA")}
 				</Typography>
 			</Paper>
 		</Box>

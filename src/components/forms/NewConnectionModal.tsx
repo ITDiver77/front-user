@@ -20,6 +20,7 @@ import {
 import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
+import { useLanguage } from "../../i18n/LanguageContext";
 import { paymentService } from "../../services/paymentService";
 import { serverService } from "../../services/serverService";
 import { userService } from "../../services/userService";
@@ -39,6 +40,7 @@ const NewConnectionModal = ({
 	onClose,
 	onCreate,
 }: NewConnectionModalProps) => {
+	const { t } = useLanguage();
 	const [servers, setServers] = useState<Server[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string>("");
@@ -75,12 +77,12 @@ const NewConnectionModal = ({
 			setServers(serversData);
 			setPriceInfo({ price: priceData.price, reason: priceData.reason });
 		} catch (err: any) {
-			setError("Failed to load servers");
+			setError(t("modals.failedToLoadServers"));
 			console.error(err);
 		} finally {
 			setServerLoading(false);
 		}
-	}, []);
+	}, [t]);
 
 	useEffect(() => {
 		if (open) {
@@ -108,7 +110,7 @@ const NewConnectionModal = ({
 				onClose();
 			}
 		} catch (err: any) {
-			setError(err.message || "Failed to create connection");
+			setError(err.message || t("modals.failedToCreateConnection"));
 		} finally {
 			setLoading(false);
 		}
@@ -116,7 +118,7 @@ const NewConnectionModal = ({
 
 	return (
 		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-			<DialogTitle>Create New Connection</DialogTitle>
+			<DialogTitle>{t("modals.newConnection")}</DialogTitle>
 			<DialogContent>
 				{error && (
 					<Alert severity="error" sx={{ mb: 2 }}>
@@ -129,17 +131,17 @@ const NewConnectionModal = ({
 					onSubmit={handleSubmit(onSubmit)}
 				>
 					<FormControl fullWidth margin="normal" error={!!errors.serverName}>
-						<InputLabel id="server-label">Server</InputLabel>
+						<InputLabel id="server-label">{t("modals.server")}</InputLabel>
 						<Select
 							labelId="server-label"
-							label="Server"
+							label={t("modals.server")}
 							{...register("serverName")}
 							disabled={serverLoading}
 						>
-							{serverLoading && <MenuItem value="">Loading...</MenuItem>}
+							{serverLoading && <MenuItem value="">{t("common.loading")}</MenuItem>}
 							{servers.map((server) => (
 								<MenuItem key={server.id} value={server.name}>
-									{server.name} ({server.region})
+									{t(`servers.${server.name}`)} ({server.region})
 								</MenuItem>
 							))}
 						</Select>
@@ -152,18 +154,18 @@ const NewConnectionModal = ({
 					<TextField
 						margin="normal"
 						fullWidth
-						label="Connection Name (optional)"
+						label={t("modals.connectionNameOptional")}
 						{...register("connectionName")}
 						error={!!errors.connectionName}
 						helperText={
 							errors.connectionName?.message ||
-							"Leave empty to generate automatically"
+							t("modals.connectionNameHelper")
 						}
 					/>
 					<TextField
 						margin="normal"
 						fullWidth
-						label="Months"
+						label={t("modals.months")}
 						type="number"
 						inputProps={{ min: 1, max: 36 }}
 						{...register("months", { valueAsNumber: true })}
@@ -172,7 +174,7 @@ const NewConnectionModal = ({
 					/>
 					<FormControlLabel
 						control={<Checkbox {...register("autoRenew")} defaultChecked />}
-						label="Enable auto-renew"
+						label={t("modals.enableAutoRenew")}
 					/>
 					<Box
 						sx={{ mt: 2, p: 2, backgroundColor: "grey.50", borderRadius: 1 }}
@@ -182,11 +184,10 @@ const NewConnectionModal = ({
 						) : (
 							<>
 								<Typography variant="body2" color="textSecondary">
-									Price per month: {pricePerMonth} ₽
+									{t("modals.pricePerMonth")}: {pricePerMonth} ₽
 								</Typography>
 								<Typography variant="h6">
-									Total: {totalPrice} ₽ for {months} month
-									{months !== 1 ? "s" : ""}
+									{t("modals.total")}: {totalPrice} ₽ {t("modals.for")} {months} {months !== 1 ? t("modals.months") : t("modals.month")}
 								</Typography>
 								{priceInfo?.reason && (
 									<Typography variant="caption" color="textSecondary">
@@ -200,7 +201,7 @@ const NewConnectionModal = ({
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={onClose} disabled={loading || serverLoading}>
-					Cancel
+					{t("common.cancel")}
 				</Button>
 				<Button
 					type="submit"
@@ -208,7 +209,7 @@ const NewConnectionModal = ({
 					variant="contained"
 					disabled={loading || serverLoading}
 				>
-					{loading ? <CircularProgress size={24} /> : "Оплатить"}
+					{loading ? <CircularProgress size={24} /> : t("modals.pay")}
 				</Button>
 			</DialogActions>
 		</Dialog>

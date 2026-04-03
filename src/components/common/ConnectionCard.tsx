@@ -22,17 +22,18 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import {
-	cardVariants,
-	copySuccessVariants,
-	pulseVariants,
-} from "../../styles/animations";
-import type { Connection } from "../../types/connection";
-import {
-	formatDate,
-	getConnectionStatus,
-	getDaysRemaining,
-	getStatusColor,
-} from "../../utils/dateHelpers";
+ 	cardVariants,
+ 	copySuccessVariants,
+ 	pulseVariants,
+ } from "../../styles/animations";
+ import type { Connection } from "../../types/connection";
+ import { useLanguage } from "../../i18n";
+ import {
+ 	formatDate,
+ 	getConnectionStatus,
+ 	getDaysRemaining,
+ 	getStatusColor,
+ } from "../../utils/dateHelpers";
 
 interface ConnectionCardProps {
 	connection: Connection;
@@ -45,16 +46,17 @@ interface ConnectionCardProps {
 }
 
 const ConnectionCard = ({
-	connection,
-	onToggleAutoRenew,
-	onExtend,
-	onChangeServer,
-	onRequestGrace,
-	showStatusAnimation = false,
-	onAnimationComplete,
-}: ConnectionCardProps) => {
-	const [autoRenew, setAutoRenew] = useState(connection.auto_renew ?? false);
-	const [copySuccess, setCopySuccess] = useState(false);
+ 	connection,
+ 	onToggleAutoRenew,
+ 	onExtend,
+ 	onChangeServer,
+ 	onRequestGrace,
+ 	showStatusAnimation = false,
+ 	onAnimationComplete,
+ }: ConnectionCardProps) => {
+ 	const { t } = useLanguage();
+ 	const [autoRenew, setAutoRenew] = useState(connection.auto_renew ?? false);
+ 	const [copySuccess, setCopySuccess] = useState(false);
 
 	const enabled = connection.enabled;
 	const hasGraceDate = connection.grace_date !== null && connection.grace_date !== undefined;
@@ -140,7 +142,7 @@ const ConnectionCard = ({
 						<Box sx={{ display: "flex", gap: 0.5 }}>
 							{isDeleted && (
 								<Chip
-									label="DELETED"
+									label={t("connectionCard.deleted").toUpperCase()}
 									color="error"
 									size="small"
 									variant="outlined"
@@ -148,7 +150,7 @@ const ConnectionCard = ({
 							)}
 							<motion.div whileHover={{ scale: 1.05 }}>
 								<Chip
-									label={status.toUpperCase()}
+									label={t(`connectionCard.${status}`).toUpperCase()}
 									color={statusColor}
 									size="small"
 									sx={{
@@ -170,35 +172,35 @@ const ConnectionCard = ({
 						</Box>
 					</Box>
 
-					<Typography color="text.secondary" gutterBottom variant="body2">
-						Server: <strong>{connection.server_name || "Unknown"}</strong>
-					</Typography>
-					<Typography variant="body2">
-						Price: <strong>${connection.price}</strong> per month
-					</Typography>
-					{hasGraceDate ? (
-						<Typography variant="body2" color="info.main">
-							Grace period: {formatDate(connection.grace_date!)}
-						</Typography>
-					) : (
-						<Typography variant="body2" color="text.secondary">
-							Next payment: {formatDate(connection.paydate)}
-						</Typography>
-					)}
-					<Typography
-						variant="body2"
-						fontWeight={500}
-						color={
-							daysRemaining > 7
-								? "text.primary"
-								: daysRemaining > 0
-									? "warning.main"
-									: "error.main"
-						}
-					>
-						Days remaining:{" "}
-						{daysRemaining > 0 ? `${daysRemaining} days` : "Expired"}
-					</Typography>
+<Typography color="text.secondary" gutterBottom variant="body2">
+ 						{t("connectionCard.server")}: <strong>{connection.server_name || "Unknown"}</strong>
+ 					</Typography>
+ 					<Typography variant="body2">
+ 						{t("connectionCard.price")}: <strong>{connection.price} ₽</strong> {t("connectionCard.perMonth")}
+ 					</Typography>
+ 					{hasGraceDate ? (
+ 						<Typography variant="body2" color="info.main">
+ 							{t("connectionCard.gracePeriod")}: {formatDate(connection.grace_date!)}
+ 						</Typography>
+ 					) : (
+ 						<Typography variant="body2" color="text.secondary">
+ 							{t("connectionCard.nextPayment")}: {formatDate(connection.paydate)}
+ 						</Typography>
+ 					)}
+ 					<Typography
+ 						variant="body2"
+ 						fontWeight={500}
+ 						color={
+ 							daysRemaining > 7
+ 								? "text.primary"
+ 								: daysRemaining > 0
+ 									? "warning.main"
+ 									: "error.main"
+ 						}
+ 					>
+ 						{t("connectionCard.daysRemaining")}:{" "}
+ 						{daysRemaining > 0 ? `${daysRemaining} ${t("connectionCard.days")}` : t("connectionCard.expired")}
+ 					</Typography>
 
 					{daysRemaining > 0 && daysRemaining <= 7 && (
 						<Box sx={{ mt: 1 }}>
@@ -217,89 +219,89 @@ const ConnectionCard = ({
 						</Box>
 					)}
 
-					<Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-						<Typography variant="body2" sx={{ mr: 1 }}>
-							Auto-renew:
-						</Typography>
-						<Switch
-							checked={autoRenew}
-							onChange={handleToggleAutoRenew}
-							size="small"
-							disabled={isDeleted}
-						/>
-						<Typography variant="body2" color="text.secondary">
-							{autoRenew ? "On" : "Off"}
-						</Typography>
-					</Box>
+<Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+ 						<Typography variant="body2" sx={{ mr: 1 }}>
+ 							{t("connectionCard.autoRenew")}:
+ 						</Typography>
+ 						<Switch
+ 							checked={autoRenew}
+ 							onChange={handleToggleAutoRenew}
+ 							size="small"
+ 							disabled={isDeleted}
+ 						/>
+ 						<Typography variant="body2" color="text.secondary">
+ 							{autoRenew ? t("connectionCard.on") : t("connectionCard.off")}
+ 						</Typography>
+ 					</Box>
 				</CardContent>
 
-				<CardActions disableSpacing sx={{ px: 2, pb: 2 }}>
-					<Tooltip title="Copy connection string">
-						<span>
-							<IconButton
-								onClick={handleCopyConfig}
-								size="small"
-								aria-label="Copy connection string"
-								disabled={isDeleted}
-								component={motion.button}
-								whileHover={{ scale: 1.1 }}
-								whileTap={{ scale: 0.9 }}
-							>
-								<AnimatePresence mode="wait">
-									{copySuccess ? (
-										<motion.div
-											key="check"
-											variants={copySuccessVariants}
-											initial="initial"
-											animate="animate"
-											exit="exit"
-										>
-											<CheckIcon color="success" fontSize="small" />
-										</motion.div>
-									) : (
-										<motion.div key="copy">
-											<CopyIcon fontSize="small" />
-										</motion.div>
-									)}
-								</AnimatePresence>
-							</IconButton>
-						</span>
-					</Tooltip>
-					{copySuccess && (
-						<Typography variant="caption" color="success.main" sx={{ ml: 1 }}>
-							Copied!
-						</Typography>
-					)}
-					<Tooltip title="Extend / Pay">
-						<span>
-							<IconButton
-								onClick={() => onExtend(connection.connection_name)}
-								size="small"
-								aria-label="Extend payment"
-								disabled={isDeleted}
-								component={motion.button}
-								whileHover={{ scale: 1.1 }}
-								whileTap={{ scale: 0.9 }}
-							>
-								<PaymentIcon fontSize="small" />
-							</IconButton>
-						</span>
-					</Tooltip>
-					<Tooltip title="Change server">
-						<span>
-							<IconButton
-								onClick={() => onChangeServer(connection.connection_name)}
-								size="small"
-								aria-label="Change server"
-								disabled={isDeleted}
-								component={motion.button}
-								whileHover={{ scale: 1.1 }}
-								whileTap={{ scale: 0.9 }}
-							>
-								<SettingsIcon fontSize="small" />
-							</IconButton>
-						</span>
-					</Tooltip>
+<CardActions disableSpacing sx={{ px: 2, pb: 2 }}>
+ 					<Tooltip title={t("connectionCard.copyString")}>
+ 						<span>
+ 							<IconButton
+ 								onClick={handleCopyConfig}
+ 								size="small"
+ 								aria-label={t("connectionCard.copyString")}
+ 								disabled={isDeleted}
+ 								component={motion.button}
+ 								whileHover={{ scale: 1.1 }}
+ 								whileTap={{ scale: 0.9 }}
+ 							>
+ 								<AnimatePresence mode="wait">
+ 									{copySuccess ? (
+ 										<motion.div
+ 											key="check"
+ 											variants={copySuccessVariants}
+ 											initial="initial"
+ 											animate="animate"
+ 											exit="exit"
+ 										>
+ 											<CheckIcon color="success" fontSize="small" />
+ 										</motion.div>
+ 									) : (
+ 										<motion.div key="copy">
+ 											<CopyIcon fontSize="small" />
+ 										</motion.div>
+ 									)}
+ 								</AnimatePresence>
+ 							</IconButton>
+ 						</span>
+ 					</Tooltip>
+ 					{copySuccess && (
+ 						<Typography variant="caption" color="success.main" sx={{ ml: 1 }}>
+ 							{t("connectionCard.copied")}
+ 						</Typography>
+ 					)}
+ 					<Tooltip title={t("connectionCard.extendPay")}>
+ 						<span>
+ 							<IconButton
+ 								onClick={() => onExtend(connection.connection_name)}
+ 								size="small"
+ 								aria-label={t("connectionCard.extendPay")}
+ 								disabled={isDeleted}
+ 								component={motion.button}
+ 								whileHover={{ scale: 1.1 }}
+ 								whileTap={{ scale: 0.9 }}
+ 							>
+ 								<PaymentIcon fontSize="small" />
+ 							</IconButton>
+ 						</span>
+ 					</Tooltip>
+ 					<Tooltip title={t("connectionCard.changeServer")}>
+ 						<span>
+ 							<IconButton
+ 								onClick={() => onChangeServer(connection.connection_name)}
+ 								size="small"
+ 								aria-label={t("connectionCard.changeServer")}
+ 								disabled={isDeleted}
+ 								component={motion.button}
+ 								whileHover={{ scale: 1.1 }}
+ 								whileTap={{ scale: 0.9 }}
+ 							>
+ 								<SettingsIcon fontSize="small" />
+ 							</IconButton>
+ 						</span>
+ 					</Tooltip>
 					<Box sx={{ flexGrow: 1 }} />
 					{!hasGraceDate && !isDeleted && (
 						(() => {
@@ -309,15 +311,15 @@ const ConnectionCard = ({
 							// Show grace button if paydate is within 1 day or in the past
 							const canRequestGrace = payDate <= oneDayFromNow;
 							return canRequestGrace ? (
-								<Button
-									variant="contained"
-									size="small"
-									color="info"
-									onClick={() => onRequestGrace(connection.connection_name)}
-									sx={{ mr: 1 }}
-								>
-									Обещанный платёж
-								</Button>
+<Button
+ 									variant="contained"
+ 									size="small"
+ 									color="info"
+ 									onClick={() => onRequestGrace(connection.connection_name)}
+ 									sx={{ mr: 1 }}
+ 								>
+ 									{t("connectionCard.promisedPayment")}
+ 								</Button>
 							) : null;
 						})()
 					)}

@@ -8,18 +8,22 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	Divider,
 	FormControl,
 	FormControlLabel,
 	InputLabel,
 	MenuItem,
+	Radio,
+	RadioGroup,
 	Select,
-	TextField,
+	Slider,
 	Typography,
 	Checkbox,
 } from "@mui/material";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
+import { useLanguage } from "../../i18n/LanguageContext";
 import { paymentService } from "../../services/paymentService";
 import { paymentInitiationSchema } from "../../utils/validation";
 import type { Connection } from "../../types/connection";
@@ -35,11 +39,23 @@ interface PaymentInitiationModalProps {
 
 type PaymentInitiationFormData = z.infer<typeof paymentInitiationSchema>;
 
-const PAYMENT_METHODS = [
-	{ value: "card", label: "Credit/Debit Card" },
-	{ value: "paypal", label: "PayPal" },
-	{ value: "crypto", label: "Cryptocurrency" },
+const PAYMENT_METHODS = (t: (key: string) => string) => [
+	{ value: "card", label: t("modals.creditDebitCard") },
+	{ value: "paypal", label: t("modals.paypal") },
+	{ value: "crypto", label: t("modals.cryptocurrency") },
 ];
+
+const getDiscount = (months: number): number => {
+	if (months >= 12) return 0.2;
+	if (months >= 6) return 0.1;
+	return 0;
+};
+
+const getDiscountLabel = (discount: number): string => {
+	if (discount === 0.2) return "-20%";
+	if (discount === 0.1) return "-10%";
+	return "";
+};
 
 const PaymentInitiationModal = ({
 	open,
@@ -49,15 +65,16 @@ const PaymentInitiationModal = ({
 	connections,
 	onSuccess,
 }: PaymentInitiationModalProps) => {
+	const { t } = useLanguage();
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string>("");
 	const [polling, setPolling] = useState(false);
 	const [payForAll, setPayForAll] = useState(true);
 
 	const {
-		register,
 		handleSubmit,
 		watch,
+		setValue,
 		formState: { errors },
 		reset,
 	} = useForm<PaymentInitiationFormData>({
@@ -69,14 +86,17 @@ const PaymentInitiationModal = ({
 	});
 
 	const months = watch("months");
+	const paymentMethod = watch("paymentMethod");
 
 	const activeConnections = connections.filter((c) => !c.is_deleted && c.auto_renew);
 	const totalPriceAll = activeConnections.reduce((sum, c) => sum + c.price, 0);
-	const totalAmount = payForAll ? totalPriceAll * months : currentPrice * months;
+	const basePrice = payForAll ? totalPriceAll : currentPrice;
+	const discount = getDiscount(months);
+	const totalAmount = basePrice * months * (1 - discount);
 
 	const paymentDescription = payForAll
-		? `Pay for all connections with auto-renew (${activeConnections.length})`
-		: `Pay for connection "${connectionName}"`;
+		? t("modals.payForAllConnections", { count: activeConnections.length })
+		: t("modals.payForConnection", { name: connectionName });
 
 	const onSubmit = async (data: PaymentInitiationFormData) => {
 		setLoading(true);
@@ -94,7 +114,7 @@ const PaymentInitiationModal = ({
 				startPolling(response.payment_id);
 			}
 		} catch (err: any) {
-			setError(err.message || "Failed to initiate payment");
+			setError(err.message || t("modals.paymentInitFailed"));
 			setLoading(false);
 		}
 	};
@@ -108,7 +128,7 @@ const PaymentInitiationModal = ({
 			onClose();
 		} catch (err: any) {
 			setPolling(false);
-			setError("Payment polling failed");
+			setError(t("modals.paymentPollingFailed"));
 		}
 	};
 
@@ -119,9 +139,20 @@ const PaymentInitiationModal = ({
 		onClose();
 	};
 
+	const handleMonthsChange = (_: Event, value: number | number[]) => {
+		setValue("months", value as number);
+	};
+
+	const marks = [
+		{ value: 1, label: "1" },
+		{ value: 3, label: "3" },
+		{ value: 6, label: "6" },
+		{ value: 12, label: "12" },
+	];
+
 	return (
 		<Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-			<DialogTitle>Extend Connection</DialogTitle>
+			<DialogTitle>{t("modals.extendConnection")}</DialogTitle>
 			<DialogContent>
 				{error && (
 					<Alert severity="error" sx={{ mb: 2 }}>
@@ -135,32 +166,43 @@ const PaymentInitiationModal = ({
 							onChange={(e) => setPayForAll(e.target.checked)}
 						/>
 					}
-					label="Pay for all connections"
-					sx={{ mb: 2 }}
+					label={t("modals.payForAllConnectionsLabel")}
+					sx={{ mb: 1 }}
 				/>
 				<Typography variant="body2" sx={{ mb: 2 }}>
 					{paymentDescription}
 				</Typography>
 				<form id="payment-initiation-form" onSubmit={handleSubmit(onSubmit)}>
-					<TextField
-						margin="normal"
-						fullWidth
-						label="Months to add"
-						type="number"
-						inputProps={{ min: 1, max: 36 }}
-						{...register("months", { valueAsNumber: true })}
-						error={!!errors.months}
-						helperText={errors.months?.message}
-					/>
+					<Typography variant="subtitle2" sx={{ mb: 1 }}>
+						{t("modals.selectDuration")}
+					</Typography>
+					<Box sx={{ px: 1 }}>
+						<Slider
+							value={months}
+							onChange={handleMonthsChange}
+							min={1}
+							max={12}
+							step={1}
+							marks={marks}
+							valueLabelDisplay="on"
+							valueLabelFormat={(v) => `${v} ${v === 1 ? t("modals.month") : t("modals.months")}`}
+							sx={{ mb: 3 }}
+						/>
+					</Box>
+					{discount > 0 && (
+						<Alert severity="success" sx={{ mb: 2 }}>
+							{t("modals.discountApplied", { percent: getDiscountLabel(discount) })}
+						</Alert>
+					)}
 					<FormControl fullWidth margin="normal">
-						<InputLabel id="payment-method-label">Payment Method</InputLabel>
+						<InputLabel id="payment-method-label">{t("modals.paymentMethod")}</InputLabel>
 						<Select
 							labelId="payment-method-label"
-							label="Payment Method"
-							{...register("paymentMethod")}
-							defaultValue="card"
+							label={t("modals.paymentMethod")}
+							value={paymentMethod}
+							onChange={(e) => setValue("paymentMethod", e.target.value)}
 						>
-							{PAYMENT_METHODS.map((method) => (
+							{PAYMENT_METHODS(t).map((method) => (
 								<MenuItem key={method.value} value={method.value}>
 									{method.label}
 								</MenuItem>
@@ -168,23 +210,29 @@ const PaymentInitiationModal = ({
 						</Select>
 					</FormControl>
 					<Box
-						sx={{ mt: 2, p: 2, backgroundColor: "grey.50", borderRadius: 1 }}
+						sx={{ mt: 2, p: 2, backgroundColor: "primary.main", borderRadius: 2, color: "primary.contrastText" }}
 					>
-						<Typography variant="body2" color="textSecondary">
-							Total amount:
+						<Typography variant="body2" sx={{ opacity: 0.9 }}>
+							{t("modals.totalAmount")}:
 						</Typography>
-						<Typography variant="h5">${totalAmount.toFixed(2)}</Typography>
-						<Typography variant="caption" color="textSecondary">
+						<Typography variant="h4" fontWeight="bold">
+							{totalAmount.toFixed(2)} ₽
+						</Typography>
+						<Divider sx={{ my: 1, borderColor: "rgba(255,255,255,0.2)" }} />
+						<Typography variant="body2" sx={{ opacity: 0.9 }}>
 							{payForAll ? (
 								<>
-									{months} month{months !== 1 ? "s" : ""} × $
-									{totalPriceAll}/month ({activeConnections.length} connections)
+									{months} {months !== 1 ? t("modals.months") : t("modals.month")} × {basePrice} ₽/{t("modals.month")} ({activeConnections.length} {t("modals.connections")})
 								</>
 							) : (
 								<>
-									{months} month{months !== 1 ? "s" : ""} × $
-									{currentPrice}/month
+									{months} {months !== 1 ? t("modals.months") : t("modals.month")} × {basePrice} ₽/{t("modals.month")}
 								</>
+							)}
+							{discount > 0 && (
+								<Box component="span" sx={{ ml: 1, fontWeight: "bold", color: "success.main" }}>
+									({getDiscountLabel(discount)})
+								</Box>
 							)}
 						</Typography>
 					</Box>
@@ -192,7 +240,7 @@ const PaymentInitiationModal = ({
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={handleClose} disabled={loading || polling}>
-					Cancel
+					{t("common.cancel")}
 				</Button>
 				<Button
 					type="submit"
@@ -203,7 +251,7 @@ const PaymentInitiationModal = ({
 					{loading || polling ? (
 						<CircularProgress size={24} />
 					) : (
-						"Proceed to Payment"
+						t("modals.proceedToPayment")
 					)}
 				</Button>
 			</DialogActions>

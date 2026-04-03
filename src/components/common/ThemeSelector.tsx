@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useTelegramWebApp } from "../../hooks/useTelegramWebApp";
+import { useLanguage } from "../../i18n/LanguageContext";
 import { useTheme } from "../../theme";
 import { availableThemes, type ThemeName } from "../../theme/types";
 
@@ -40,6 +41,7 @@ function getThemeConfig(name: ThemeName) {
 }
 
 export function ThemeSelector() {
+	const { t } = useLanguage();
 	const { themeName, setThemeName } = useTheme();
 	const { isTelegram } = useTelegramWebApp();
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -73,7 +75,7 @@ export function ThemeSelector() {
 
 	return (
 		<>
-			<Tooltip title="Change theme">
+			<Tooltip title={t("nav.changeTheme")}>
 				<IconButton onClick={handleClick} color="inherit">
 					<PaletteIcon />
 				</IconButton>
@@ -93,7 +95,7 @@ export function ThemeSelector() {
 							color="text.secondary"
 							sx={{ px: 1, pb: 0.5, display: "block" }}
 						>
-							Dark
+							{t("themeSelector.dark")}
 						</Typography>
 						{darkSorted.map((theme) => {
 							if (!theme) return null;
@@ -105,8 +107,8 @@ export function ThemeSelector() {
 									sx={{ borderRadius: 1, mb: 0.5 }}
 								>
 									<ListItemText
-										primary={theme.label}
-										secondary={theme.description}
+										primary={t(`themes.${theme.name}` as never)}
+										secondary={t(`themes.${theme.name}Desc` as never)}
 										primaryTypographyProps={{ fontWeight: 500, fontSize: 13 }}
 										secondaryTypographyProps={{ variant: "caption" }}
 									/>
@@ -125,7 +127,7 @@ export function ThemeSelector() {
 							color="text.secondary"
 							sx={{ px: 1, pb: 0.5, display: "block" }}
 						>
-							Light
+							{t("themeSelector.light")}
 						</Typography>
 						{lightSorted.map((theme) => {
 							if (!theme) return null;
@@ -137,8 +139,8 @@ export function ThemeSelector() {
 									sx={{ borderRadius: 1, mb: 0.5 }}
 								>
 									<ListItemText
-										primary={theme.label}
-										secondary={theme.description}
+										primary={t(`themes.${theme.name}` as never)}
+										secondary={t(`themes.${theme.name}Desc` as never)}
 										primaryTypographyProps={{ fontWeight: 500, fontSize: 13 }}
 										secondaryTypographyProps={{ variant: "caption" }}
 									/>

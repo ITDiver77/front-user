@@ -16,6 +16,7 @@ import {
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
+import { useLanguage } from "../../i18n/LanguageContext";
 import { connectionService } from "../../services/connectionService";
 import { serverService } from "../../services/serverService";
 import type { Server } from "../../types/server";
@@ -38,6 +39,7 @@ const ChangeServerModal = ({
 	currentServerName,
 	onSuccess,
 }: ChangeServerModalProps) => {
+	const { t } = useLanguage();
 	const [servers, setServers] = useState<Server[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [serverLoading, setServerLoading] = useState(true);
@@ -69,7 +71,7 @@ const ChangeServerModal = ({
 			const data = await serverService.getActiveServers();
 			setServers(data);
 		} catch (err: any) {
-			setError("Failed to load servers");
+			setError(t("modals.failedToLoadServers"));
 			console.error(err);
 		} finally {
 			setServerLoading(false);
@@ -84,7 +86,7 @@ const ChangeServerModal = ({
 			onSuccess();
 			onClose();
 		} catch (err: any) {
-			setError(err.message || "Failed to change server");
+			setError(err.message || t("modals.failedToChangeServer"));
 		} finally {
 			setLoading(false);
 		}
@@ -92,7 +94,7 @@ const ChangeServerModal = ({
 
 	return (
 		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-			<DialogTitle>Change Server for {connectionName}</DialogTitle>
+			<DialogTitle>{t("modals.changeServer")} {connectionName}</DialogTitle>
 			<DialogContent>
 				{error && (
 					<Alert severity="error" sx={{ mb: 2 }}>
@@ -100,23 +102,23 @@ const ChangeServerModal = ({
 					</Alert>
 				)}
 				<Typography variant="body2" sx={{ mb: 2 }}>
-					Current server: <strong>{currentServerName || "Unknown"}</strong>
+					{t("modals.currentServer")}: <strong>{currentServerName || t("modals.unknown")}</strong>
 				</Typography>
 				<form id="change-server-form" onSubmit={handleSubmit(onSubmit)}>
 					<FormControl fullWidth margin="normal" error={!!errors.newServerName}>
-						<InputLabel id="server-label">New Server</InputLabel>
+						<InputLabel id="server-label">{t("modals.newServer")}</InputLabel>
 						<Select
 							labelId="server-label"
-							label="New Server"
+							label={t("modals.newServer")}
 							{...register("newServerName")}
 							disabled={serverLoading}
 						>
-							{serverLoading && <MenuItem value="">Loading...</MenuItem>}
+							{serverLoading && <MenuItem value="">{t("common.loading")}</MenuItem>}
 							{servers
 								.filter((server) => server.name !== currentServerName)
 								.map((server) => (
 									<MenuItem key={server.id} value={server.name}>
-										{server.name} ({server.region})
+										{t(`servers.${server.name}`)} ({server.region})
 									</MenuItem>
 								))}
 						</Select>
@@ -128,13 +130,12 @@ const ChangeServerModal = ({
 					</FormControl>
 				</form>
 				<Typography variant="caption" color="textSecondary">
-					Changing server will regenerate your connection string. You'll need to
-					update your VPN client configuration.
+					{t("modals.changeServerWarning")}
 				</Typography>
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={onClose} disabled={loading}>
-					Cancel
+					{t("common.cancel")}
 				</Button>
 				<Button
 					type="submit"
@@ -142,7 +143,7 @@ const ChangeServerModal = ({
 					variant="contained"
 					disabled={loading || serverLoading}
 				>
-					{loading ? <CircularProgress size={24} /> : "Change Server"}
+					{loading ? <CircularProgress size={24} /> : t("modals.changeServer")}
 				</Button>
 			</DialogActions>
 		</Dialog>

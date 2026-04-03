@@ -18,25 +18,27 @@ import { EmptyState } from "../components/common/EmptyState";
 import ChangeServerModal from "../components/forms/ChangeServerModal";
 import NewConnectionModal from "../components/forms/NewConnectionModal";
 import PaymentInitiationModal from "../components/forms/PaymentInitiationModal";
+import { useLanguage } from "../i18n";
 import { connectionService } from "../services/connectionService";
 import { staggerContainer } from "../styles/animations";
 import type { Connection } from "../types/connection";
 import { useConnectionStatusContext } from "../contexts/ConnectionStatusContext";
 
 const Dashboard = () => {
-	const {
-		connections,
-		loading: contextLoading,
-		error: contextError,
-		lastUpdated,
-		isActive,
-		setIsActive,
-		refresh,
-		isStatusChanged,
-		acknowledgeStatusChange,
-	} = useConnectionStatusContext();
+ 	const {
+ 		connections,
+ 		loading: contextLoading,
+ 		error: contextError,
+ 		lastUpdated,
+ 		isActive,
+ 		setIsActive,
+ 		refresh,
+ 		isStatusChanged,
+ 		acknowledgeStatusChange,
+ 	} = useConnectionStatusContext();
+ 	const { t } = useLanguage();
 
-	const [showNewConnectionModal, setShowNewConnectionModal] = useState(false);
+ 	const [showNewConnectionModal, setShowNewConnectionModal] = useState(false);
 	const [changeServerModalOpen, setChangeServerModalOpen] = useState(false);
 	const [selectedConnection, setSelectedConnection] =
 		useState<Connection | null>(null);
@@ -169,61 +171,61 @@ const Dashboard = () => {
 					gap: 2,
 				}}
 			>
-				<Typography variant="h4">My Connections</Typography>
-				<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-					{lastUpdated && (
-						<Typography variant="caption" color="text.secondary">
-							Updated: {lastUpdated.toLocaleTimeString()}
-						</Typography>
-					)}
-					<Tooltip title={isActive ? "Disable auto-refresh" : "Enable auto-refresh"}>
-						<FormControlLabel
-							control={
-								<Switch
-									checked={isActive}
-									onChange={(e) => setIsActive(e.target.checked)}
-									size="small"
-									color="success"
-								/>
-							}
-							label={isActive ? "Live" : "Paused"}
-							sx={{ mr: 1 }}
-						/>
-					</Tooltip>
-					<Tooltip title="Refresh now">
-						<IconButton
-							onClick={() => refresh()}
-							size="small"
-							component={motion.button}
-							whileHover={{ rotate: 180 }}
-							transition={{ duration: 0.3 }}
-						>
-							<SyncIcon fontSize="small" />
-						</IconButton>
-					</Tooltip>
-					<Button
-						variant="contained"
-						startIcon={<AddIcon />}
-						onClick={handleOpenNewConnectionModal}
-					>
-						New Connection
-					</Button>
-				</Box>
-			</Box>
+<Typography variant="h4">{t("dashboard.myConnections")}</Typography>
+ 				<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+ 					{lastUpdated && (
+ 						<Typography variant="caption" color="text.secondary">
+ 							{t("dashboard.updated")}: {lastUpdated.toLocaleTimeString()}
+ 						</Typography>
+ 					)}
+ 					<Tooltip title={isActive ? t("dashboard.disableAutoRefresh") : t("dashboard.enableAutoRefresh")}>
+ 						<FormControlLabel
+ 							control={
+ 								<Switch
+ 									checked={isActive}
+ 									onChange={(e) => setIsActive(e.target.checked)}
+ 									size="small"
+ 									color="success"
+ 								/>
+ 							}
+ 							label={isActive ? t("dashboard.live") : t("dashboard.paused")}
+ 							sx={{ mr: 1 }}
+ 						/>
+ 					</Tooltip>
+ 					<Tooltip title={t("dashboard.refreshNow")}>
+ 						<IconButton
+ 							onClick={() => refresh()}
+ 							size="small"
+ 							component={motion.button}
+ 							whileHover={{ rotate: 180 }}
+ 							transition={{ duration: 0.3 }}
+ 						>
+ 							<SyncIcon fontSize="small" />
+ 						</IconButton>
+ 					</Tooltip>
+ 					<Button
+ 						variant="contained"
+ 						startIcon={<AddIcon />}
+ 						onClick={handleOpenNewConnectionModal}
+ 					>
+ 						{t("dashboard.newConnection")}
+ 					</Button>
+ 				</Box>
+ 			</Box>
 
-			{deletedCount > 0 && (
-				<Box sx={{ mb: 2 }}>
-					<FormControlLabel
-						control={
-							<Switch
-								checked={showDeleted}
-								onChange={(e) => setShowDeleted(e.target.checked)}
-							/>
-						}
-						label={`Show deleted connections (${deletedCount})`}
-					/>
-				</Box>
-			)}
+ 			{deletedCount > 0 && (
+ 				<Box sx={{ mb: 2 }}>
+ 					<FormControlLabel
+ 						control={
+ 							<Switch
+ 								checked={showDeleted}
+ 								onChange={(e) => setShowDeleted(e.target.checked)}
+ 							/>
+ 						}
+ 						label={`${t("dashboard.showDeleted")} (${deletedCount})`}
+ 					/>
+ 				</Box>
+ 			)}
 
 			{error && (
 				<Alert severity="error" sx={{ mb: 2 }}>
@@ -231,44 +233,44 @@ const Dashboard = () => {
 				</Alert>
 			)}
 
-			{showNoPaidWarning && (
-				<Alert
-					severity="warning"
-					sx={{ mb: 2 }}
-					onClose={() => setShowNoPaidWarning(false)}
-				>
-					Для использования «Обещанного платежа» необходимо сначала совершить оплату. Пожалуйста, оплатите существующее подключение или подождите, пока оно станет активным.
-				</Alert>
-			)}
-			{filteredConnections.length === 0 ? (
-				<motion.div
-					variants={staggerContainer}
-					initial="initial"
-					animate="animate"
-				>
-					<EmptyState
-						icon={<WifiIcon />}
-						title={showDeleted ? "No Connections Found" : "No Connections Yet"}
-						description={
-							showDeleted
-								? "No connections match your filters."
-								: "Create your first VPN connection to get started."
-						}
-						action={
-							!showDeleted && (
-								<Button
-									variant="contained"
-									startIcon={<AddIcon />}
-									onClick={handleOpenNewConnectionModal}
-									sx={{ mt: 2 }}
-								>
-									Create Connection
-								</Button>
+{showNoPaidWarning && (
+ 				<Alert
+ 					severity="warning"
+ 					sx={{ mb: 2 }}
+ 					onClose={() => setShowNoPaidWarning(false)}
+ 				>
+ 					{t("dashboard.noPaidWarning")}
+ 				</Alert>
+ 			)}
+ 			{filteredConnections.length === 0 ? (
+ 				<motion.div
+ 					variants={staggerContainer}
+ 					initial="initial"
+ 					animate="animate"
+ 				>
+ 					<EmptyState
+ 						icon={<WifiIcon />}
+ 						title={showDeleted ? t("dashboard.noConnectionsFound") : t("dashboard.noConnections")}
+ 						description={
+ 							showDeleted
+ 								? t("dashboard.noConnectionsMatchFilters")
+ 								: t("dashboard.createFirst")
+ 						}
+ 						action={
+ 							!showDeleted && (
+ 								<Button
+ 									variant="contained"
+ 									startIcon={<AddIcon />}
+ 									onClick={handleOpenNewConnectionModal}
+ 									sx={{ mt: 2 }}
+ 								>
+ 									{t("dashboard.createConnection")}
+ 								</Button>
 							)
-						}
-					/>
-				</motion.div>
-			) : (
+ 						}
+ 					/>
+ 				</motion.div>
+ 			) : (
 				<Grid container spacing={3}>
 					{filteredConnections.map((conn) => (
 						<Grid item key={conn.id} xs={12} sm={6} md={4}>

@@ -12,6 +12,7 @@ import {
 	Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
+import { useLanguage } from "../../i18n/LanguageContext";
 import { connectionService } from "../../services/connectionService";
 
 interface MakePaymentModalProps {
@@ -33,6 +34,7 @@ const MakePaymentModal = ({
 	onClose,
 	onProceed,
 }: MakePaymentModalProps) => {
+	const { t } = useLanguage();
 	const [monthlyTotal, setMonthlyTotal] = useState<number>(0);
 	const [selectedMonths, setSelectedMonths] = useState<number>(1);
 	const [_loading, setLoading] = useState(false);
@@ -42,7 +44,7 @@ const MakePaymentModal = ({
 		try {
 			const connections = await connectionService.getMyConnections();
 			const total = connections
-				.filter((c) => c.is_active)
+				.filter((c) => !c.is_deleted && c.auto_renew)
 				.reduce((sum, c) => sum + c.price, 0);
 			setMonthlyTotal(total);
 		} catch (err) {
@@ -69,24 +71,25 @@ const MakePaymentModal = ({
 		const discount = DISCOUNTS[months];
 		const finalPrice = getPrice(months, monthlyTotal);
 		const discountLabel =
-			discount > 0 ? ` (-${discount * 100}% = $${finalPrice.toFixed(2)})` : "";
-		return `○ ${months} month${months > 1 ? "s" : ""} — $${basePrice.toFixed(2)}${discountLabel}`;
+			discount > 0 ? ` (-${discount * 100}% = ${finalPrice.toFixed(2)} ₽)` : "";
+		return `○ ${months} month${months > 1 ? "s" : ""} — ${basePrice.toFixed(2)} ₽${discountLabel}`;
 	};
 
 	return (
 		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-			<DialogTitle>Make a Payment</DialogTitle>
+			<DialogTitle>{t("modals.makePayment")}</DialogTitle>
 			<DialogContent>
 				<Box sx={{ mb: 3, mt: 1 }}>
 					<Typography variant="body1">
-						Your monthly total: <strong>${monthlyTotal.toFixed(2)}</strong>
+						{t("modals.yourMonthlyTotal")}:{" "}
+						<strong>{monthlyTotal.toFixed(2)} ₽</strong>
 					</Typography>
 				</Box>
 
 				<Divider sx={{ my: 2 }} />
 
 				<Typography variant="subtitle1" sx={{ mb: 2 }}>
-					Select payment duration:
+					{t("modals.selectPaymentDuration")}
 				</Typography>
 
 				<RadioGroup
@@ -96,25 +99,25 @@ const MakePaymentModal = ({
 					<FormControlLabel
 						value={1}
 						control={<Radio />}
-						label={`1 month — $${monthlyTotal.toFixed(2)}`}
+						label={`1 ${t("modals.monthsOption")} — ${monthlyTotal.toFixed(2)} ₽`}
 					/>
 					<FormControlLabel
 						value={2}
 						control={<Radio />}
-						label={`2 months — $${(monthlyTotal * 2).toFixed(2)}`}
+						label={`2 ${t("modals.monthsOption")} — ${(monthlyTotal * 2).toFixed(2)} ₽`}
 					/>
 					<FormControlLabel
 						value={3}
 						control={<Radio />}
-						label={`3 months — $${(monthlyTotal * 3).toFixed(2)}`}
+						label={`3 ${t("modals.monthsOption")} — ${(monthlyTotal * 3).toFixed(2)} ₽`}
 					/>
 					<FormControlLabel
 						value={6}
 						control={<Radio />}
 						label={
 							<>
-								6 months — ${(monthlyTotal * 6).toFixed(2)} (-10% = $
-								{getPrice(6, monthlyTotal).toFixed(2)})
+								6 ${t("modals.monthsOption")} — ${(monthlyTotal * 6).toFixed(2)} ₽
+								(-10% = ${getPrice(6, monthlyTotal).toFixed(2)} ₽)
 							</>
 						}
 					/>
@@ -123,8 +126,8 @@ const MakePaymentModal = ({
 						control={<Radio />}
 						label={
 							<>
-								12 months — ${(monthlyTotal * 12).toFixed(2)} (-20% = $
-								{getPrice(12, monthlyTotal).toFixed(2)})
+								12 ${t("modals.monthsOption")} — ${(monthlyTotal * 12).toFixed(2)} ₽
+								(-20% = ${getPrice(12, monthlyTotal).toFixed(2)} ₽)
 							</>
 						}
 					/>
@@ -139,18 +142,18 @@ const MakePaymentModal = ({
 						alignItems: "center",
 					}}
 				>
-					<Typography variant="subtitle1">Total:</Typography>
+					<Typography variant="subtitle1">{t("modals.total")}:</Typography>
 					<Typography variant="h6" color="primary">
-						${getPrice(selectedMonths, monthlyTotal).toFixed(2)}
+						{getPrice(selectedMonths, monthlyTotal).toFixed(2)} ₽
 					</Typography>
 				</Box>
 			</DialogContent>
 			<DialogActions sx={{ p: 3, pt: 0 }}>
 				<Button onClick={onClose} color="inherit">
-					Cancel
+					{t("common.cancel")}
 				</Button>
 				<Button onClick={handleProceed} variant="contained" color="primary">
-					Proceed to Payment
+					{t("modals.proceedToPayment")}
 				</Button>
 			</DialogActions>
 		</Dialog>

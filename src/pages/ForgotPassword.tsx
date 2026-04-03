@@ -17,15 +17,15 @@ import { useForm } from "react-hook-form";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import type { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../i18n/LanguageContext";
 import { forgotPasswordSchema, resetPasswordSchema } from "../utils/validation";
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
-const steps = ["Enter username", "Reset password"];
-
 const ForgotPassword = () => {
+	const { t } = useLanguage();
 	const { forgotPassword, resetPassword } = useAuth();
 	const navigate = useNavigate();
 	const [activeStep, setActiveStep] = useState(0);
@@ -60,13 +60,13 @@ const ForgotPassword = () => {
 			const ok = await forgotPassword(data.username);
 			if (ok) {
 				setUsername(data.username);
-				setSuccess("If the username exists, a reset token has been sent.");
+				setSuccess(t("auth.resetTokenSent"));
 				setActiveStep(1);
 			} else {
-				setError("Failed to send reset token");
+				setError(t("auth.failedToSendResetToken"));
 			}
 		} catch (err) {
-			setError("An unexpected error occurred");
+			setError(t("auth.unexpectedError"));
 			console.error(err);
 		} finally {
 			setLoading(false);
@@ -79,13 +79,13 @@ const ForgotPassword = () => {
 		try {
 			const ok = await resetPassword(data.token, data.newPassword);
 			if (ok) {
-				setSuccess("Password reset successful. You can now sign in.");
+				setSuccess(t("auth.passwordResetSuccess"));
 				setTimeout(() => navigate("/login"), 3000);
 			} else {
-				setError("Invalid token or reset failed");
+				setError(t("auth.invalidTokenOrResetFailed"));
 			}
 		} catch (err) {
-			setError("An unexpected error occurred");
+			setError(t("auth.unexpectedError"));
 			console.error(err);
 		} finally {
 			setLoading(false);
@@ -103,14 +103,15 @@ const ForgotPassword = () => {
 				}}
 			>
 				<Typography component="h1" variant="h5">
-					Reset Password
+					{t("auth.resetPassword")}
 				</Typography>
 				<Stepper activeStep={activeStep} sx={{ width: "100%", mt: 4 }}>
-					{steps.map((label) => (
-						<Step key={label}>
-							<StepLabel>{label}</StepLabel>
-						</Step>
-					))}
+					<Step>
+						<StepLabel>{t("auth.enterUsername")}</StepLabel>
+					</Step>
+					<Step>
+						<StepLabel>{t("auth.resetPasswordStep")}</StepLabel>
+					</Step>
 				</Stepper>
 				<Box sx={{ mt: 4, width: "100%" }}>
 					{error && (
@@ -130,7 +131,7 @@ const ForgotPassword = () => {
 								required
 								fullWidth
 								id="username"
-								label="Username"
+								label={t("auth.username")}
 								autoComplete="username"
 								autoFocus
 								{...registerForgot("username")}
@@ -144,7 +145,7 @@ const ForgotPassword = () => {
 								sx={{ mt: 3, mb: 2 }}
 								disabled={loading}
 							>
-								{loading ? <CircularProgress size={24} /> : "Send Reset Token"}
+								{loading ? <CircularProgress size={24} /> : t("auth.sendResetToken")}
 							</Button>
 						</Box>
 					) : (
@@ -154,7 +155,7 @@ const ForgotPassword = () => {
 								required
 								fullWidth
 								id="token"
-								label="Reset Token"
+								label={t("auth.resetToken")}
 								autoFocus
 								{...registerReset("token")}
 								error={!!resetErrors.token}
@@ -164,7 +165,7 @@ const ForgotPassword = () => {
 								margin="normal"
 								required
 								fullWidth
-								label="New Password"
+								label={t("auth.newPassword")}
 								type="password"
 								id="newPassword"
 								{...registerReset("newPassword")}
@@ -175,7 +176,7 @@ const ForgotPassword = () => {
 								margin="normal"
 								required
 								fullWidth
-								label="Confirm New Password"
+								label={t("auth.confirmNewPassword")}
 								type="password"
 								id="confirmPassword"
 								{...registerReset("confirmPassword")}
@@ -189,13 +190,13 @@ const ForgotPassword = () => {
 								sx={{ mt: 3, mb: 2 }}
 								disabled={loading}
 							>
-								{loading ? <CircularProgress size={24} /> : "Reset Password"}
+								{loading ? <CircularProgress size={24} /> : t("auth.resetPasswordButton")}
 							</Button>
 						</Box>
 					)}
 					<Box sx={{ textAlign: "center", mt: 2 }}>
 						<Link component={RouterLink} to="/login" variant="body2">
-							Back to Sign In
+							{t("auth.backToSignIn")}
 						</Link>
 					</Box>
 				</Box>

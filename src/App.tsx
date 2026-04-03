@@ -5,6 +5,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 // Context
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ConnectionStatusProvider } from "./contexts/ConnectionStatusContext";
+import { LanguageProvider } from "./i18n";
 import { pageVariants } from "./styles/animations";
 
 // Layout
@@ -163,11 +164,13 @@ function AppContent() {
 }
 
 function App() {
-	return (
-		<AuthProvider>
-			<AppContent />
-		</AuthProvider>
-	);
-}
+ 	return (
+ 		<LanguageProvider>
+ 			<AuthProvider>
+ 				<AppContent />
+ 			</AuthProvider>
+ 		</LanguageProvider>
+ 	);
+ }
 
 export default App;

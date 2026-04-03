@@ -30,6 +30,7 @@ import {
 	useSearchParams,
 } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../i18n";
 import { z } from "zod";
 import { authService } from "../services/authService";
 import type {
@@ -96,11 +97,12 @@ interface EmailVerificationState {
 }
 
 const Register = () => {
-	const navigate = useNavigate();
-	const [searchParams] = useSearchParams();
-	const { setAuthFromToken } = useAuth();
+ 	const navigate = useNavigate();
+ 	const [searchParams] = useSearchParams();
+ 	const { setAuthFromToken } = useAuth();
+ 	const { t } = useLanguage();
 
-	const referrerId = searchParams.get("ref") || "";
+ 	const referrerId = searchParams.get("ref") || "";
 
 	const [registrationMethod, setRegistrationMethod] = useState<"email" | "telegram">("telegram");
 	const [step, setStep] = useState<"form" | "telegram_wait" | "verify_code">("form");
@@ -360,37 +362,37 @@ const Register = () => {
 						}}
 					>
 						<CheckCircle sx={{ fontSize: 64, color: "#4caf50", mb: 2 }} />
-						<Typography component="h1" variant="h5" gutterBottom>
-							Registration Complete!
-						</Typography>
-						<Typography variant="body2" color="textSecondary" paragraph>
-							Save your temporary credentials below. You will need them to log in.
-						</Typography>
+<Typography component="h1" variant="h5" gutterBottom>
+ 							{t("auth.registrationSuccess")}
+ 						</Typography>
+ 						<Typography variant="body2" color="textSecondary" paragraph>
+ 							{t("auth.saveCredentials")}
+ 						</Typography>
 
-						<Box
-							sx={{
-								mt: 3,
-								textAlign: "left",
-								backgroundColor: "grey.50",
-								p: 2,
-								borderRadius: 2,
-							}}
-						>
-							<Typography variant="subtitle2" gutterBottom>
-								Your temporary credentials:
-							</Typography>
-							<Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-								<Typography variant="body2" sx={{ fontWeight: 500 }}>
-									Username:
-								</Typography>
-								<Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-									{tempCredentials.username}
-								</Typography>
-							</Box>
-							<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-								<Typography variant="body2" sx={{ fontWeight: 500 }}>
-									Password:
-								</Typography>
+ 						<Box
+ 							sx={{
+ 								mt: 3,
+ 								textAlign: "left",
+ 								backgroundColor: "grey.50",
+ 								p: 2,
+ 								borderRadius: 2,
+ 							}}
+ 						>
+ 							<Typography variant="subtitle2" gutterBottom>
+ 								{t("auth.yourCredentials")}
+ 							</Typography>
+ 							<Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+ 								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+ 									{t("auth.username")}:
+ 								</Typography>
+ 								<Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+ 									{tempCredentials.username}
+ 								</Typography>
+ 							</Box>
+ 							<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+ 								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+ 									{t("auth.password")}:
+ 								</Typography>
 								<Typography variant="body2" sx={{ fontFamily: "monospace" }}>
 									{showTempPassword ? tempCredentials.password : "••••••••"}
 								</Typography>
@@ -413,9 +415,9 @@ const Register = () => {
 									textAlign: "left",
 								}}
 							>
-								<Typography variant="subtitle2" gutterBottom>
-									Connection Name: {tempCredentials.connectionName}
-								</Typography>
+<Typography variant="subtitle2" gutterBottom>
+ 									{t("dashboard.connectionString")}: {tempCredentials.connectionName}
+ 								</Typography>
 								<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
 									<Typography
 										variant="body2"
@@ -441,20 +443,19 @@ const Register = () => {
 							</Box>
 						)}
 
-						<Alert severity="warning" sx={{ mt: 3, textAlign: "left" }}>
-							Please save these credentials. For security reasons, you will not be
-							able to see the password again.
-						</Alert>
+<Alert severity="warning" sx={{ mt: 3, textAlign: "left" }}>
+ 							{t("auth.saveCredentialsWarning")}
+ 						</Alert>
 
-						<Button
-							component={RouterLink}
-							to="/login"
-							variant="contained"
-							fullWidth
-							sx={{ mt: 3, borderRadius: 2 }}
-						>
-							Go to Login
-						</Button>
+ 						<Button
+ 							component={RouterLink}
+ 							to="/login"
+ 							variant="contained"
+ 							fullWidth
+ 							sx={{ mt: 3, borderRadius: 2 }}
+ 						>
+ 							{t("auth.goToLogin")}
+ 						</Button>
 					</Paper>
 				</Box>
 			</Container>
@@ -475,76 +476,75 @@ const Register = () => {
 					<Paper sx={{ p: 4, width: "100%", borderRadius: 3 }}>
 						<Box sx={{ textAlign: "center", mb: 3 }}>
 							<EmailIcon sx={{ fontSize: 48, color: "#e65100", mb: 2 }} />
-							<Typography component="h1" variant="h5" gutterBottom>
-								Verify Your Email
-							</Typography>
-						</Box>
+<Typography component="h1" variant="h5" gutterBottom>
+ 								{t("auth.verifyEmail")}
+ 							</Typography>
+ 						</Box>
 
-						<Alert severity="success" sx={{ mb: 3 }}>
-							Verification code sent to {emailVerification.email}
-						</Alert>
+ 						<Alert severity="success" sx={{ mb: 3 }}>
+ 							{t("auth.verificationCodeSent")} {emailVerification.email}
+ 						</Alert>
 
-						<Box
-							component="form"
-							onSubmit={verifyCodeForm.handleSubmit(onSubmitVerifyCode)}
-						>
-							{error && (
-								<Alert severity="error" sx={{ mb: 2 }}>
-									{error}
-								</Alert>
-							)}
+ 						<Box
+ 							component="form"
+ 							onSubmit={verifyCodeForm.handleSubmit(onSubmitVerifyCode)}
+ 						>
+ 							{error && (
+ 								<Alert severity="error" sx={{ mb: 2 }}>
+ 									{error}
+ 								</Alert>
+ 							)}
 
-							<TextField
-								margin="normal"
-								required
-								fullWidth
-								id="code"
-								label="4-Digit Code"
-								autoComplete="one-time-code"
-								autoFocus
-								inputProps={{
-									maxLength: 4,
-									inputMode: "numeric",
-									pattern: "[0-9]*",
-								}}
-								{...verifyCodeForm.register("code")}
-								error={!!verifyCodeForm.formState.errors.code}
-								helperText={verifyCodeForm.formState.errors.code?.message}
-								sx={{
-									textAlign: "center",
-									"& .MuiInputBase-input": {
-										textAlign: "center",
-										letterSpacing: "0.5em",
-									},
-								}}
-							/>
+ 							<TextField
+ 								margin="normal"
+ 								required
+ 								fullWidth
+ 								id="code"
+ 								label={t("auth.fourDigitCode")}
+ 								autoComplete="one-time-code"
+ 								autoFocus
+ 								inputProps={{
+ 									maxLength: 4,
+ 									inputMode: "numeric",
+ 									pattern: "[0-9]*",
+ 								}}
+ 								{...verifyCodeForm.register("code")}
+ 								error={!!verifyCodeForm.formState.errors.code}
+ 								helperText={verifyCodeForm.formState.errors.code?.message}
+ 								sx={{
+ 									textAlign: "center",
+ 									"& .MuiInputBase-input": {
+ 										textAlign: "center",
+ 										letterSpacing: "0.5em",
+ 									},
+ 								}}
+ 							/>
 
-							<Button
-								type="submit"
-								fullWidth
-								variant="contained"
-								sx={{ mt: 3, mb: 2, borderRadius: 2, backgroundColor: "#e65100" }}
-								disabled={loading}
-							>
-								{loading ? <CircularProgress size={24} /> : "Verify Code"}
-							</Button>
-						</Box>
+ 							<Button
+ 								type="submit"
+ 								fullWidth
+ 								variant="contained"
+ 								sx={{ mt: 3, mb: 2, borderRadius: 2, backgroundColor: "#e65100" }}
+ 								disabled={loading}
+ 							>
+ 								{loading ? <CircularProgress size={24} /> : t("auth.verifyCode")}
+ 							</Button>
+ 						</Box>
 
-						<Divider sx={{ my: 2 }} />
+ 						<Divider sx={{ my: 2 }} />
 
-						<Typography variant="body2" color="textSecondary" paragraph>
-							Didn't receive the email? Check your spam folder or click below to
-							start over.
-						</Typography>
+ 						<Typography variant="body2" color="textSecondary" paragraph>
+ 							{t("auth.noEmail")}
+ 						</Typography>
 
-						<Button
-							variant="outlined"
-							fullWidth
-							sx={{ borderRadius: 2 }}
-							onClick={handleBack}
-						>
-							Start Over
-						</Button>
+ 						<Button
+ 							variant="outlined"
+ 							fullWidth
+ 							sx={{ borderRadius: 2 }}
+ 							onClick={handleBack}
+ 						>
+ 							{t("auth.startOver")}
+ 						</Button>
 					</Paper>
 				</Box>
 			</Container>
@@ -567,67 +567,67 @@ const Register = () => {
 							{pollingStatus === "completed" ? (
 								<>
 									<CheckCircle sx={{ fontSize: 64, color: "#4caf50", mb: 2 }} />
-									<Typography component="h1" variant="h5" gutterBottom>
-										Verification Complete!
-									</Typography>
-								</>
-							) : (
-								<>
-									<TelegramIcon sx={{ fontSize: 64, color: "#0088cc", mb: 2 }} />
-									<Typography component="h1" variant="h5" gutterBottom>
-										Verify with Telegram
-									</Typography>
-								</>
-							)}
-						</Box>
+<Typography component="h1" variant="h5" gutterBottom>
+ 										{t("auth.verificationComplete")}
+ 									</Typography>
+ 								</>
+ 							) : (
+ 								<>
+ 									<TelegramIcon sx={{ fontSize: 64, color: "#0088cc", mb: 2 }} />
+ 									<Typography component="h1" variant="h5" gutterBottom>
+ 										{t("auth.verifyWithTelegram")}
+ 									</Typography>
+ 								</>
+ 							)}
+ 						</Box>
 
-						<Alert
-							severity={pollingStatus === "completed" ? "success" : "info"}
-							sx={{ mb: 3 }}
-						>
-							{pollingStatus === "completed"
-								? "Your account has been verified. You'll be logged in automatically."
-								: "Open our Telegram bot to complete registration."}
-						</Alert>
+ 						<Alert
+ 							severity={pollingStatus === "completed" ? "success" : "info"}
+ 							sx={{ mb: 3 }}
+ 						>
+ 							{pollingStatus === "completed"
+ 								? t("auth.accountVerified")
+ 								: t("auth.openTelegramBot")}
+ 						</Alert>
 
 						{pollingStatus !== "completed" && (
 							<>
-								<Button
-									variant="contained"
-									fullWidth
-									href={telegramResponse.telegram_link}
-									target="_blank"
-									rel="noopener noreferrer"
-									sx={{ mb: 2, borderRadius: 2 }}
-									startIcon={<TelegramIcon />}
-								>
-									Open Telegram Bot
-								</Button>
+<Button
+ 									variant="contained"
+ 									fullWidth
+ 									href={telegramResponse.telegram_link}
+ 									target="_blank"
+ 									rel="noopener noreferrer"
+ 									sx={{ mb: 2, borderRadius: 2 }}
+ 									startIcon={<TelegramIcon />}
+ 								>
+ 									{t("auth.openTelegramBotButton")}
+ 								</Button>
 
-								<Divider sx={{ my: 2 }} />
+ 								<Divider sx={{ my: 2 }} />
 
-								<Typography variant="body2" color="textSecondary" gutterBottom>
-									Instructions:
-								</Typography>
-								<ol style={{ margin: 0, paddingLeft: 20 }}>
-									<li>
-										<Typography variant="body2">Click "Open Telegram Bot"</Typography>
-									</li>
-									<li>
-										<Typography variant="body2">Press /start in the chat</Typography>
-									</li>
-									<li>
-										<Typography variant="body2">
-											Enter this token:{" "}
-											<strong>{telegramResponse.registration_token}</strong>
-										</Typography>
-									</li>
-								</ol>
+ 								<Typography variant="body2" color="textSecondary" gutterBottom>
+ 									{t("auth.instructions")}:
+ 								</Typography>
+ 								<ol style={{ margin: 0, paddingLeft: 20 }}>
+ 									<li>
+ 										<Typography variant="body2">{t("auth.step1")}</Typography>
+ 									</li>
+ 									<li>
+ 										<Typography variant="body2">{t("auth.step2")}</Typography>
+ 									</li>
+ 									<li>
+ 										<Typography variant="body2">
+ 											{t("auth.enterToken")}{" "}
+ 											<strong>{telegramResponse.registration_token}</strong>
+ 										</Typography>
+ 									</li>
+ 								</ol>
 
-								<Box sx={{ mt: 2 }}>
-									<Typography variant="caption" color="textSecondary">
-										Registration token:
-									</Typography>
+ 								<Box sx={{ mt: 2 }}>
+ 									<Typography variant="caption" color="textSecondary">
+ 										{t("auth.registrationToken")}:
+ 									</Typography>
 									<Paper
 										variant="outlined"
 										sx={{
@@ -642,27 +642,27 @@ const Register = () => {
 									</Paper>
 								</Box>
 
-								{pollingStatus === "checking" && (
-									<Box sx={{ textAlign: "center", py: 2 }}>
-										<CircularProgress size={24} sx={{ mb: 1 }} />
-										<Typography variant="body2" color="textSecondary">
-											Waiting for verification...
-										</Typography>
-									</Box>
-								)}
-							</>
-						)}
+{pollingStatus === "checking" && (
+ 									<Box sx={{ textAlign: "center", py: 2 }}>
+ 										<CircularProgress size={24} sx={{ mb: 1 }} />
+ 										<Typography variant="body2" color="textSecondary">
+ 											{t("auth.waitingForVerification")}
+ 										</Typography>
+ 									</Box>
+ 								)}
+ 							</>
+ 						)}
 
-						<Button
-							component={RouterLink}
-							to="/login"
-							variant="outlined"
-							fullWidth
-							sx={{ borderRadius: 2, mt: 2 }}
-							onClick={clearSession}
-						>
-							Back to Login
-						</Button>
+ 						<Button
+ 							component={RouterLink}
+ 							to="/login"
+ 							variant="outlined"
+ 							fullWidth
+ 							sx={{ borderRadius: 2, mt: 2 }}
+ 							onClick={clearSession}
+ 						>
+ 							{t("auth.backToLogin")}
+ 						</Button>
 					</Paper>
 				</Box>
 			</Container>
@@ -679,44 +679,44 @@ const Register = () => {
 					alignItems: "center",
 				}}
 			>
-				<Typography component="h1" variant="h4" gutterBottom>
-					Create Account
-				</Typography>
+<Typography component="h1" variant="h4" gutterBottom>
+ 					{t("auth.createAccount")}
+ 				</Typography>
 
-				<Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-					<Button
-						variant={registrationMethod === "email" ? "contained" : "outlined"}
-						onClick={() => handleMethodChange("email")}
-						startIcon={<EmailIcon />}
-						sx={{
-							borderRadius: 3,
-							px: 3,
-							backgroundColor:
-								registrationMethod === "email" ? "#e65100" : undefined,
-						}}
-					>
-						Email + Password
-					</Button>
-					<Button
-						variant={registrationMethod === "telegram" ? "contained" : "outlined"}
-						onClick={() => handleMethodChange("telegram")}
-						startIcon={<TelegramIcon />}
-						sx={{
-							borderRadius: 3,
-							px: 3,
-							backgroundColor:
-								registrationMethod === "telegram" ? "#0088cc" : undefined,
-						}}
-					>
-						Telegram
-					</Button>
-				</Box>
+ 				<Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+ 					<Button
+ 						variant={registrationMethod === "email" ? "contained" : "outlined"}
+ 						onClick={() => handleMethodChange("email")}
+ 						startIcon={<EmailIcon />}
+ 						sx={{
+ 							borderRadius: 3,
+ 							px: 3,
+ 							backgroundColor:
+ 								registrationMethod === "email" ? "#e65100" : undefined,
+ 						}}
+ 					>
+ 						{t("auth.emailPassword")}
+ 					</Button>
+ 					<Button
+ 						variant={registrationMethod === "telegram" ? "contained" : "outlined"}
+ 						onClick={() => handleMethodChange("telegram")}
+ 						startIcon={<TelegramIcon />}
+ 						sx={{
+ 							borderRadius: 3,
+ 							px: 3,
+ 							backgroundColor:
+ 								registrationMethod === "telegram" ? "#0088cc" : undefined,
+ 						}}
+ 					>
+ 						Telegram
+ 					</Button>
+ 				</Box>
 
-				{referrerId && (
-					<Alert severity="info" sx={{ mb: 2, width: "100%" }}>
-						Referrer ID: {referrerId}
-					</Alert>
-				)}
+ 				{referrerId && (
+ 					<Alert severity="info" sx={{ mb: 2, width: "100%" }}>
+ 						{t("auth.referrerId")}: {referrerId}
+ 					</Alert>
+ 				)}
 
 				{registrationMethod === "email" ? (
 					<Paper
@@ -730,187 +730,187 @@ const Register = () => {
 							</Alert>
 						)}
 
-						<Alert severity="info" sx={{ mb: 2 }}>
-							Enter your credentials. A verification code will be sent to your email.
-						</Alert>
+<Alert severity="info" sx={{ mb: 2 }}>
+ 							{t("auth.enterCredentials")}
+ 						</Alert>
 
-						<TextField
-							margin="normal"
-							required
-							fullWidth
-							id="username"
-							label="Username"
-							autoComplete="username"
-							autoFocus
-							{...passwordForm.register("username")}
-							error={!!passwordForm.formState.errors.username}
-							helperText={passwordForm.formState.errors.username?.message}
-						/>
+ 						<TextField
+ 							margin="normal"
+ 							required
+ 							fullWidth
+ 							id="username"
+ 							label={t("auth.username")}
+ 							autoComplete="username"
+ 							autoFocus
+ 							{...passwordForm.register("username")}
+ 							error={!!passwordForm.formState.errors.username}
+ 							helperText={passwordForm.formState.errors.username?.message}
+ 						/>
 
-						<TextField
-							margin="normal"
-							required
-							fullWidth
-							id="email"
-							label="Email Address"
-							autoComplete="email"
-							{...passwordForm.register("email")}
-							error={!!passwordForm.formState.errors.email}
-							helperText={passwordForm.formState.errors.email?.message}
-						/>
+ 						<TextField
+ 							margin="normal"
+ 							required
+ 							fullWidth
+ 							id="email"
+ 							label={t("auth.email")}
+ 							autoComplete="email"
+ 							{...passwordForm.register("email")}
+ 							error={!!passwordForm.formState.errors.email}
+ 							helperText={passwordForm.formState.errors.email?.message}
+ 						/>
 
-						<TextField
-							margin="normal"
-							required
-							fullWidth
-							id="password"
-							label="Password"
-							type={showPassword ? "text" : "password"}
-							autoComplete="new-password"
-							{...passwordForm.register("password")}
-							error={!!passwordForm.formState.errors.password}
-							helperText={passwordForm.formState.errors.password?.message}
-							InputProps={{
-								endAdornment: (
-									<InputAdornment position="end">
-										<IconButton
-											onClick={() => setShowPassword(!showPassword)}
-											edge="end"
-										>
-											{showPassword ? <VisibilityOff /> : <Visibility />}
-										</IconButton>
+ 						<TextField
+ 							margin="normal"
+ 							required
+ 							fullWidth
+ 							id="password"
+ 							label={t("auth.password")}
+ 							type={showPassword ? "text" : "password"}
+ 							autoComplete="new-password"
+ 							{...passwordForm.register("password")}
+ 							error={!!passwordForm.formState.errors.password}
+ 							helperText={passwordForm.formState.errors.password?.message}
+ 							InputProps={{
+ 								endAdornment: (
+ 									<InputAdornment position="end">
+ 										<IconButton
+ 											onClick={() => setShowPassword(!showPassword)}
+ 											edge="end"
+ 										>
+ 											{showPassword ? <VisibilityOff /> : <Visibility />}
+ 										</IconButton>
+ 									</InputAdornment>
+								),
+ 							}}
+ 						/>
+
+ 						<TextField
+ 							margin="normal"
+ 							required
+ 							fullWidth
+ 							id="confirmPassword"
+ 							label={t("auth.confirmPassword")}
+ 							type={showConfirmPassword ? "text" : "password"}
+ 							autoComplete="new-password"
+ 							{...passwordForm.register("confirmPassword")}
+ 							error={!!passwordForm.formState.errors.confirmPassword}
+ 							helperText={passwordForm.formState.errors.confirmPassword?.message}
+ 							InputProps={{
+ 								endAdornment: (
+ 									<InputAdornment position="end">
+ 										<IconButton
+ 											onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+ 											edge="end"
+ 										>
+ 											{showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+ 										</IconButton>
 									</InputAdornment>
 								),
-							}}
-						/>
+ 							}}
+ 						/>
 
-						<TextField
-							margin="normal"
-							required
-							fullWidth
-							id="confirmPassword"
-							label="Confirm Password"
-							type={showConfirmPassword ? "text" : "password"}
-							autoComplete="new-password"
-							{...passwordForm.register("confirmPassword")}
-							error={!!passwordForm.formState.errors.confirmPassword}
-							helperText={passwordForm.formState.errors.confirmPassword?.message}
-							InputProps={{
-								endAdornment: (
-									<InputAdornment position="end">
-										<IconButton
-											onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-											edge="end"
-										>
-											{showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-										</IconButton>
-									</InputAdornment>
-								),
-							}}
-						/>
-
-						<Box sx={{ mt: 2, mb: 3 }}>
-							<Typography
-								variant="caption"
-								color="textSecondary"
-								display="block"
-								gutterBottom
-							>
-								Password requirements:
-							</Typography>
+ 						<Box sx={{ mt: 2, mb: 3 }}>
+ 							<Typography
+ 								variant="caption"
+ 								color="textSecondary"
+ 								display="block"
+ 								gutterBottom
+ 							>
+ 								{t("auth.passwordRequirements")}:
+ 							</Typography>
 							<Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-								<Chip
-									size="small"
-									label="Min 8 characters"
-									sx={{ fontSize: "0.7rem" }}
-									color={passwordValue.length >= 8 ? "success" : "default"}
-								/>
-								<Chip
-									size="small"
-									label="Uppercase"
-									sx={{ fontSize: "0.7rem" }}
-									color={/[A-Z]/.test(passwordValue) ? "success" : "default"}
-								/>
-								<Chip
-									size="small"
-									label="Lowercase"
-									sx={{ fontSize: "0.7rem" }}
-									color={/[a-z]/.test(passwordValue) ? "success" : "default"}
-								/>
-								<Chip
-									size="small"
-									label="Number"
-									sx={{ fontSize: "0.7rem" }}
-									color={/[0-9]/.test(passwordValue) ? "success" : "default"}
-								/>
-							</Box>
-						</Box>
+<Chip
+ 									size="small"
+ 									label={t("auth.min8Chars")}
+ 									sx={{ fontSize: "0.7rem" }}
+ 									color={passwordValue.length >= 8 ? "success" : "default"}
+ 								/>
+ 								<Chip
+ 									size="small"
+ 									label={t("auth.uppercase")}
+ 									sx={{ fontSize: "0.7rem" }}
+ 									color={/[A-Z]/.test(passwordValue) ? "success" : "default"}
+ 								/>
+ 								<Chip
+ 									size="small"
+ 									label={t("auth.lowercase")}
+ 									sx={{ fontSize: "0.7rem" }}
+ 									color={/[a-z]/.test(passwordValue) ? "success" : "default"}
+ 								/>
+ 								<Chip
+ 									size="small"
+ 									label={t("auth.number")}
+ 									sx={{ fontSize: "0.7rem" }}
+ 									color={/[0-9]/.test(passwordValue) ? "success" : "default"}
+ 								/>
+ 							</Box>
+ 						</Box>
 
-						<Button
-							type="submit"
-							fullWidth
-							variant="contained"
-							sx={{ mt: 1, mb: 2, borderRadius: 2, backgroundColor: "#e65100" }}
-							disabled={loading}
-						>
-							{loading ? <CircularProgress size={24} /> : "Create Account"}
-						</Button>
+ 						<Button
+ 							type="submit"
+ 							fullWidth
+ 							variant="contained"
+ 							sx={{ mt: 1, mb: 2, borderRadius: 2, backgroundColor: "#e65100" }}
+ 							disabled={loading}
+ 						>
+ 							{loading ? <CircularProgress size={24} /> : t("auth.createAccount")}
+ 						</Button>
 
-						<Box sx={{ textAlign: "center" }}>
-							<Link component={RouterLink} to="/login" variant="body2">
-								Already have an account? Sign In
-							</Link>
-						</Box>
-					</Paper>
-				) : (
-					<Paper
-						component="form"
-						onSubmit={telegramForm.handleSubmit(onSubmitTelegram)}
-						sx={{ p: 3, width: "100%", borderRadius: 3 }}
-					>
-						{error && (
-							<Alert severity="error" sx={{ mb: 2 }}>
-								{error}
-							</Alert>
-						)}
+ 						<Box sx={{ textAlign: "center" }}>
+ 							<Link component={RouterLink} to="/login" variant="body2">
+ 								{t("auth.alreadyHaveAccount")}
+ 							</Link>
+ 						</Box>
+ 					</Paper>
+ 				) : (
+ 					<Paper
+ 						component="form"
+ 						onSubmit={telegramForm.handleSubmit(onSubmitTelegram)}
+ 						sx={{ p: 3, width: "100%", borderRadius: 3 }}
+ 					>
+ 						{error && (
+ 							<Alert severity="error" sx={{ mb: 2 }}>
+ 								{error}
+ 							</Alert>
+ 						)}
 
-						<Alert severity="info" sx={{ mb: 2 }}>
-							Verify via Telegram bot to create your account.
-						</Alert>
+ 						<Alert severity="info" sx={{ mb: 2 }}>
+ 							{t("auth.verifyViaTelegram")}
+ 						</Alert>
 
-						<TextField
-							margin="normal"
-							fullWidth
-							id="referrer_id"
-							label="Referrer ID (optional)"
-							autoComplete="off"
-							autoFocus
-							{...telegramForm.register("referrer_id")}
-							error={!!telegramForm.formState.errors.referrer_id}
-							helperText={telegramForm.formState.errors.referrer_id?.message || "Enter referrer ID if you were referred by someone"}
-						/>
+ 						<TextField
+ 							margin="normal"
+ 							fullWidth
+ 							id="referrer_id"
+ 							label={t("auth.referrerIdOptional")}
+ 							autoComplete="off"
+ 							autoFocus
+ 							{...telegramForm.register("referrer_id")}
+ 							error={!!telegramForm.formState.errors.referrer_id}
+ 							helperText={telegramForm.formState.errors.referrer_id?.message || t("auth.enterReferrerId")}
+ 						/>
 
-						<Button
-							type="submit"
-							fullWidth
-							variant="contained"
-							sx={{ mt: 3, mb: 2, borderRadius: 2, backgroundColor: "#0088cc" }}
-							disabled={loading}
-							startIcon={<TelegramIcon />}
-						>
-							{loading ? <CircularProgress size={24} /> : "Continue with Telegram"}
-						</Button>
+ 						<Button
+ 							type="submit"
+ 							fullWidth
+ 							variant="contained"
+ 							sx={{ mt: 3, mb: 2, borderRadius: 2, backgroundColor: "#0088cc" }}
+ 							disabled={loading}
+ 							startIcon={<TelegramIcon />}
+ 						>
+ 							{loading ? <CircularProgress size={24} /> : t("auth.continueWithTelegram")}
+ 						</Button>
 
-						<Box sx={{ textAlign: "center" }}>
-							<Link component={RouterLink} to="/login" variant="body2">
-								Already have an account? Sign In
-							</Link>
-						</Box>
-					</Paper>
-				)}
-			</Box>
-		</Container>
-	);
-};
+ 						<Box sx={{ textAlign: "center" }}>
+ 							<Link component={RouterLink} to="/login" variant="body2">
+ 								{t("auth.alreadyHaveAccount")}
+ 							</Link>
+ 						</Box>
+ 					</Paper>
+ 				)}
+ 			</Box>
+ 		</Container>
+ 	);
+ };
 
-export default Register;
+ export default Register;

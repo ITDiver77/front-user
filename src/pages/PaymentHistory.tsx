@@ -16,6 +16,7 @@ import {
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EmptyState } from "../components/common/EmptyState";
+import { useLanguage } from "../i18n/LanguageContext";
 import MakePaymentModal from "../components/forms/MakePaymentModal";
 import { paymentService } from "../services/paymentService";
 import {
@@ -44,18 +45,8 @@ const getStatusColor = (status: PaymentStatus) => {
 	}
 };
 
-const getStatusLabel = (status: PaymentStatus) => {
-	switch (status) {
-		case "COMPLETED":
-			return "Completed";
-		case "PENDING":
-			return "Pending";
-		case "FAILED":
-			return "Failed";
-	}
-};
-
 const PaymentHistory = () => {
+	const { t } = useLanguage();
 	const [payments, setPayments] = useState<Payment[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string>("");
@@ -66,6 +57,17 @@ const PaymentHistory = () => {
 	});
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
 
+	const getStatusLabel = (status: PaymentStatus) => {
+		switch (status) {
+			case "COMPLETED":
+				return t("paymentHistory.completed");
+			case "PENDING":
+				return t("paymentHistory.pending");
+			case "FAILED":
+				return t("paymentHistory.failed");
+		}
+	};
+
 	const fetchPayments = useCallback(async () => {
 		setLoading(true);
 		setError("");
@@ -73,11 +75,11 @@ const PaymentHistory = () => {
 			const response = await paymentService.getMyPayments();
 			setPayments(response.payments);
 		} catch (err: any) {
-			setError(err.message || "Failed to fetch payments");
+			setError(err.message || t("paymentHistory.fetchFailed"));
 		} finally {
 			setLoading(false);
 		}
-	}, []);
+	}, [t]);
 
 	useEffect(() => {
 		fetchPayments();
@@ -182,7 +184,7 @@ const PaymentHistory = () => {
 					}}
 				>
 					<Typography variant="h4" fontWeight={600}>
-						Payment History
+						{t("paymentHistory.title")}
 					</Typography>
 					<Button
 						variant="contained"
@@ -194,7 +196,7 @@ const PaymentHistory = () => {
 							px: { xs: 2, sm: 3 },
 						}}
 					>
-						Make a Payment
+						{t("paymentHistory.makePayment")}
 					</Button>
 				</Box>
 
@@ -225,7 +227,7 @@ const PaymentHistory = () => {
 								color="text.secondary"
 								sx={{ mb: 2 }}
 							>
-								Filter Payments
+								{t("paymentHistory.filterPayments")}
 							</Typography>
 							<Box
 								sx={{
@@ -237,7 +239,7 @@ const PaymentHistory = () => {
 							>
 								<TextField
 									type="date"
-									label="Start Date"
+									label={t("paymentHistory.startDate")}
 									value={dateRange.startDate}
 									onChange={(e) =>
 										handleDateChange("startDate", e.target.value)
@@ -248,7 +250,7 @@ const PaymentHistory = () => {
 								/>
 								<TextField
 									type="date"
-									label="End Date"
+									label={t("paymentHistory.endDate")}
 									value={dateRange.endDate}
 									onChange={(e) => handleDateChange("endDate", e.target.value)}
 									size="small"
@@ -256,18 +258,18 @@ const PaymentHistory = () => {
 									InputLabelProps={{ shrink: true }}
 								/>
 								<FormControl size="small" sx={{ minWidth: 150 }}>
-									<InputLabel>Status</InputLabel>
+									<InputLabel>{t("paymentHistory.status")}</InputLabel>
 									<Select
 										value={statusFilter}
-										label="Status"
+										label={t("paymentHistory.status")}
 										onChange={(e) =>
 											setStatusFilter(e.target.value as StatusFilter)
 										}
 									>
-										<MenuItem value="ALL">All</MenuItem>
-										<MenuItem value="COMPLETED">Completed</MenuItem>
-										<MenuItem value="PENDING">Pending</MenuItem>
-										<MenuItem value="FAILED">Failed</MenuItem>
+										<MenuItem value="ALL">{t("paymentHistory.all")}</MenuItem>
+										<MenuItem value="COMPLETED">{t("paymentHistory.completed")}</MenuItem>
+										<MenuItem value="PENDING">{t("paymentHistory.pending")}</MenuItem>
+										<MenuItem value="FAILED">{t("paymentHistory.failed")}</MenuItem>
 									</Select>
 								</FormControl>
 								{hasActiveFilters && (
@@ -277,7 +279,7 @@ const PaymentHistory = () => {
 										size="small"
 										onClick={handleClearFilters}
 									>
-										Clear Filters
+										{t("paymentHistory.clearFilters")}
 									</Button>
 								)}
 							</Box>
@@ -304,10 +306,10 @@ const PaymentHistory = () => {
 								}}
 							>
 								<Typography variant="body2" color="text.secondary">
-									Total Paid (Filtered)
+									{t("paymentHistory.totalPaidFiltered")}
 								</Typography>
 								<Typography variant="h5" fontWeight={600}>
-									${summaryStats.totalAmount.toFixed(2)}
+									{summaryStats.totalAmount.toFixed(2)} ₽
 								</Typography>
 							</Paper>
 							<Paper
@@ -322,7 +324,7 @@ const PaymentHistory = () => {
 								}}
 							>
 								<Typography variant="body2" color="text.secondary">
-									Total Payments
+									{t("paymentHistory.totalPayments")}
 								</Typography>
 								<Typography variant="h5" fontWeight={600}>
 									{summaryStats.totalPayments}
@@ -340,7 +342,7 @@ const PaymentHistory = () => {
 								}}
 							>
 								<Typography variant="body2" color="text.secondary">
-									Pending
+									{t("paymentHistory.pending")}
 								</Typography>
 								<Typography variant="h5" fontWeight={600} color="warning.main">
 									{summaryStats.pendingCount}
@@ -358,7 +360,7 @@ const PaymentHistory = () => {
 								}}
 							>
 								<Typography variant="body2" color="text.secondary">
-									Failed
+									{t("paymentHistory.failed")}
 								</Typography>
 								<Typography variant="h5" fontWeight={600} color="error.main">
 									{summaryStats.failedCount}
@@ -380,24 +382,24 @@ const PaymentHistory = () => {
 						<EmptyState
 							icon={<PaymentHistoryIcon />}
 							title={
-								hasActiveFilters ? "No matching payments" : "No payment history"
+								hasActiveFilters ? t("paymentHistory.noMatchingPayments") : t("paymentHistory.noPayments")
 							}
 							description={
 								hasActiveFilters
-									? "Try adjusting your filters to find payments"
-									: "Make a payment to see your payment history here"
+									? t("paymentHistory.adjustFilters")
+									: t("paymentHistory.noPaymentsDesc")
 							}
 							action={
 								hasActiveFilters ? (
 									<Button variant="outlined" onClick={handleClearFilters}>
-										Clear Filters
+										{t("paymentHistory.clearFilters")}
 									</Button>
 								) : (
 									<Button
 										variant="contained"
 										onClick={() => setModalOpen(true)}
 									>
-										Make a Payment
+										{t("paymentHistory.makePayment")}
 									</Button>
 								)
 							}
@@ -427,7 +429,7 @@ const PaymentHistory = () => {
 											}}
 										>
 											<Typography variant="subtitle2" color="text.secondary">
-												Date
+												{t("paymentHistory.date")}
 											</Typography>
 										</th>
 										<th
@@ -440,7 +442,7 @@ const PaymentHistory = () => {
 											}}
 										>
 											<Typography variant="subtitle2" color="text.secondary">
-												Amount
+												{t("paymentHistory.amount")}
 											</Typography>
 										</th>
 										<th
@@ -453,7 +455,7 @@ const PaymentHistory = () => {
 											}}
 										>
 											<Typography variant="subtitle2" color="text.secondary">
-												Period
+												{t("paymentHistory.period")}
 											</Typography>
 										</th>
 										<th
@@ -466,7 +468,7 @@ const PaymentHistory = () => {
 											}}
 										>
 											<Typography variant="subtitle2" color="text.secondary">
-												Description
+												{t("paymentHistory.description")}
 											</Typography>
 										</th>
 										<th
@@ -479,7 +481,7 @@ const PaymentHistory = () => {
 											}}
 										>
 											<Typography variant="subtitle2" color="text.secondary">
-												Status
+												{t("paymentHistory.status")}
 											</Typography>
 										</th>
 									</tr>
@@ -506,7 +508,7 @@ const PaymentHistory = () => {
 												}}
 											>
 												<Typography variant="body2" fontWeight={600}>
-													${payment.amount.toFixed(2)}
+													{payment.amount.toFixed(2)} ₽
 												</Typography>
 											</td>
 											<td
@@ -517,7 +519,7 @@ const PaymentHistory = () => {
 												}}
 											>
 												<Typography variant="body2">
-													{payment.period_days} days
+													{payment.period_days} {t("paymentHistory.days")}
 												</Typography>
 											</td>
 											<td

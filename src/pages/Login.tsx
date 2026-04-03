@@ -16,15 +16,17 @@ import { useForm } from "react-hook-form";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import type { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../i18n";
 import { loginSchema } from "../utils/validation";
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const Login = () => {
-	const { login } = useAuth();
-	const navigate = useNavigate();
-	const [error, setError] = useState<string>("");
-	const [loading, setLoading] = useState(false);
+ 	const { login } = useAuth();
+ 	const navigate = useNavigate();
+ 	const { t } = useLanguage();
+ 	const [error, setError] = useState<string>("");
+ 	const [loading, setLoading] = useState(false);
 
 	const {
 		register,
@@ -48,13 +50,13 @@ const Login = () => {
 				data.password,
 				data.rememberMe,
 			);
-			if (success) {
-				navigate("/");
-			} else {
-				setError("Invalid username or password");
-			}
-		} catch (err) {
-			setError("An unexpected error occurred");
+if (success) {
+ 				navigate("/");
+ 			} else {
+ 				setError(t("auth.invalidCredentials"));
+ 			}
+ 		} catch (err) {
+ 			setError(t("auth.unexpectedError"));
 			console.error(err);
 		} finally {
 			setLoading(false);
@@ -71,32 +73,32 @@ const Login = () => {
 					alignItems: "center",
 				}}
 			>
-				<Typography component="h1" variant="h5">
-					Sign in
-				</Typography>
+<Typography component="h1" variant="h5">
+ 					{t("auth.signIn")}
+ 				</Typography>
 				<Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 1 }}>
 					{error && (
 						<Alert severity="error" sx={{ mb: 2 }}>
 							{error}
 						</Alert>
 					)}
-					<TextField
-						margin="normal"
-						required
-						fullWidth
-						id="username"
-						label="Username"
-						autoComplete="username"
-						autoFocus
-						{...register("username")}
-						error={!!errors.username}
-						helperText={errors.username?.message}
-					/>
-					<TextField
-						margin="normal"
-						required
-						fullWidth
-						label="Password"
+<TextField
+ 						margin="normal"
+ 						required
+ 						fullWidth
+ 						id="username"
+ 						label={t("auth.username")}
+ 						autoComplete="username"
+ 						autoFocus
+ 						{...register("username")}
+ 						error={!!errors.username}
+ 						helperText={errors.username?.message}
+ 					/>
+ 					<TextField
+ 						margin="normal"
+ 						required
+ 						fullWidth
+ 						label={t("auth.password")}
 						type="password"
 						id="password"
 						autoComplete="current-password"
@@ -104,27 +106,27 @@ const Login = () => {
 						error={!!errors.password}
 						helperText={errors.password?.message}
 					/>
-					<FormControlLabel
-						control={<Checkbox color="primary" {...register("rememberMe")} />}
-						label="Remember me"
-					/>
-					<Button
-						type="submit"
-						fullWidth
-						variant="contained"
-						sx={{ mt: 3, mb: 2 }}
-						disabled={loading}
-					>
-						{loading ? <CircularProgress size={24} /> : "Sign In"}
-					</Button>
-					<Box sx={{ display: "flex", justifyContent: "space-between" }}>
-						<Link component={RouterLink} to="/register" variant="body2">
-							Don't have an account? Sign Up
-						</Link>
-						<Link component={RouterLink} to="/forgot-password" variant="body2">
-							Forgot password?
-						</Link>
-					</Box>
+<FormControlLabel
+ 						control={<Checkbox color="primary" {...register("rememberMe")} />}
+ 						label={t("auth.rememberMe")}
+ 					/>
+ 					<Button
+ 						type="submit"
+ 						fullWidth
+ 						variant="contained"
+ 						sx={{ mt: 3, mb: 2 }}
+ 						disabled={loading}
+ 					>
+ 						{loading ? <CircularProgress size={24} /> : t("auth.signIn")}
+ 					</Button>
+ 					<Box sx={{ display: "flex", justifyContent: "space-between" }}>
+ 						<Link component={RouterLink} to="/register" variant="body2">
+ 							{t("auth.dontHaveAccount")}
+ 						</Link>
+ 						<Link component={RouterLink} to="/forgot-password" variant="body2">
+ 							{t("auth.forgotPassword")}
+ 						</Link>
+ 					</Box>
 				</Box>
 			</Box>
 		</Container>
