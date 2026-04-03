@@ -64,30 +64,24 @@ const TelegramBubble = ({
 	const getBubbleStyles = () => {
 		if (isUser) {
 			return {
-				backgroundColor:
-					theme.palette.mode === "dark"
-						? theme.palette.primary.main
-						: theme.palette.primary.main,
+				backgroundColor: theme.palette.primary.main,
 				color: "#fff",
 			};
 		}
 		if (isFromSupport) {
 			return {
-				backgroundColor:
-					theme.palette.mode === "dark"
-						? theme.palette.success.dark
-						: theme.palette.success.main,
+				backgroundColor: theme.palette.success.main,
 				color: "#fff",
 			};
 		}
 		return {
 			backgroundColor:
 				theme.palette.mode === "dark"
-					? theme.palette.grey[700]
-					: theme.palette.grey[300],
+					? theme.palette.grey[800]
+					: theme.palette.grey[100],
 			color:
 				theme.palette.mode === "dark"
-					? theme.palette.text.primary
+					? "#fff"
 					: theme.palette.text.primary,
 		};
 	};
@@ -189,12 +183,8 @@ const CardBubble = ({ message }: { message: SupportMessage }) => {
 						py: 1.5,
 						borderRadius: 2,
 						backgroundColor: isFromSupport
-							? theme.palette.mode === "dark"
-								? theme.palette.success.dark
-								: theme.palette.success.light
-							: theme.palette.mode === "dark"
-								? theme.palette.primary.dark
-								: theme.palette.primary.light,
+							? theme.palette.success.main
+							: theme.palette.primary.main,
 						border: "1px solid",
 						borderColor: isFromSupport ? "success.main" : "primary.main",
 						color: "#fff",
