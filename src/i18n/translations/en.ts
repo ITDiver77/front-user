@@ -199,6 +199,11 @@ export const en = {
     firstConnectionPricing: 'First connection: 150₽ for slot, each additional +100₽',
     additionalConnectionPricing: 'Additional connection: 100₽ for slot, each additional +100₽',
     confirmDeleteTitle: 'Delete connection?',
+    enabled: 'Enabled',
+    yes: 'Yes',
+    no: 'No',
+    connectionString: 'Connection string',
+    createdAt: 'Created at',
   },
   paymentHistory: {
     title: 'Payment History',
