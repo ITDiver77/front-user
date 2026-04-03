@@ -50,6 +50,16 @@ import type {
 // Chat UI Variant type
 type ChatVariant = "telegram" | "cards";
 
+// Get contrasting text color based on background
+const getContrastText = (backgroundColor: string): string => {
+	const hex = backgroundColor.replace("#", "");
+	const r = parseInt(hex.substr(0, 2), 16);
+	const g = parseInt(hex.substr(2, 2), 16);
+	const b = parseInt(hex.substr(4, 2), 16);
+	const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+	return luminance > 0.5 ? "#000000" : "#ffffff";
+};
+
 // Component for message bubble - Variant A (Telegram-like)
 const TelegramBubble = ({
 	message,
@@ -63,26 +73,28 @@ const TelegramBubble = ({
 
 	const getBubbleStyles = () => {
 		if (isUser) {
+			const bg =
+				theme.palette.primary.dark || theme.palette.primary.main;
 			return {
-				backgroundColor: theme.palette.primary.main,
-				color: "#fff",
+				backgroundColor: bg,
+				color: getContrastText(bg),
 			};
 		}
 		if (isFromSupport) {
+			const bg =
+				theme.palette.success.dark || theme.palette.success.main;
 			return {
-				backgroundColor: theme.palette.success.main,
-				color: "#fff",
+				backgroundColor: bg,
+				color: getContrastText(bg),
 			};
 		}
+		const bg =
+			theme.palette.mode === "dark"
+				? theme.palette.grey[800]
+				: theme.palette.grey[200];
 		return {
-			backgroundColor:
-				theme.palette.mode === "dark"
-					? theme.palette.grey[800]
-					: theme.palette.grey[100],
-			color:
-				theme.palette.mode === "dark"
-					? "#fff"
-					: theme.palette.text.primary,
+			backgroundColor: bg,
+			color: getContrastText(bg),
 		};
 	};
 
@@ -183,11 +195,15 @@ const CardBubble = ({ message }: { message: SupportMessage }) => {
 						py: 1.5,
 						borderRadius: 2,
 						backgroundColor: isFromSupport
-							? theme.palette.success.main
-							: theme.palette.primary.main,
+							? theme.palette.success.dark || theme.palette.success.main
+							: theme.palette.primary.dark || theme.palette.primary.main,
 						border: "1px solid",
 						borderColor: isFromSupport ? "success.main" : "primary.main",
-						color: "#fff",
+						color: getContrastText(
+							isFromSupport
+								? (theme.palette.success.dark || theme.palette.success.main)
+								: (theme.palette.primary.dark || theme.palette.primary.main),
+						),
 						maxWidth: "85%",
 					}}
 				>
