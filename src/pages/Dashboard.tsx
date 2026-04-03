@@ -261,7 +261,7 @@ const Dashboard = () => {
 					sx={{ mb: 2 }}
 					onClose={() => setShowNoPaidWarning(false)}
 				>
-					{t("dashboard.noPaidWarning")}
+					{t("dashboard.noPaidForNewConnection")}
 				</Alert>
 			)}
 			{filteredConnections.length === 0 ? (

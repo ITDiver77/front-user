@@ -104,6 +104,7 @@ export const en = {
     disableAutoRefresh: 'Disable auto-refresh',
     enableAutoRefresh: 'Enable auto-refresh',
     noPaidWarning: 'To use "Promised Payment" you must first make a payment. Please pay for an existing connection or wait until it becomes active.',
+    noPaidForNewConnection: 'To create a new connection, you must first have an active paid connection. Please pay for an existing connection or wait until it becomes active.',
     extendPay: 'Extend / Pay',
     deleteConnection: 'Delete connection',
     confirmDelete: 'Confirm deletion',
