@@ -33,6 +33,7 @@ export interface PaymentInitiationRequest {
 	months: number;
 	payment_method?: string;
 	grace_period?: boolean;
+	max_connections?: number;
 }
 
 export interface PaymentInitiationResponse {

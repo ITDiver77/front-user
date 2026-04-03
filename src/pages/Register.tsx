@@ -232,9 +232,10 @@ const Register = () => {
 		if (emailVerificationResult?.success) {
 			if (emailVerificationResult.access_token) {
 				localStorage.setItem("token", emailVerificationResult.access_token);
-				setAuthFromToken(emailVerificationResult.access_token);
-				clearSession();
-				navigate("/");
+				setAuthFromToken(emailVerificationResult.access_token).then(() => {
+					clearSession();
+					navigate("/");
+				});
 			} else if (emailVerificationResult.temp_password) {
 				setTempCredentials({
 					username: emailVerificationResult.username,

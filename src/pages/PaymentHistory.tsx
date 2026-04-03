@@ -17,13 +17,15 @@ import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EmptyState } from "../components/common/EmptyState";
 import { useLanguage } from "../i18n/LanguageContext";
-import MakePaymentModal from "../components/forms/MakePaymentModal";
+import PaymentInitiationModal from "../components/forms/PaymentInitiationModal";
+import { connectionService } from "../services/connectionService";
 import { paymentService } from "../services/paymentService";
 import {
 	pageVariants,
 	staggerContainer,
 	staggerItem,
 } from "../styles/animations";
+import type { Connection } from "../types/connection";
 import type { Payment, PaymentStatus } from "../types/payment";
 import { formatDate } from "../utils/dateHelpers";
 
@@ -48,6 +50,7 @@ const getStatusColor = (status: PaymentStatus) => {
 const PaymentHistory = () => {
 	const { t } = useLanguage();
 	const [payments, setPayments] = useState<Payment[]>([]);
+	const [connections, setConnections] = useState<Connection[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string>("");
 	const [modalOpen, setModalOpen] = useState(false);
@@ -85,20 +88,23 @@ const PaymentHistory = () => {
 		fetchPayments();
 	}, [fetchPayments]);
 
-	const handleProceedToPayment = async (months: number, _amount: number) => {
+	const fetchConnections = useCallback(async () => {
 		try {
-			const response = await paymentService.initiatePayment({
-				months,
-			});
-			if (response.redirect_url) {
-				window.location.href = response.redirect_url;
-			}
-			setModalOpen(false);
+			const conns = await connectionService.getMyConnections();
+			setConnections(conns);
 		} catch (err) {
-			const message =
-				err instanceof Error ? err.message : "Failed to initiate payment";
-			alert(message);
+			console.error("Failed to fetch connections", err);
 		}
+	}, []);
+
+	const handleOpenModal = () => {
+		fetchConnections();
+		setModalOpen(true);
+	};
+
+	const handleProceedToPayment = async (_paymentId: number) => {
+		fetchPayments();
+		setModalOpen(false);
 	};
 
 	const filteredPayments = useMemo(() => {
@@ -189,7 +195,7 @@ const PaymentHistory = () => {
 					<Button
 						variant="contained"
 						color="primary"
-						onClick={() => setModalOpen(true)}
+						onClick={handleOpenModal}
 						sx={{
 							whiteSpace: "nowrap",
 							minWidth: "auto",
@@ -397,7 +403,7 @@ const PaymentHistory = () => {
 								) : (
 									<Button
 										variant="contained"
-										onClick={() => setModalOpen(true)}
+										onClick={handleOpenModal}
 									>
 										{t("paymentHistory.makePayment")}
 									</Button>
@@ -556,10 +562,14 @@ const PaymentHistory = () => {
 				)}
 			</Box>
 
-			<MakePaymentModal
+			<PaymentInitiationModal
 				open={modalOpen}
 				onClose={() => setModalOpen(false)}
-				onProceed={handleProceedToPayment}
+				connectionName={connections[0]?.connection_name || ""}
+				currentPrice={connections[0]?.price || 0}
+				connections={connections}
+				onSuccess={handleProceedToPayment}
+				isFromPayments={true}
 			/>
 		</motion.div>
 	);

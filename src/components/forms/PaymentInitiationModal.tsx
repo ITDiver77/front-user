@@ -3,6 +3,7 @@ import {
 	Alert,
 	Box,
 	Button,
+	Checkbox,
 	CircularProgress,
 	Dialog,
 	DialogActions,
@@ -17,16 +18,16 @@ import {
 	RadioGroup,
 	Select,
 	Slider,
+	Tooltip,
 	Typography,
-	Checkbox,
 } from "@mui/material";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { paymentService } from "../../services/paymentService";
-import { paymentInitiationSchema } from "../../utils/validation";
 import type { Connection } from "../../types/connection";
+import { paymentInitiationSchema } from "../../utils/validation";
 
 interface PaymentInitiationModalProps {
 	open: boolean;
@@ -35,6 +36,7 @@ interface PaymentInitiationModalProps {
 	currentPrice: number;
 	connections: Connection[];
 	onSuccess: (paymentId: number) => void;
+	isFromPayments?: boolean;
 }
 
 type PaymentInitiationFormData = z.infer<typeof paymentInitiationSchema>;
@@ -57,6 +59,21 @@ const getDiscountLabel = (discount: number): string => {
 	return "";
 };
 
+const calculateConnectionPrice = (
+	maxConnections: number,
+	isFirstConnection: boolean,
+): number => {
+	if (isFirstConnection) {
+		// First: 150 + (n-1)*100 for n<5, else 450
+		if (maxConnections >= 5) return 450;
+		return 150 + (maxConnections - 1) * 100;
+	} else {
+		// Not first: n*100 for n<5, else 400
+		if (maxConnections >= 5) return 400;
+		return maxConnections * 100;
+	}
+};
+
 const PaymentInitiationModal = ({
 	open,
 	onClose,
@@ -64,6 +81,7 @@ const PaymentInitiationModal = ({
 	currentPrice,
 	connections,
 	onSuccess,
+	isFromPayments = false,
 }: PaymentInitiationModalProps) => {
 	const { t } = useLanguage();
 	const [loading, setLoading] = useState(false);
@@ -88,9 +106,29 @@ const PaymentInitiationModal = ({
 	const months = watch("months");
 	const paymentMethod = watch("paymentMethod");
 
-	const activeConnections = connections.filter((c) => !c.is_deleted && c.auto_renew);
-	const totalPriceAll = activeConnections.reduce((sum, c) => sum + c.price, 0);
-	const basePrice = payForAll ? totalPriceAll : currentPrice;
+	const activeConnections = connections.filter(
+		(c) => !c.is_deleted && c.auto_renew,
+	);
+	// Sort by index to determine first connection
+	const sortedActive = [...activeConnections].sort((a, b) => a.index - b.index);
+	const firstConnectionName = sortedActive[0]?.connection_name;
+
+	const totalPriceAll = activeConnections.reduce((sum, c) => {
+		const isFirst = c.connection_name === firstConnectionName;
+		const mc = c.max_connections || 1;
+		return sum + calculateConnectionPrice(mc, isFirst);
+	}, 0);
+
+	// Find the connection being paid for (when not payForAll)
+	const currentConnection = connections.find(
+		(c) => c.connection_name === connectionName,
+	);
+	const basePrice = payForAll
+		? totalPriceAll
+		: calculateConnectionPrice(
+				currentConnection?.max_connections || 1,
+				currentConnection?.connection_name === firstConnectionName,
+			);
 	const discount = getDiscount(months);
 	const totalAmount = basePrice * months * (1 - discount);
 
@@ -159,19 +197,40 @@ const PaymentInitiationModal = ({
 						{error}
 					</Alert>
 				)}
-				<FormControlLabel
-					control={
-						<Checkbox
-							checked={payForAll}
-							onChange={(e) => setPayForAll(e.target.checked)}
-						/>
+				<Tooltip
+					title={
+						<Box sx={{ whiteSpace: "pre-line" }}>
+							{activeConnections.map((c) => c.connection_name).join("\n")}
+						</Box>
 					}
-					label={t("modals.payForAllConnectionsLabel")}
-					sx={{ mb: 1 }}
-				/>
-				<Typography variant="body2" sx={{ mb: 2 }}>
-					{paymentDescription}
-				</Typography>
+					placement="right"
+				>
+					<span>
+						<FormControlLabel
+							control={
+								<Checkbox
+									checked={payForAll}
+									onChange={(e) => setPayForAll(e.target.checked)}
+									disabled={isFromPayments}
+								/>
+							}
+							label={t("modals.payForAllConnectionsLabel")}
+							sx={{ mb: 1, cursor: "pointer" }}
+						/>
+					</span>
+				</Tooltip>
+				<Tooltip
+					title={
+						<Box sx={{ whiteSpace: "pre-line" }}>
+							{activeConnections.map((c) => c.connection_name).join("\n")}
+						</Box>
+					}
+					placement="right"
+				>
+					<Typography variant="body2" sx={{ mb: 2, cursor: "pointer" }}>
+						{paymentDescription}
+					</Typography>
+				</Tooltip>
 				<form id="payment-initiation-form" onSubmit={handleSubmit(onSubmit)}>
 					<Typography variant="subtitle2" sx={{ mb: 1 }}>
 						{t("modals.selectDuration")}
@@ -185,17 +244,23 @@ const PaymentInitiationModal = ({
 							step={1}
 							marks={marks}
 							valueLabelDisplay="on"
-							valueLabelFormat={(v) => `${v} ${v === 1 ? t("modals.month") : t("modals.months")}`}
+							valueLabelFormat={(v) =>
+								`${v} ${v === 1 ? t("modals.month") : t("modals.months")}`
+							}
 							sx={{ mb: 3 }}
 						/>
 					</Box>
 					{discount > 0 && (
 						<Alert severity="success" sx={{ mb: 2 }}>
-							{t("modals.discountApplied", { percent: getDiscountLabel(discount) })}
+							{t("modals.discountApplied", {
+								percent: getDiscountLabel(discount),
+							})}
 						</Alert>
 					)}
 					<FormControl fullWidth margin="normal">
-						<InputLabel id="payment-method-label">{t("modals.paymentMethod")}</InputLabel>
+						<InputLabel id="payment-method-label">
+							{t("modals.paymentMethod")}
+						</InputLabel>
 						<Select
 							labelId="payment-method-label"
 							label={t("modals.paymentMethod")}
@@ -210,7 +275,13 @@ const PaymentInitiationModal = ({
 						</Select>
 					</FormControl>
 					<Box
-						sx={{ mt: 2, p: 2, backgroundColor: "primary.main", borderRadius: 2, color: "primary.contrastText" }}
+						sx={{
+							mt: 2,
+							p: 2,
+							backgroundColor: "primary.main",
+							borderRadius: 2,
+							color: "primary.contrastText",
+						}}
 					>
 						<Typography variant="body2" sx={{ opacity: 0.9 }}>
 							{t("modals.totalAmount")}:
@@ -222,15 +293,31 @@ const PaymentInitiationModal = ({
 						<Typography variant="body2" sx={{ opacity: 0.9 }}>
 							{payForAll ? (
 								<>
-									{months} {months !== 1 ? t("modals.months") : t("modals.month")} × {basePrice} ₽/{t("modals.month")} ({activeConnections.length} {t("modals.connections")})
+									{activeConnections.map((c) => {
+										const isFirst = c.connection_name === firstConnectionName;
+										const mc = c.max_connections || 1;
+										const price = calculateConnectionPrice(mc, isFirst);
+										return (
+											<Box key={c.connection_name} component="span">
+												{c.connection_name}: {months} × {price}₽ ={" "}
+												{price * months}₽ (max={mc})
+											</Box>
+										);
+									})}
 								</>
 							) : (
 								<>
-									{months} {months !== 1 ? t("modals.months") : t("modals.month")} × {basePrice} ₽/{t("modals.month")}
+									{months}{" "}
+									{months !== 1 ? t("modals.months") : t("modals.month")} ×{" "}
+									{basePrice} ₽/{t("modals.month")} (max=
+									{currentConnection?.max_connections || 1})
 								</>
 							)}
 							{discount > 0 && (
-								<Box component="span" sx={{ ml: 1, fontWeight: "bold", color: "success.main" }}>
+								<Box
+									component="span"
+									sx={{ ml: 1, fontWeight: "bold", color: "success.main" }}
+								>
 									({getDiscountLabel(discount)})
 								</Box>
 							)}

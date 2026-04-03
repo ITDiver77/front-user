@@ -6,33 +6,47 @@ import {
 	CircularProgress,
 	Container,
 	Link,
-	Step,
-	StepLabel,
-	Stepper,
 	TextField,
 	Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { CheckCircle } from "@mui/icons-material";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import type { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../i18n/LanguageContext";
-import { forgotPasswordSchema, resetPasswordSchema } from "../utils/validation";
+import { forgotPasswordSchema } from "../utils/validation";
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
-type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+const newPasswordSchema = z
+	.object({
+		newPassword: z
+			.string()
+			.min(6, "Password must be at least 6 characters")
+			.max(72, "Password cannot exceed 72 characters"),
+		confirmPassword: z
+			.string()
+			.min(1, "Please confirm your password")
+			.max(72, "Password cannot exceed 72 characters"),
+	})
+	.refine((data) => data.newPassword === data.confirmPassword, {
+		message: "Passwords do not match",
+		path: ["confirmPassword"],
+	});
+
+type NewPasswordFormData = z.infer<typeof newPasswordSchema>;
 
 const ForgotPassword = () => {
 	const { t } = useLanguage();
 	const { forgotPassword, resetPassword } = useAuth();
-	const navigate = useNavigate();
-	const [activeStep, setActiveStep] = useState(0);
-	const [username, setUsername] = useState("");
+	const [searchParams] = useSearchParams();
+	const token = searchParams.get("token");
 	const [error, setError] = useState<string>("");
 	const [success, setSuccess] = useState<string>("");
 	const [loading, setLoading] = useState(false);
+	const [isComplete, setIsComplete] = useState(false);
 
 	const {
 		register: registerForgot,
@@ -44,12 +58,12 @@ const ForgotPassword = () => {
 	});
 
 	const {
-		register: registerReset,
-		handleSubmit: handleResetSubmit,
-		formState: { errors: resetErrors },
-	} = useForm<ResetPasswordFormData>({
-		resolver: zodResolver(resetPasswordSchema),
-		defaultValues: { token: "", newPassword: "", confirmPassword: "" },
+		register: registerPassword,
+		handleSubmit: handlePasswordSubmit,
+		formState: { errors: passwordErrors },
+	} = useForm<NewPasswordFormData>({
+		resolver: zodResolver(newPasswordSchema),
+		defaultValues: { newPassword: "", confirmPassword: "" },
 	});
 
 	const handleForgot = async (data: ForgotPasswordFormData) => {
@@ -59,11 +73,9 @@ const ForgotPassword = () => {
 		try {
 			const ok = await forgotPassword(data.username);
 			if (ok) {
-				setUsername(data.username);
-				setSuccess(t("auth.resetTokenSent"));
-				setActiveStep(1);
+				setSuccess(t("auth.resetLinkSent"));
 			} else {
-				setError(t("auth.failedToSendResetToken"));
+				setError(t("auth.failedToSendResetLink"));
 			}
 		} catch (err) {
 			setError(t("auth.unexpectedError"));
@@ -73,14 +85,17 @@ const ForgotPassword = () => {
 		}
 	};
 
-	const handleReset = async (data: ResetPasswordFormData) => {
+	const handleReset = async (data: NewPasswordFormData) => {
+		if (!token) {
+			setError("Invalid reset link");
+			return;
+		}
 		setError("");
 		setLoading(true);
 		try {
-			const ok = await resetPassword(data.token, data.newPassword);
+			const ok = await resetPassword(token, data.newPassword);
 			if (ok) {
-				setSuccess(t("auth.passwordResetSuccess"));
-				setTimeout(() => navigate("/login"), 3000);
+				setIsComplete(true);
 			} else {
 				setError(t("auth.invalidTokenOrResetFailed"));
 			}
@@ -91,6 +106,105 @@ const ForgotPassword = () => {
 			setLoading(false);
 		}
 	};
+
+	if (isComplete) {
+		return (
+			<Container component="main" maxWidth="sm">
+				<Box
+					sx={{
+						marginTop: 8,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
+					<Box sx={{ textAlign: "center", mt: 2 }}>
+						<CheckCircle sx={{ fontSize: 64, color: "#4caf50", mb: 2 }} />
+						<Typography variant="h5" gutterBottom>
+							{t("auth.passwordResetComplete")}
+						</Typography>
+						<Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+							{t("auth.passwordResetSuccess")}
+						</Typography>
+						<Button
+							component={RouterLink}
+							to="/login"
+							variant="contained"
+							fullWidth
+							sx={{ mt: 2, borderRadius: 2 }}
+						>
+							{t("auth.goToLogin")}
+						</Button>
+					</Box>
+				</Box>
+			</Container>
+		);
+	}
+
+	if (token) {
+		return (
+			<Container component="main" maxWidth="sm">
+				<Box
+					sx={{
+						marginTop: 8,
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+					}}
+				>
+					<Typography component="h1" variant="h5">
+						{t("auth.setNewPassword")}
+					</Typography>
+					<Box sx={{ mt: 4, width: "100%" }}>
+						{error && (
+							<Alert severity="error" sx={{ mb: 2 }}>
+								{error}
+							</Alert>
+						)}
+						<Box component="form" onSubmit={handlePasswordSubmit(handleReset)}>
+							<TextField
+								margin="normal"
+								required
+								fullWidth
+								label={t("auth.newPassword")}
+								type="password"
+								id="newPassword"
+								autoFocus
+								{...registerPassword("newPassword")}
+								error={!!passwordErrors.newPassword}
+								helperText={passwordErrors.newPassword?.message}
+							/>
+							<TextField
+								margin="normal"
+								required
+								fullWidth
+								label={t("auth.confirmNewPassword")}
+								type="password"
+								id="confirmPassword"
+								{...registerPassword("confirmPassword")}
+								error={!!passwordErrors.confirmPassword}
+								helperText={passwordErrors.confirmPassword?.message}
+							/>
+							<Button
+								type="submit"
+								fullWidth
+								variant="contained"
+								sx={{ mt: 3, mb: 2 }}
+								disabled={loading}
+							>
+								{loading ? <CircularProgress size={24} /> : t("auth.resetPasswordButton")}
+							</Button>
+						</Box>
+						<Box sx={{ textAlign: "center", mt: 2 }}>
+							<Link component={RouterLink} to="/login" variant="body2">
+								{t("auth.backToSignIn")}
+							</Link>
+						</Box>
+					</Box>
+				</Box>
+			</Container>
+		);
+	}
 
 	return (
 		<Container component="main" maxWidth="sm">
@@ -105,14 +219,6 @@ const ForgotPassword = () => {
 				<Typography component="h1" variant="h5">
 					{t("auth.resetPassword")}
 				</Typography>
-				<Stepper activeStep={activeStep} sx={{ width: "100%", mt: 4 }}>
-					<Step>
-						<StepLabel>{t("auth.enterUsername")}</StepLabel>
-					</Step>
-					<Step>
-						<StepLabel>{t("auth.resetPasswordStep")}</StepLabel>
-					</Step>
-				</Stepper>
 				<Box sx={{ mt: 4, width: "100%" }}>
 					{error && (
 						<Alert severity="error" sx={{ mb: 2 }}>
@@ -124,76 +230,32 @@ const ForgotPassword = () => {
 							{success}
 						</Alert>
 					)}
-					{activeStep === 0 ? (
-						<Box component="form" onSubmit={handleForgotSubmit(handleForgot)}>
-							<TextField
-								margin="normal"
-								required
-								fullWidth
-								id="username"
-								label={t("auth.username")}
-								autoComplete="username"
-								autoFocus
-								{...registerForgot("username")}
-								error={!!forgotErrors.username}
-								helperText={forgotErrors.username?.message}
-							/>
-							<Button
-								type="submit"
-								fullWidth
-								variant="contained"
-								sx={{ mt: 3, mb: 2 }}
-								disabled={loading}
-							>
-								{loading ? <CircularProgress size={24} /> : t("auth.sendResetToken")}
-							</Button>
-						</Box>
-					) : (
-						<Box component="form" onSubmit={handleResetSubmit(handleReset)}>
-							<TextField
-								margin="normal"
-								required
-								fullWidth
-								id="token"
-								label={t("auth.resetToken")}
-								autoFocus
-								{...registerReset("token")}
-								error={!!resetErrors.token}
-								helperText={resetErrors.token?.message}
-							/>
-							<TextField
-								margin="normal"
-								required
-								fullWidth
-								label={t("auth.newPassword")}
-								type="password"
-								id="newPassword"
-								{...registerReset("newPassword")}
-								error={!!resetErrors.newPassword}
-								helperText={resetErrors.newPassword?.message}
-							/>
-							<TextField
-								margin="normal"
-								required
-								fullWidth
-								label={t("auth.confirmNewPassword")}
-								type="password"
-								id="confirmPassword"
-								{...registerReset("confirmPassword")}
-								error={!!resetErrors.confirmPassword}
-								helperText={resetErrors.confirmPassword?.message}
-							/>
-							<Button
-								type="submit"
-								fullWidth
-								variant="contained"
-								sx={{ mt: 3, mb: 2 }}
-								disabled={loading}
-							>
-								{loading ? <CircularProgress size={24} /> : t("auth.resetPasswordButton")}
-							</Button>
-						</Box>
-					)}
+					<Box component="form" onSubmit={handleForgotSubmit(handleForgot)}>
+						<Typography variant="body1" sx={{ mb: 2 }}>
+							{t("auth.enterUsernameToReset")}
+						</Typography>
+						<TextField
+							margin="normal"
+							required
+							fullWidth
+							id="username"
+							label={t("auth.username")}
+							autoComplete="username"
+							autoFocus
+							{...registerForgot("username")}
+							error={!!forgotErrors.username}
+							helperText={forgotErrors.username?.message}
+						/>
+						<Button
+							type="submit"
+							fullWidth
+							variant="contained"
+							sx={{ mt: 3, mb: 2 }}
+							disabled={loading}
+						>
+							{loading ? <CircularProgress size={24} /> : t("auth.sendResetLink")}
+						</Button>
+					</Box>
 					<Box sx={{ textAlign: "center", mt: 2 }}>
 						<Link component={RouterLink} to="/login" variant="body2">
 							{t("auth.backToSignIn")}

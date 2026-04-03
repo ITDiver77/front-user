@@ -1,6 +1,7 @@
 import {
 	Box,
 	Button,
+	Checkbox,
 	Dialog,
 	DialogActions,
 	DialogContent,
@@ -9,16 +10,19 @@ import {
 	FormControlLabel,
 	Radio,
 	RadioGroup,
+	Tooltip,
 	Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { connectionService } from "../../services/connectionService";
+import type { Connection } from "../../types/connection";
 
 interface MakePaymentModalProps {
 	open: boolean;
 	onClose: () => void;
 	onProceed: (months: number, amount: number) => void;
+	isFromPayments?: boolean;
 }
 
 const DISCOUNTS: Record<number, number> = { 1: 0, 2: 0, 3: 0, 6: 0.1, 12: 0.2 };
@@ -33,23 +37,26 @@ const MakePaymentModal = ({
 	open,
 	onClose,
 	onProceed,
+	isFromPayments = false,
 }: MakePaymentModalProps) => {
 	const { t } = useLanguage();
 	const [monthlyTotal, setMonthlyTotal] = useState<number>(0);
 	const [selectedMonths, setSelectedMonths] = useState<number>(1);
+	const [activeConnections, setActiveConnections] = useState<Connection[]>([]);
 	const [_loading, setLoading] = useState(false);
 
 	const fetchMonthlyTotal = useCallback(async () => {
 		setLoading(true);
 		try {
 			const connections = await connectionService.getMyConnections();
-			const total = connections
-				.filter((c) => !c.is_deleted && c.auto_renew)
-				.reduce((sum, c) => sum + c.price, 0);
+			const active = connections.filter((c) => !c.is_deleted && c.auto_renew);
+			setActiveConnections(active);
+			const total = active.reduce((sum, c) => sum + c.price, 0);
 			setMonthlyTotal(total);
 		} catch (err) {
 			console.error("Failed to fetch connections", err);
 			setMonthlyTotal(0);
+			setActiveConnections([]);
 		} finally {
 			setLoading(false);
 		}
@@ -79,12 +86,25 @@ const MakePaymentModal = ({
 		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
 			<DialogTitle>{t("modals.makePayment")}</DialogTitle>
 			<DialogContent>
-				<Box sx={{ mb: 3, mt: 1 }}>
-					<Typography variant="body1">
-						{t("modals.yourMonthlyTotal")}:{" "}
-						<strong>{monthlyTotal.toFixed(2)} ₽</strong>
-					</Typography>
-				</Box>
+				<Tooltip
+					title={
+						<Box sx={{ whiteSpace: "pre-line" }}>
+							{activeConnections.map((c) => c.connection_name).join("\n")}
+						</Box>
+					}
+					placement="right"
+				>
+					<span>
+						<FormControlLabel
+							control={<Checkbox defaultChecked disabled={isFromPayments} />}
+							label={t("modals.payForAllConnectionsLabel")}
+							sx={{ mb: 1, cursor: "pointer" }}
+						/>
+					</span>
+				</Tooltip>
+				<Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
+					{t("modals.payForAllConnections", { count: activeConnections.length })}
+				</Typography>
 
 				<Divider sx={{ my: 2 }} />
 

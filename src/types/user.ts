@@ -73,3 +73,7 @@ export interface UserPriceResponse {
 	inviter_price: number | null;
 	reason: string;
 }
+
+export interface ConnectionsUsedResponse {
+	used: number;
+}

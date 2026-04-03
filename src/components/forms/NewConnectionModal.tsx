@@ -14,6 +14,7 @@ import {
 	InputLabel,
 	MenuItem,
 	Select,
+	Slider,
 	TextField,
 	Typography,
 } from "@mui/material";
@@ -35,6 +36,18 @@ interface NewConnectionModalProps {
 
 type NewConnectionFormData = z.infer<typeof newConnectionSchema>;
 
+const getConnectionWord = (count: number): string => {
+	const mod10 = count % 10;
+	const mod100 = count % 100;
+	if (mod10 === 1 && mod100 !== 11) {
+		return "подключение";
+	}
+	if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) {
+		return "подключения";
+	}
+	return "подключений";
+};
+
 const NewConnectionModal = ({
 	open,
 	onClose,
@@ -46,6 +59,8 @@ const NewConnectionModal = ({
 	const [error, setError] = useState<string>("");
 	const [serverLoading, setServerLoading] = useState(true);
 	const [priceInfo, setPriceInfo] = useState<{ price: number; reason: string } | null>(null);
+	const [maxConnections, setMaxConnections] = useState(1);
+	const [connectionsUsed, setConnectionsUsed] = useState(0);
 
 	const {
 		register,
@@ -65,17 +80,27 @@ const NewConnectionModal = ({
 
 	const months = watch("months");
 	const pricePerMonth = priceInfo?.price ?? 0;
-	const totalPrice = months * pricePerMonth;
+	const isFirstConnection = connectionsUsed === 0;
+	const pricePerConnection = isFirstConnection
+		? maxConnections >= 5
+			? 450
+			: 150 + (maxConnections - 1) * 100
+		: maxConnections >= 5
+			? 400
+			: maxConnections * 100;
+	const totalPrice = months * pricePerConnection;
 
 	const fetchServers = useCallback(async () => {
 		setServerLoading(true);
 		try {
-			const [serversData, priceData] = await Promise.all([
+			const [serversData, priceData, connectionsData] = await Promise.all([
 				serverService.getActiveServers(),
 				userService.getUserPrice(),
+				userService.getConnectionsUsed(),
 			]);
 			setServers(serversData);
 			setPriceInfo({ price: priceData.price, reason: priceData.reason });
+			setConnectionsUsed(connectionsData.used);
 		} catch (err: any) {
 			setError(t("modals.failedToLoadServers"));
 			console.error(err);
@@ -89,6 +114,7 @@ const NewConnectionModal = ({
 			fetchServers();
 			reset();
 			setError("");
+			setMaxConnections(1);
 		}
 	}, [open, reset, fetchServers]);
 
@@ -101,6 +127,7 @@ const NewConnectionModal = ({
 				server_name: data.serverName,
 				months: data.months,
 				payment_method: "card",
+				max_connections: maxConnections,
 			});
 
 			if (paymentResponse.redirect_url) {
@@ -176,6 +203,34 @@ const NewConnectionModal = ({
 						control={<Checkbox {...register("autoRenew")} defaultChecked />}
 						label={t("modals.enableAutoRenew")}
 					/>
+					{!serverLoading && (
+						<Box sx={{ mt: 2 }}>
+							<Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
+								{maxConnections} {getConnectionWord(maxConnections)}
+							</Typography>
+							<Slider
+								value={maxConnections}
+								onChange={(_, value) => {
+									if (typeof value === "number") {
+										setMaxConnections(value);
+									}
+								}}
+								min={1}
+								max={5}
+								step={1}
+								marks={[
+									{ value: 1, label: "1" },
+									{ value: 2, label: "2" },
+									{ value: 3, label: "3" },
+									{ value: 4, label: "4" },
+									{ value: 5, label: "5" },
+								]}
+								valueLabelDisplay="auto"
+								valueLabelFormat={(v) => v}
+								sx={{ mb: 1 }}
+							/>
+						</Box>
+					)}
 					<Box
 						sx={{ mt: 2, p: 2, backgroundColor: "grey.50", borderRadius: 1 }}
 					>
@@ -184,7 +239,7 @@ const NewConnectionModal = ({
 						) : (
 							<>
 								<Typography variant="body2" color="textSecondary">
-									{t("modals.pricePerMonth")}: {pricePerMonth} ₽
+									{t("connectionCard.price")}: {pricePerConnection} ₽
 								</Typography>
 								<Typography variant="h6">
 									{t("modals.total")}: {totalPrice} ₽ {t("modals.for")} {months} {months !== 1 ? t("modals.months") : t("modals.month")}

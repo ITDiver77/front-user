@@ -1,4 +1,4 @@
-import type { User, UserUpdateRequest, TelegramRebindResponse, UserPriceResponse } from "../types/user";
+import type { User, UserUpdateRequest, TelegramRebindResponse, UserPriceResponse, ConnectionsUsedResponse } from "../types/user";
 import api from "./api";
 
 export const userService = {
@@ -73,6 +73,21 @@ export const userService = {
 		} catch (error) {
 			const err = error as any;
 			throw new Error(`Failed to delete account: ${err.message}`);
+		}
+	},
+
+	/**
+	 * Get count of connections used by current user
+	 * @returns {Promise<ConnectionsUsedResponse>} Number of connections used
+	 * @throws {Error} When network error or API error occurs
+	 */
+	getConnectionsUsed: async () => {
+		try {
+			const response = await api.get<ConnectionsUsedResponse>("/users/me/connections-used");
+			return response.data;
+		} catch (error) {
+			const err = error as any;
+			throw new Error(`Failed to fetch connections used: ${err.message}`);
 		}
 	},
 };

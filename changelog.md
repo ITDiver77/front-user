@@ -18,6 +18,8 @@
 - Delete conversation functionality for support chat
 - "Обещанный платёж" (promised payment) option: creates connection with grace period without immediate payment
 - Warning alert shown when user without paid connections tries to create new connection
+- Connection management: max_connections slider (1-5 slots), slot-based pricing formula, soft delete with marked_for_deletion flag
+- NewConnectionModal: max_connections slider with real-time price calculation based on slot formula
 
 ### Fixed
 - Docker file watcher issue (ENOSPC) by increasing fs.inotify.max_user_watches
@@ -35,6 +37,7 @@
 - Register.tsx: Fixed polling race condition by using ref to track pollingStatus without triggering effect re-runs
 - Profile.tsx: Wired Telegram relink dialog to backend endpoint (POST /users/me/telegram/rebind)
 - NewConnectionModal: Dynamic pricing fetched from API (GET /users/me/price) instead of hardcoded
+- PaymentInitiationModal: Fixed first-connection detection using firstConnectionName instead of index===1
 
 ### Known Issues
 - Bot doesn't use /auth/telegram/callback - breaks registration flow

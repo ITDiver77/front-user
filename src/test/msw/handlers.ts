@@ -30,6 +30,7 @@ interface PaymentInitiationRequest {
 	server_name?: string;
 	months: number;
 	payment_method?: string;
+	max_connections?: number;
 }
 
 interface User {
@@ -271,6 +272,27 @@ const handlers = [
 			);
 		},
 	),
+
+	// Update connection for current user (PUT /connections/my/{name})
+	rest.put("/api/v1/connections/my/:connectionName", (req, res, ctx) => {
+		const body = req.body as Partial<Connection>;
+		capturedRequests.updateMyConnection = {
+			name: req.params.connectionName,
+			...body,
+		};
+		return res(ctx.json({ ...mockConnections[0], ...body }));
+	}),
+
+	// Cancel deletion for connection marked for deletion
+	rest.post("/api/v1/connections/my/:connectionName/cancel-delete", (req, res, ctx) => {
+		capturedRequests.cancelDeletion = req.params.connectionName;
+		return res(ctx.json({ message: "Deletion cancelled" }));
+	}),
+
+	// Get connections used by user
+	rest.get("/api/v1/users/me/connections-used", (req, res, ctx) => {
+		return res(ctx.json({ connections_used: 1, max_connections: 3 }));
+	}),
 
 	// Server endpoints
 	rest.get("/api/v1/servers/", (req, res, ctx) => {

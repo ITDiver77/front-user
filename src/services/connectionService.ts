@@ -86,4 +86,31 @@ export const connectionService = {
 		);
 		return response.data;
 	},
+
+	/**
+	 * Update connection with full update (PUT /connections/my/{name})
+	 *
+	 * @param connectionName - The name of the connection to update
+	 * @param connectionData - The updated connection data
+	 * @returns The updated connection object
+	 */
+	updateMyConnection: async (
+		connectionName: string,
+		connectionData: ConnectionUpdateRequest,
+	): Promise<Connection> => {
+		const response = await api.put<Connection>(
+			`/connections/my/${connectionName}`,
+			connectionData,
+		);
+		return response.data;
+	},
+
+	/**
+	 * Cancel deletion for a connection marked for deletion
+	 *
+	 * @param connectionName - The name of the connection to cancel deletion for
+	 */
+	cancelDeletion: async (connectionName: string): Promise<void> => {
+		await api.post(`/connections/my/${connectionName}/cancel-delete`);
+	},
 };
