@@ -61,6 +61,37 @@ const TelegramBubble = ({
 	const theme = useTheme();
 	const isFromSupport = message.is_from_admin;
 
+	const getBubbleStyles = () => {
+		if (isUser) {
+			return {
+				backgroundColor:
+					theme.palette.mode === "dark"
+						? theme.palette.primary.main
+						: theme.palette.primary.main,
+				color: "#fff",
+			};
+		}
+		if (isFromSupport) {
+			return {
+				backgroundColor:
+					theme.palette.mode === "dark"
+						? theme.palette.success.dark
+						: theme.palette.success.main,
+				color: "#fff",
+			};
+		}
+		return {
+			backgroundColor:
+				theme.palette.mode === "dark"
+					? theme.palette.grey[700]
+					: theme.palette.grey[300],
+			color:
+				theme.palette.mode === "dark"
+					? theme.palette.text.primary
+					: theme.palette.text.primary,
+		};
+	};
+
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -80,21 +111,7 @@ const TelegramBubble = ({
 						px: 2,
 						py: 1.25,
 						borderRadius: isUser ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-						backgroundColor: isUser
-							? theme.palette.mode === "dark"
-								? "rgba(25, 118, 210, 0.9)"
-								: theme.palette.primary.main
-							: isFromSupport
-								? theme.palette.success.main
-								: theme.palette.mode === "dark"
-									? "rgba(255, 255, 255, 0.15)"
-									: theme.palette.grey[200],
-						color:
-							isUser || isFromSupport
-								? "#fff"
-								: theme.palette.mode === "dark"
-									? theme.palette.text.primary
-									: theme.palette.text.primary,
+						...getBubbleStyles(),
 						boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
 						position: "relative",
 					}}
@@ -171,19 +188,23 @@ const CardBubble = ({ message }: { message: SupportMessage }) => {
 						px: 2,
 						py: 1.5,
 						borderRadius: 2,
-					backgroundColor: isFromSupport
-						? theme.palette.mode === "dark"
-							? "rgba(46, 125, 50, 0.25)"
-							: "rgba(46, 125, 50, 0.15)"
-						: theme.palette.mode === "dark"
-							? "rgba(25, 118, 210, 0.25)"
-							: "rgba(25, 118, 210, 0.15)",
+						backgroundColor: isFromSupport
+							? theme.palette.mode === "dark"
+								? theme.palette.success.dark
+								: theme.palette.success.light
+							: theme.palette.mode === "dark"
+								? theme.palette.primary.dark
+								: theme.palette.primary.light,
 						border: "1px solid",
-						borderColor: isFromSupport ? "success.light" : "primary.light",
+						borderColor: isFromSupport ? "success.main" : "primary.main",
+						color: "#fff",
 						maxWidth: "85%",
 					}}
 				>
-					<Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+					<Typography
+						variant="body2"
+						sx={{ wordBreak: "break-word", color: "inherit" }}
+					>
 						{message.message}
 					</Typography>
 				</Paper>
