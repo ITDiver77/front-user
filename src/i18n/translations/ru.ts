@@ -199,6 +199,11 @@ export const ru = {
     firstConnectionPricing: 'Первое подключение: 150₽ за слот, каждое дополнительное +100₽',
     additionalConnectionPricing: 'Дополнительное подключение: 100₽ за слот, каждое дополнительное +100₽',
     confirmDeleteTitle: 'Удалить подключение?',
+    enabled: 'Включено',
+    yes: 'Да',
+    no: 'Нет',
+    connectionString: 'Строка подключения',
+    createdAt: 'Создано',
   },
   paymentHistory: {
     title: 'История платежей',

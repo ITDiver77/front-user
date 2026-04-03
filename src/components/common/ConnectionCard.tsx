@@ -78,7 +78,6 @@ const ConnectionCard = ({
 	const [changeServerModalOpen, setChangeServerModalOpen] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [cancelLoading, setCancelLoading] = useState(false);
-	const [displayPrice, setDisplayPrice] = useState(connection.price);
 
 	const enabled = connection.enabled;
 	const hasGraceDate =
@@ -121,12 +120,11 @@ const ConnectionCard = ({
 
 	const handleSaveMaxConnections = async (
 		maxConnections: number,
-		newPrice: number,
+		_newPrice: number,
 	) => {
 		await connectionService.updateMyConnection(connection.connection_name, {
 			max_connections: maxConnections,
 		});
-		setDisplayPrice(newPrice);
 	};
 
 	const handleCancelDeletion = async () => {
@@ -238,7 +236,7 @@ const ConnectionCard = ({
 							<strong>{connection.server_name || "Unknown"}</strong>
 						</Typography>
 						<Typography variant="body2">
-							{t("connectionCard.price")}: <strong>{displayPrice} ₽</strong>{" "}
+							{t("connectionCard.price")}: <strong>{connection.price} ₽</strong>{" "}
 							{t("connectionCard.perMonth")}
 						</Typography>
 						{hasGraceDate ? (

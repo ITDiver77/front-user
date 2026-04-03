@@ -87,8 +87,8 @@ const TelegramBubble = ({
 							: isFromSupport
 								? theme.palette.success.main
 								: theme.palette.mode === "dark"
-									? "rgba(255, 255, 255, 0.1)"
-									: theme.palette.grey[100],
+									? "rgba(255, 255, 255, 0.15)"
+									: theme.palette.grey[200],
 						color:
 							isUser || isFromSupport
 								? "#fff"
@@ -171,13 +171,13 @@ const CardBubble = ({ message }: { message: SupportMessage }) => {
 						px: 2,
 						py: 1.5,
 						borderRadius: 2,
-						backgroundColor: isFromSupport
-							? theme.palette.mode === "dark"
-								? "rgba(46, 125, 50, 0.15)"
-								: "rgba(46, 125, 50, 0.08)"
-							: theme.palette.mode === "dark"
-								? "rgba(25, 118, 210, 0.15)"
-								: "rgba(25, 118, 210, 0.08)",
+					backgroundColor: isFromSupport
+						? theme.palette.mode === "dark"
+							? "rgba(46, 125, 50, 0.25)"
+							: "rgba(46, 125, 50, 0.15)"
+						: theme.palette.mode === "dark"
+							? "rgba(25, 118, 210, 0.25)"
+							: "rgba(25, 118, 210, 0.15)",
 						border: "1px solid",
 						borderColor: isFromSupport ? "success.light" : "primary.light",
 						maxWidth: "85%",
