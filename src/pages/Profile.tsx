@@ -23,7 +23,7 @@ import { useLanguage } from "../i18n";
 import { authService } from "../services/authService";
 import { userService } from "../services/userService";
 import type { User, UserUpdateRequest } from "../types/user";
-import { changePasswordSchema } from "../utils/validation";
+import { changePasswordSchema, emailSchema } from "../utils/validation";
 
 type ProfileFormData = {
 	firstName: string;
@@ -187,6 +187,11 @@ const Profile = () => {
 	};
 
 	const handleStartEmailChange = async () => {
+		const result = emailSchema.safeParse({ email: newEmail });
+		if (!result.success) {
+			setEmailError(result.error.errors[0].message);
+			return;
+		}
 		setEmailLoading(true);
 		setEmailError("");
 		try {

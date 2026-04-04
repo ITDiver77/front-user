@@ -91,3 +91,10 @@ export const paymentInitiationSchema = z.object({
 		.max(36, "Maximum 36 months"),
 	paymentMethod: z.string().optional(),
 });
+
+export const emailSchema = z.object({
+	email: z
+		.string()
+		.min(1, "Email is required")
+		.email("Please enter a valid email address"),
+});
