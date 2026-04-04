@@ -1,6 +1,8 @@
 export interface User {
 	id: number;
 	username: string;
+	email?: string | null;
+	email_verified: boolean;
 	first_name?: string | null;
 	last_name?: string | null;
 	display_name?: string | null;
@@ -76,4 +78,20 @@ export interface UserPriceResponse {
 
 export interface ConnectionsUsedResponse {
 	used: number;
+}
+
+export interface StartEmailChangeResponse {
+	message: string;
+	email: string;
+}
+
+export interface VerifyEmailChangeResponse {
+	success: boolean;
+	message: string;
+}
+
+export interface PendingEmailChangeResponse {
+	pending: boolean;
+	email?: string;
+	expires_at?: string;
 }

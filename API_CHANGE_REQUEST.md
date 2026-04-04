@@ -178,3 +178,75 @@ The frontend development can proceed with mock data for endpoints marked as "Hig
 ## Timeline Request
 
 Please provide estimated completion timeline for High Priority items to coordinate frontend development.
+### 8. Email Change/Update for Existing Users
+
+**Required:** Add endpoints for authenticated users to add or change their email address with verification.
+
+#### 8.1. Start Email Change
+**Endpoint:** `POST /users/me/email/start`
+**Auth:** JWT required
+**Request:**
+```python
+class StartEmailChangeRequest(BaseModel):
+    email: str  # New email address
+```
+**Response:**
+```python
+class StartEmailChangeResponse(BaseModel):
+    message: str
+    email: str  # Masked, e.g., "u***@example.com"
+```
+**Behavior:**
+1. Validate email format and uniqueness
+2. Generate 4-digit verification code
+3. Send code to the new email address
+4. Store pending email change (with token/expiry)
+5. Return masked email for display
+
+#### 8.2. Verify Email Change
+**Endpoint:** `POST /users/me/email/verify`
+**Auth:** JWT required
+**Request:**
+```python
+class VerifyEmailChangeRequest(BaseModel):
+    code: str  # 4-digit verification code
+```
+**Response:**
+```python
+class VerifyEmailChangeResponse(BaseModel):
+    success: bool
+    message: str
+```
+**Behavior:**
+1. Validate code matches pending email change
+2. Check code hasn't expired
+3. Update user's email address
+4. Clear pending email change record
+5. Return success/failure
+
+#### 8.3. Cancel Email Change
+**Endpoint:** `POST /users/me/email/cancel`
+**Auth:** JWT required
+**Behavior:** Cancel any pending email change for the user
+
+#### 8.4. Get Pending Email Change Status
+**Endpoint:** `GET /users/me/email/pending`
+**Auth:** JWT required
+**Response:**
+```python
+class PendingEmailChangeResponse(BaseModel):
+    pending: bool
+    email: Optional[str]  # Masked new email if pending
+    expires_at: Optional[datetime]  # When the code expires
+```
+**Behavior:** Allow frontend to check if there's a pending email change and show appropriate UI
+
+### 9. User Response Enhancement
+
+**Required:** Ensure `/users/me` endpoint returns email information:
+```python
+class UserResponse(BaseModel):
+    # existing fields...
+    email: Optional[str]  # User's email address (masked in some contexts)
+    email_verified: bool  # Whether email has been verified
+```
