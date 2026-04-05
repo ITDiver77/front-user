@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### 2026-04-05
+- Added `loginByToken()` method to authService.ts — calls POST /auth/login-by-token, returns LoginByTokenResponse
+
 ### Security & Code Quality (2026-04-05)
 
 #### Security

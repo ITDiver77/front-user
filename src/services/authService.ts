@@ -1,6 +1,7 @@
 import type {
 	EmailRegisterStartResponse,
 	EmailVerificationResponse,
+	LoginByTokenResponse,
 	RegisterStartResponse,
 	RegistrationStatusResponse,
 	TelegramRegisterResponse,
@@ -241,6 +242,26 @@ export const authService = {
 				error instanceof Error
 					? error.message
 					: "Failed to get registration status",
+			);
+		}
+	},
+
+	/**
+	 * Authenticate user with a login token
+	 * @param loginToken Login token for authentication
+	 * @returns Authentication token and username
+	 * @throws {Error} On network or API error with descriptive message
+	 */
+	async loginByToken(loginToken: string): Promise<LoginByTokenResponse> {
+		try {
+			const response = await api.post<LoginByTokenResponse>(
+				"/auth/login-by-token",
+				{ login_token: loginToken },
+			);
+			return response.data;
+		} catch (error: unknown) {
+			throw new Error(
+				error instanceof Error ? error.message : "Login by token failed",
 			);
 		}
 	},
