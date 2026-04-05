@@ -1,0 +1,8 @@
+# Review Findings
+
+Front-end code review findings for token-based auto-login implementation.
+
+## FU-2: AuthCallback.tsx (2026-04-05)
+
+- `setAuthFromToken` always stores to `localStorage` (never `sessionStorage`) at `AuthContext.tsx:253`. By design for callback login — always creates persistent session. Acceptable.
+- No cleanup for `setTimeout` in error path (`AuthCallback.tsx:28`). Low risk — component isn't conditionally rendered, but could trigger React warning if unmounted during the 2s delay. Not fixed.
