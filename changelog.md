@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### 2026-04-05
+- Fixed hardcoded colors in Support.tsx — replaced #e8f0fe with grey.100, grey.300/500 with action.disabled tokens, grey.50 with grey.100 for dark theme compatibility
 - Fixed getContrastText() hex color parsing bug in Support.tsx — substring indices for green and blue channels were wrong, causing incorrect text contrast on chat bubbles
 - Added /auth/callback public route to App.tsx — lazy-loaded AuthCallback page for token-based auto-login
 - Created AuthCallback.tsx page — reads token from URL params, exchanges for JWT via loginByToken, sets auth state and redirects to dashboard

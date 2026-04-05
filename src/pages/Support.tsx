@@ -781,7 +781,7 @@ const Support = () => {
 												chatVariant === "telegram"
 													? theme.palette.mode === "dark"
 														? "grey.900"
-														: "#e8f0fe"
+														: "grey.100"
 													: "background.default",
 										}}
 									>
@@ -823,8 +823,8 @@ const Support = () => {
 															bgcolor: "primary.dark",
 														},
 														"&.Mui-disabled": {
-															bgcolor: "grey.300",
-															color: "grey.500",
+															bgcolor: "action.disabledBackground",
+															color: "action.disabled",
 														},
 													}}
 												>
@@ -842,7 +842,7 @@ const Support = () => {
 												p: 2,
 												borderTop: "1px solid",
 												borderColor: "divider",
-												bgcolor: "grey.50",
+												bgcolor: "grey.100",
 												textAlign: "center",
 											}}
 										>

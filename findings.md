@@ -14,3 +14,8 @@ Front-end code review findings for token-based auto-login implementation.
 ## FIX-1: getContrastText() hex parsing (2026-04-05)
 
 - No remaining issues. Fix was straightforward substring index correction.
+
+## FIX-2: Hardcoded colors in Support.tsx (2026-04-05)
+
+- Send button uses hardcoded `#fff` for active state text color. This is fine since the button bg is `primary.main` which is always colored enough for white text. Not fixed.
+- Telegram chat background now uses `grey.100` instead of the original `#e8f0fe` (light blue tint). The blue tint is lost but theme consistency is gained. Acceptable tradeoff.
