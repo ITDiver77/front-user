@@ -19,3 +19,8 @@ Front-end code review findings for token-based auto-login implementation.
 
 - Send button uses hardcoded `#fff` for active state text color. This is fine since the button bg is `primary.main` which is always colored enough for white text. Not fixed.
 - Telegram chat background now uses `grey.100` instead of the original `#e8f0fe` (light blue tint). The blue tint is lost but theme consistency is gained. Acceptable tradeoff.
+
+## FIX-3: Save credentials on Login.tsx (2026-04-05)
+
+- Passwords stored as base64 in localStorage, NOT encrypted. Base64 is encoding, not encryption. Anyone with browser DevTools access can decode. Acceptable for convenience in a VPN manager context, but worth noting.
+- `autoFocus` remains on username field even when credentials are pre-filled. User sees cursor in username field but both fields are populated. Could consider moving focus to password field when credentials are restored, but not critical.

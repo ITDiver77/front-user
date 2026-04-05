@@ -11,7 +11,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import type { z } from "zod";
@@ -20,6 +20,26 @@ import { useLanguage } from "../i18n";
 import { loginSchema } from "../utils/validation";
 
 type LoginFormData = z.infer<typeof loginSchema>;
+
+const CREDENTIALS_KEY = "vpn_saved_credentials";
+
+const saveCredentials = (username: string, password: string) => {
+	try {
+		localStorage.setItem(CREDENTIALS_KEY, btoa(JSON.stringify({ username, password })));
+	} catch { /* ignore storage errors */ }
+};
+
+const loadCredentials = (): { username: string; password: string } | null => {
+	try {
+		const raw = localStorage.getItem(CREDENTIALS_KEY);
+		if (!raw) return null;
+		return JSON.parse(atob(raw));
+	} catch { return null; }
+};
+
+const clearCredentials = () => {
+	try { localStorage.removeItem(CREDENTIALS_KEY); } catch { /* ignore */ }
+};
 
 const Login = () => {
 	const { login } = useAuth();
@@ -31,15 +51,24 @@ const Login = () => {
 	const {
 		register,
 		handleSubmit,
+		setValue,
 		formState: { errors },
 	} = useForm<LoginFormData>({
 		resolver: zodResolver(loginSchema),
 		defaultValues: {
 			username: "",
 			password: "",
-			rememberMe: false,
+			rememberMe: true,
 		},
 	});
+
+	useEffect(() => {
+		const saved = loadCredentials();
+		if (saved) {
+			setValue("username", saved.username);
+			setValue("password", saved.password);
+		}
+	}, [setValue]);
 
 	const onSubmit = async (data: LoginFormData) => {
 		setError("");
@@ -51,6 +80,11 @@ const Login = () => {
 				data.rememberMe,
 			);
 			if (success) {
+				if (data.rememberMe) {
+					saveCredentials(data.username, data.password);
+				} else {
+					clearCredentials();
+				}
 				navigate("/");
 			} else {
 				setError(t("auth.invalidCredentials"));

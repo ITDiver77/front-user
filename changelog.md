@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### 2026-04-05
+- Implemented save credentials feature on Login page — checkbox defaults to enabled, saves username+password to localStorage (base64 encoded) on successful login, auto-fills on next visit. Unchecking clears stored credentials.
 - Fixed hardcoded colors in Support.tsx — replaced #e8f0fe with grey.100, grey.300/500 with action.disabled tokens, grey.50 with grey.100 for dark theme compatibility
 - Fixed getContrastText() hex color parsing bug in Support.tsx — substring indices for green and blue channels were wrong, causing incorrect text contrast on chat bubbles
 - Added /auth/callback public route to App.tsx — lazy-loaded AuthCallback page for token-based auto-login
