@@ -242,7 +242,7 @@ const ConnectionCard = ({
 						{hasGraceDate ? (
 							<Typography variant="body2" color="info.main">
 								{t("connectionCard.gracePeriod")}:{" "}
-								{formatDate(connection.grace_date!)}
+								{formatDate(connection.grace_date as string)}
 							</Typography>
 						) : (
 							<Typography variant="body2" color="text.secondary">

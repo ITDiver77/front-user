@@ -7,7 +7,6 @@ import {
 } from "@mui/icons-material";
 import {
 	Box,
-	Divider,
 	List,
 	ListItem,
 	ListItemIcon,

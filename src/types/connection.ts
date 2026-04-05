@@ -20,11 +20,11 @@ export interface Connection {
 }
 
 export interface ConnectionCreateRequest {
-	username: string;
+	username?: string;
 	index?: number;
 	short_id?: string;
-	price: number;
-	paydate: string;
+	price?: number;
+	paydate?: string;
 	enabled?: boolean;
 	connection_string?: string;
 	auto_renew?: boolean;

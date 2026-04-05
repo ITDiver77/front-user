@@ -24,7 +24,9 @@ export const orangeDeepTheme = createTheme({
 		},
 		text: { primary: "#FFF8E1", secondary: "#BCAAA4" },
 	},
-	typography: { fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif' },
+	typography: {
+		fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+	},
 	shape: { borderRadius: 12 },
 	components: {
 		MuiCssBaseline: {
@@ -45,7 +47,11 @@ export const orangeDeepTheme = createTheme({
 		},
 		MuiCard: {
 			styleOverrides: {
-				root: { borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.3)", background: "#2A231E" },
+				root: {
+					borderRadius: 16,
+					boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+					background: "#2A231E",
+				},
 			},
 		},
 		MuiPaper: {

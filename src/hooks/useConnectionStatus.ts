@@ -49,8 +49,9 @@ export function useConnectionStatus(
 			setError(null);
 			setLastUpdated(new Date());
 			retryCountRef.current = 0;
-		} catch (err: any) {
-			const errorMessage = err?.message || "Failed to fetch connections";
+		} catch (err: unknown) {
+			const errorMessage =
+				err instanceof Error ? err.message : "Failed to fetch connections";
 			setError(errorMessage);
 			retryCountRef.current += 1;
 
@@ -74,21 +75,12 @@ export function useConnectionStatus(
 		}
 
 		if (retryCountRef.current > 0) {
-			const backoff = Math.min(
-				Math.pow(2, retryCountRef.current) * 1000,
-				maxInterval,
-			);
+			const backoff = Math.min(2 ** retryCountRef.current * 1000, maxInterval);
 			interval = Math.min(interval + backoff, maxInterval);
 		}
 
 		return interval;
-	}, [
-		baseInterval,
-		minInterval,
-		maxInterval,
-		activeMultiplier,
-		isActive,
-	]);
+	}, [baseInterval, minInterval, maxInterval, activeMultiplier, isActive]);
 
 	useEffect(() => {
 		if (!enabled) {

@@ -29,16 +29,16 @@ import {
 	useNavigate,
 	useSearchParams,
 } from "react-router-dom";
+import { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../i18n";
-import { z } from "zod";
 import { authService } from "../services/authService";
 import type {
-	EmailRegisterStartResponse,
 	EmailVerificationResponse,
 	RegisterStartResponse,
 	RegistrationStatusResponse,
 } from "../types/user";
+import { emailRegistrationSchema } from "../utils/validation";
 
 const SESSION_KEY = "vpn_registration_state";
 
@@ -52,29 +52,6 @@ interface RegistrationState {
 	registrationToken?: string;
 	telegramLink?: string;
 }
-
-const emailPasswordSchema = z
-	.object({
-		username: z
-			.string()
-			.min(3, "Username must be at least 3 characters")
-			.max(50, "Username must be less than 50 characters"),
-		email: z.string().email("Please enter a valid email address"),
-		password: z
-			.string()
-			.min(8, "Password must be at least 8 characters")
-			.max(72, "Password cannot exceed 72 characters")
-			.regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-			.regex(/[a-z]/, "Password must contain at least one lowercase letter")
-			.regex(/[0-9]/, "Password must contain at least one number"),
-		confirmPassword: z.string().min(1, "Please confirm your password"),
-	})
-	.refine((data) => data.password === data.confirmPassword, {
-		message: "Passwords do not match",
-		path: ["confirmPassword"],
-	});
-
-type EmailPasswordFormData = z.infer<typeof emailPasswordSchema>;
 
 const telegramSchema = z.object({
 	referrer_id: z.string().optional(),
@@ -97,27 +74,37 @@ interface EmailVerificationState {
 }
 
 const Register = () => {
- 	const navigate = useNavigate();
- 	const [searchParams] = useSearchParams();
- 	const { setAuthFromToken } = useAuth();
- 	const { t } = useLanguage();
+	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+	const { setAuthFromToken } = useAuth();
+	const { t } = useLanguage();
 
- 	const referrerId = searchParams.get("ref") || "";
+	const referrerId = searchParams.get("ref") || "";
 
-	const [registrationMethod, setRegistrationMethod] = useState<"email" | "telegram">("telegram");
-	const [step, setStep] = useState<"form" | "telegram_wait" | "verify_code">("form");
+	const [registrationMethod, setRegistrationMethod] = useState<
+		"email" | "telegram"
+	>("telegram");
+	const [step, setStep] = useState<"form" | "telegram_wait" | "verify_code">(
+		"form",
+	);
 	const [error, setError] = useState<string>("");
 	const [loading, setLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [showTempPassword, setShowTempPassword] = useState(false);
 
-	const [telegramResponse, setTelegramResponse] = useState<RegisterStartResponse | null>(null);
-	const [telegramCredentials, setTelegramCredentials] = useState<RegistrationStatusResponse | null>(null);
-	const [pollingStatus, setPollingStatus] = useState<"pending" | "checking" | "completed">("pending");
+	const [telegramResponse, setTelegramResponse] =
+		useState<RegisterStartResponse | null>(null);
+	const [telegramCredentials, setTelegramCredentials] =
+		useState<RegistrationStatusResponse | null>(null);
+	const [pollingStatus, setPollingStatus] = useState<
+		"pending" | "checking" | "completed"
+	>("pending");
 
-	const [emailVerification, setEmailVerification] = useState<EmailVerificationState | null>(null);
-	const [emailVerificationResult, setEmailVerificationResult] = useState<EmailVerificationResponse | null>(null);
+	const [emailVerification, setEmailVerification] =
+		useState<EmailVerificationState | null>(null);
+	const [emailVerificationResult, setEmailVerificationResult] =
+		useState<EmailVerificationResponse | null>(null);
 
 	const [tempCredentials, setTempCredentials] = useState<{
 		username: string;
@@ -126,8 +113,8 @@ const Register = () => {
 		connectionString?: string;
 	} | null>(null);
 
-	const passwordForm = useForm<EmailPasswordFormData>({
-		resolver: zodResolver(emailPasswordSchema),
+	const passwordForm = useForm<z.infer<typeof emailRegistrationSchema>>({
+		resolver: zodResolver(emailRegistrationSchema),
 		defaultValues: {
 			username: "",
 			email: "",
@@ -135,6 +122,19 @@ const Register = () => {
 			confirmPassword: "",
 		},
 	});
+
+	const usernameValue = passwordForm.watch("username", "");
+
+	const getUsernameHelperText = () => {
+		const error = passwordForm.formState.errors.username;
+		if (error?.message) {
+			return error.message;
+		}
+		if (usernameValue && !/^[a-zA-Z0-9_]+$/.test(usernameValue)) {
+			return t("auth.usernameInvalidFormat");
+		}
+		return "";
+	};
 
 	const telegramForm = useForm<TelegramFormData>({
 		resolver: zodResolver(telegramSchema),
@@ -166,7 +166,11 @@ const Register = () => {
 					});
 					setStep("telegram_wait");
 					setPollingStatus("pending");
-				} else if (parsed.method === "email" && parsed.email && parsed.username) {
+				} else if (
+					parsed.method === "email" &&
+					parsed.email &&
+					parsed.username
+				) {
 					setRegistrationMethod("email");
 					setEmailVerification({ email: parsed.email });
 					setStep("verify_code");
@@ -177,8 +181,6 @@ const Register = () => {
 		}
 	}, []);
 
-	const verifyCodeResponse = verifyCodeForm.watch("code", "");
-
 	const clearSession = useCallback(() => {
 		sessionStorage.removeItem(SESSION_KEY);
 	}, []);
@@ -187,7 +189,11 @@ const Register = () => {
 	pollingStatusRef.current = pollingStatus;
 
 	useEffect(() => {
-		if (step !== "telegram_wait" || !telegramResponse || pollingStatusRef.current !== "pending") {
+		if (
+			step !== "telegram_wait" ||
+			!telegramResponse ||
+			pollingStatusRef.current !== "pending"
+		) {
 			return;
 		}
 
@@ -217,7 +223,10 @@ const Register = () => {
 			setAuthFromToken(telegramCredentials.access_token);
 			clearSession();
 			navigate("/");
-		} else if (pollingStatus === "completed" && telegramCredentials?.temp_password) {
+		} else if (
+			pollingStatus === "completed" &&
+			telegramCredentials?.temp_password
+		) {
 			setTempCredentials({
 				username: telegramCredentials.username || "",
 				password: telegramCredentials.temp_password,
@@ -226,7 +235,13 @@ const Register = () => {
 			});
 			clearSession();
 		}
-	}, [pollingStatus, telegramCredentials, navigate, clearSession, setAuthFromToken]);
+	}, [
+		pollingStatus,
+		telegramCredentials,
+		navigate,
+		clearSession,
+		setAuthFromToken,
+	]);
 
 	useEffect(() => {
 		if (emailVerificationResult?.success) {
@@ -255,7 +270,9 @@ const Register = () => {
 		});
 	};
 
-	const onSubmitEmailPassword = async (data: EmailPasswordFormData) => {
+	const onSubmitEmailPassword = async (
+		data: z.infer<typeof emailRegistrationSchema>,
+	) => {
 		setError("");
 		setLoading(true);
 		try {
@@ -363,43 +380,47 @@ const Register = () => {
 						}}
 					>
 						<CheckCircle sx={{ fontSize: 64, color: "#4caf50", mb: 2 }} />
-<Typography component="h1" variant="h5" gutterBottom>
- 							{t("auth.registrationSuccess")}
- 						</Typography>
- 						<Typography variant="body2" color="textSecondary" paragraph>
- 							{t("auth.saveCredentials")}
- 						</Typography>
+						<Typography component="h1" variant="h5" gutterBottom>
+							{t("auth.registrationSuccess")}
+						</Typography>
+						<Typography variant="body2" color="textSecondary" paragraph>
+							{t("auth.saveCredentials")}
+						</Typography>
 
- 						<Box
- 							sx={{
- 								mt: 3,
- 								textAlign: "left",
- 								backgroundColor: "grey.50",
- 								p: 2,
- 								borderRadius: 2,
- 							}}
- 						>
- 							<Typography variant="subtitle2" gutterBottom>
- 								{t("auth.yourCredentials")}
- 							</Typography>
- 							<Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
- 								<Typography variant="body2" sx={{ fontWeight: 500 }}>
- 									{t("auth.username")}:
- 								</Typography>
- 								<Typography variant="body2" sx={{ fontFamily: "monospace" }}>
- 									{tempCredentials.username}
- 								</Typography>
- 							</Box>
- 							<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
- 								<Typography variant="body2" sx={{ fontWeight: 500 }}>
- 									{t("auth.password")}:
- 								</Typography>
+						<Box
+							sx={{
+								mt: 3,
+								textAlign: "left",
+								backgroundColor: "grey.50",
+								p: 2,
+								borderRadius: 2,
+							}}
+						>
+							<Typography variant="subtitle2" gutterBottom>
+								{t("auth.yourCredentials")}
+							</Typography>
+							<Box
+								sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
+							>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									{t("auth.username")}:
+								</Typography>
+								<Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+									{tempCredentials.username}
+								</Typography>
+							</Box>
+							<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+								<Typography variant="body2" sx={{ fontWeight: 500 }}>
+									{t("auth.password")}:
+								</Typography>
 								<Typography variant="body2" sx={{ fontFamily: "monospace" }}>
 									{showTempPassword ? tempCredentials.password : "••••••••"}
 								</Typography>
 								<IconButton
 									size="small"
-									onClick={() => handleCopyToClipboard(tempCredentials.password)}
+									onClick={() =>
+										handleCopyToClipboard(tempCredentials.password)
+									}
 								>
 									<CopyIcon fontSize="small" />
 								</IconButton>
@@ -416,9 +437,10 @@ const Register = () => {
 									textAlign: "left",
 								}}
 							>
-<Typography variant="subtitle2" gutterBottom>
- 									{t("dashboard.connectionString")}: {tempCredentials.connectionName}
- 								</Typography>
+								<Typography variant="subtitle2" gutterBottom>
+									{t("dashboard.connectionString")}:{" "}
+									{tempCredentials.connectionName}
+								</Typography>
 								<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
 									<Typography
 										variant="body2"
@@ -435,7 +457,9 @@ const Register = () => {
 									<IconButton
 										size="small"
 										onClick={() =>
-											handleCopyToClipboard(tempCredentials.connectionString!)
+											handleCopyToClipboard(
+												tempCredentials.connectionString as string,
+											)
 										}
 									>
 										<CopyIcon fontSize="small" />
@@ -444,19 +468,19 @@ const Register = () => {
 							</Box>
 						)}
 
-<Alert severity="warning" sx={{ mt: 3, textAlign: "left" }}>
- 							{t("auth.saveCredentialsWarning")}
- 						</Alert>
+						<Alert severity="warning" sx={{ mt: 3, textAlign: "left" }}>
+							{t("auth.saveCredentialsWarning")}
+						</Alert>
 
- 						<Button
- 							component={RouterLink}
- 							to="/login"
- 							variant="contained"
- 							fullWidth
- 							sx={{ mt: 3, borderRadius: 2 }}
- 						>
- 							{t("auth.goToLogin")}
- 						</Button>
+						<Button
+							component={RouterLink}
+							to="/login"
+							variant="contained"
+							fullWidth
+							sx={{ mt: 3, borderRadius: 2 }}
+						>
+							{t("auth.goToLogin")}
+						</Button>
 					</Paper>
 				</Box>
 			</Container>
@@ -477,75 +501,84 @@ const Register = () => {
 					<Paper sx={{ p: 4, width: "100%", borderRadius: 3 }}>
 						<Box sx={{ textAlign: "center", mb: 3 }}>
 							<EmailIcon sx={{ fontSize: 48, color: "#e65100", mb: 2 }} />
-<Typography component="h1" variant="h5" gutterBottom>
- 								{t("auth.verifyEmail")}
- 							</Typography>
- 						</Box>
+							<Typography component="h1" variant="h5" gutterBottom>
+								{t("auth.verifyEmail")}
+							</Typography>
+						</Box>
 
- 						<Alert severity="success" sx={{ mb: 3 }}>
- 							{t("auth.verificationCodeSent")} {emailVerification.email}
- 						</Alert>
+						<Alert severity="success" sx={{ mb: 3 }}>
+							{t("auth.verificationCodeSent")} {emailVerification.email}
+						</Alert>
 
- 						<Box
- 							component="form"
- 							onSubmit={verifyCodeForm.handleSubmit(onSubmitVerifyCode)}
- 						>
- 							{error && (
- 								<Alert severity="error" sx={{ mb: 2 }}>
- 									{error}
- 								</Alert>
- 							)}
+						<Box
+							component="form"
+							onSubmit={verifyCodeForm.handleSubmit(onSubmitVerifyCode)}
+						>
+							{error && (
+								<Alert severity="error" sx={{ mb: 2 }}>
+									{error}
+								</Alert>
+							)}
 
- 							<TextField
- 								margin="normal"
- 								required
- 								fullWidth
- 								id="code"
- 								label={t("auth.fourDigitCode")}
- 								autoComplete="one-time-code"
- 								autoFocus
- 								inputProps={{
- 									maxLength: 4,
- 									inputMode: "numeric",
- 									pattern: "[0-9]*",
- 								}}
- 								{...verifyCodeForm.register("code")}
- 								error={!!verifyCodeForm.formState.errors.code}
- 								helperText={verifyCodeForm.formState.errors.code?.message}
- 								sx={{
- 									textAlign: "center",
- 									"& .MuiInputBase-input": {
- 										textAlign: "center",
- 										letterSpacing: "0.5em",
- 									},
- 								}}
- 							/>
+							<TextField
+								margin="normal"
+								required
+								fullWidth
+								id="code"
+								label={t("auth.fourDigitCode")}
+								autoComplete="one-time-code"
+								autoFocus
+								inputProps={{
+									maxLength: 4,
+									inputMode: "numeric",
+									pattern: "[0-9]*",
+								}}
+								{...verifyCodeForm.register("code")}
+								error={!!verifyCodeForm.formState.errors.code}
+								helperText={verifyCodeForm.formState.errors.code?.message}
+								sx={{
+									textAlign: "center",
+									"& .MuiInputBase-input": {
+										textAlign: "center",
+										letterSpacing: "0.5em",
+									},
+								}}
+							/>
 
- 							<Button
- 								type="submit"
- 								fullWidth
- 								variant="contained"
- 								sx={{ mt: 3, mb: 2, borderRadius: 2, backgroundColor: "#e65100" }}
- 								disabled={loading}
- 							>
- 								{loading ? <CircularProgress size={24} /> : t("auth.verifyCode")}
- 							</Button>
- 						</Box>
+							<Button
+								type="submit"
+								fullWidth
+								variant="contained"
+								sx={{
+									mt: 3,
+									mb: 2,
+									borderRadius: 2,
+									backgroundColor: "#e65100",
+								}}
+								disabled={loading}
+							>
+								{loading ? (
+									<CircularProgress size={24} />
+								) : (
+									t("auth.verifyCode")
+								)}
+							</Button>
+						</Box>
 
- 						<Divider sx={{ my: 2 }} />
+						<Divider sx={{ my: 2 }} />
 
- 						<Typography variant="body2" color="textSecondary" paragraph>
- 							{t("auth.noEmail")}
- 						</Typography>
+						<Typography variant="body2" color="textSecondary" paragraph>
+							{t("auth.noEmail")}
+						</Typography>
 
- 						<Button
- 							variant="outlined"
- 							fullWidth
- 							sx={{ borderRadius: 2 }}
- 							onClick={handleBack}
- 						>
- 							{t("auth.startOver")}
- 						</Button>
+						<Button
+							variant="outlined"
+							fullWidth
+							sx={{ borderRadius: 2 }}
+							onClick={handleBack}
+						>
+							{t("auth.startOver")}
+						</Button>
 					</Paper>
 				</Box>
 			</Container>
@@ -568,67 +601,69 @@ const Register = () => {
 							{pollingStatus === "completed" ? (
 								<>
 									<CheckCircle sx={{ fontSize: 64, color: "#4caf50", mb: 2 }} />
-<Typography component="h1" variant="h5" gutterBottom>
- 										{t("auth.verificationComplete")}
- 									</Typography>
- 								</>
- 							) : (
- 								<>
- 									<TelegramIcon sx={{ fontSize: 64, color: "#0088cc", mb: 2 }} />
- 									<Typography component="h1" variant="h5" gutterBottom>
- 										{t("auth.verifyWithTelegram")}
- 									</Typography>
- 								</>
- 							)}
- 						</Box>
+									<Typography component="h1" variant="h5" gutterBottom>
+										{t("auth.verificationComplete")}
+									</Typography>
+								</>
+							) : (
+								<>
+									<TelegramIcon
+										sx={{ fontSize: 64, color: "#0088cc", mb: 2 }}
+									/>
+									<Typography component="h1" variant="h5" gutterBottom>
+										{t("auth.verifyWithTelegram")}
+									</Typography>
+								</>
+							)}
+						</Box>
 
- 						<Alert
- 							severity={pollingStatus === "completed" ? "success" : "info"}
- 							sx={{ mb: 3 }}
- 						>
- 							{pollingStatus === "completed"
- 								? t("auth.accountVerified")
- 								: t("auth.openTelegramBot")}
- 						</Alert>
+						<Alert
+							severity={pollingStatus === "completed" ? "success" : "info"}
+							sx={{ mb: 3 }}
+						>
+							{pollingStatus === "completed"
+								? t("auth.accountVerified")
+								: t("auth.openTelegramBot")}
+						</Alert>
 
 						{pollingStatus !== "completed" && (
 							<>
-<Button
- 									variant="contained"
- 									fullWidth
- 									href={telegramResponse.telegram_link}
- 									target="_blank"
- 									rel="noopener noreferrer"
- 									sx={{ mb: 2, borderRadius: 2 }}
- 									startIcon={<TelegramIcon />}
- 								>
- 									{t("auth.openTelegramBotButton")}
- 								</Button>
+								<Button
+									variant="contained"
+									fullWidth
+									href={telegramResponse.telegram_link}
+									target="_blank"
+									rel="noopener noreferrer"
+									sx={{ mb: 2, borderRadius: 2 }}
+									startIcon={<TelegramIcon />}
+								>
+									{t("auth.openTelegramBotButton")}
+								</Button>
 
- 								<Divider sx={{ my: 2 }} />
+								<Divider sx={{ my: 2 }} />
 
- 								<Typography variant="body2" color="textSecondary" gutterBottom>
- 									{t("auth.instructions")}:
- 								</Typography>
- 								<ol style={{ margin: 0, paddingLeft: 20 }}>
- 									<li>
- 										<Typography variant="body2">{t("auth.step1")}</Typography>
- 									</li>
- 									<li>
- 										<Typography variant="body2">{t("auth.step2")}</Typography>
- 									</li>
- 									<li>
- 										<Typography variant="body2">
- 											{t("auth.enterToken")}{" "}
- 											<strong>{telegramResponse.registration_token}</strong>
- 										</Typography>
- 									</li>
- 								</ol>
+								<Typography variant="body2" color="textSecondary" gutterBottom>
+									{t("auth.instructions")}:
+								</Typography>
+								<ol style={{ margin: 0, paddingLeft: 20 }}>
+									<li>
+										<Typography variant="body2">{t("auth.step1")}</Typography>
+									</li>
+									<li>
+										<Typography variant="body2">{t("auth.step2")}</Typography>
+									</li>
+									<li>
+										<Typography variant="body2">
+											{t("auth.enterToken")}{" "}
+											<strong>{telegramResponse.registration_token}</strong>
+										</Typography>
+									</li>
+								</ol>
 
- 								<Box sx={{ mt: 2 }}>
- 									<Typography variant="caption" color="textSecondary">
- 										{t("auth.registrationToken")}:
- 									</Typography>
+								<Box sx={{ mt: 2 }}>
+									<Typography variant="caption" color="textSecondary">
+										{t("auth.registrationToken")}:
+									</Typography>
 									<Paper
 										variant="outlined"
 										sx={{
@@ -643,27 +678,27 @@ const Register = () => {
 									</Paper>
 								</Box>
 
-{pollingStatus === "checking" && (
- 									<Box sx={{ textAlign: "center", py: 2 }}>
- 										<CircularProgress size={24} sx={{ mb: 1 }} />
- 										<Typography variant="body2" color="textSecondary">
- 											{t("auth.waitingForVerification")}
- 										</Typography>
- 									</Box>
- 								)}
- 							</>
- 						)}
+								{pollingStatus === "checking" && (
+									<Box sx={{ textAlign: "center", py: 2 }}>
+										<CircularProgress size={24} sx={{ mb: 1 }} />
+										<Typography variant="body2" color="textSecondary">
+											{t("auth.waitingForVerification")}
+										</Typography>
+									</Box>
+								)}
+							</>
+						)}
 
- 						<Button
- 							component={RouterLink}
- 							to="/login"
- 							variant="outlined"
- 							fullWidth
- 							sx={{ borderRadius: 2, mt: 2 }}
- 							onClick={clearSession}
- 						>
- 							{t("auth.backToLogin")}
- 						</Button>
+						<Button
+							component={RouterLink}
+							to="/login"
+							variant="outlined"
+							fullWidth
+							sx={{ borderRadius: 2, mt: 2 }}
+							onClick={clearSession}
+						>
+							{t("auth.backToLogin")}
+						</Button>
 					</Paper>
 				</Box>
 			</Container>
@@ -680,44 +715,46 @@ const Register = () => {
 					alignItems: "center",
 				}}
 			>
-<Typography component="h1" variant="h4" gutterBottom>
- 					{t("auth.createAccount")}
- 				</Typography>
+				<Typography component="h1" variant="h4" gutterBottom>
+					{t("auth.createAccount")}
+				</Typography>
 
- 				<Box sx={{ display: "flex", gap: 2, mb: 3 }}>
- 					<Button
- 						variant={registrationMethod === "email" ? "contained" : "outlined"}
- 						onClick={() => handleMethodChange("email")}
- 						startIcon={<EmailIcon />}
- 						sx={{
- 							borderRadius: 3,
- 							px: 3,
- 							backgroundColor:
- 								registrationMethod === "email" ? "#e65100" : undefined,
- 						}}
- 					>
- 						{t("auth.emailPassword")}
- 					</Button>
- 					<Button
- 						variant={registrationMethod === "telegram" ? "contained" : "outlined"}
- 						onClick={() => handleMethodChange("telegram")}
- 						startIcon={<TelegramIcon />}
- 						sx={{
- 							borderRadius: 3,
- 							px: 3,
- 							backgroundColor:
- 								registrationMethod === "telegram" ? "#0088cc" : undefined,
- 						}}
- 					>
- 						Telegram
- 					</Button>
- 				</Box>
+				<Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+					<Button
+						variant={registrationMethod === "email" ? "contained" : "outlined"}
+						onClick={() => handleMethodChange("email")}
+						startIcon={<EmailIcon />}
+						sx={{
+							borderRadius: 3,
+							px: 3,
+							backgroundColor:
+								registrationMethod === "email" ? "#e65100" : undefined,
+						}}
+					>
+						{t("auth.emailPassword")}
+					</Button>
+					<Button
+						variant={
+							registrationMethod === "telegram" ? "contained" : "outlined"
+						}
+						onClick={() => handleMethodChange("telegram")}
+						startIcon={<TelegramIcon />}
+						sx={{
+							borderRadius: 3,
+							px: 3,
+							backgroundColor:
+								registrationMethod === "telegram" ? "#0088cc" : undefined,
+						}}
+					>
+						Telegram
+					</Button>
+				</Box>
 
- 				{referrerId && (
- 					<Alert severity="info" sx={{ mb: 2, width: "100%" }}>
- 						{t("auth.referrerId")}: {referrerId}
- 					</Alert>
- 				)}
+				{referrerId && (
+					<Alert severity="info" sx={{ mb: 2, width: "100%" }}>
+						{t("auth.referrerId")}: {referrerId}
+					</Alert>
+				)}
 
 				{registrationMethod === "email" ? (
 					<Paper
@@ -731,187 +768,206 @@ const Register = () => {
 							</Alert>
 						)}
 
-<Alert severity="info" sx={{ mb: 2 }}>
- 							{t("auth.enterCredentials")}
- 						</Alert>
+						<Alert severity="info" sx={{ mb: 2 }}>
+							{t("auth.enterCredentials")}
+						</Alert>
 
- 						<TextField
- 							margin="normal"
- 							required
- 							fullWidth
- 							id="username"
- 							label={t("auth.username")}
- 							autoComplete="username"
- 							autoFocus
- 							{...passwordForm.register("username")}
- 							error={!!passwordForm.formState.errors.username}
- 							helperText={passwordForm.formState.errors.username?.message}
- 						/>
+						<TextField
+							margin="normal"
+							required
+							fullWidth
+							id="username"
+							label={t("auth.username")}
+							autoComplete="username"
+							autoFocus
+							{...passwordForm.register("username")}
+							error={
+								!!passwordForm.formState.errors.username ||
+								(usernameValue.length > 0 &&
+									!/^[a-zA-Z0-9_]+$/.test(usernameValue))
+							}
+							helperText={getUsernameHelperText()}
+						/>
 
- 						<TextField
- 							margin="normal"
- 							required
- 							fullWidth
- 							id="email"
- 							label={t("auth.email")}
- 							autoComplete="email"
- 							{...passwordForm.register("email")}
- 							error={!!passwordForm.formState.errors.email}
- 							helperText={passwordForm.formState.errors.email?.message}
- 						/>
+						<TextField
+							margin="normal"
+							required
+							fullWidth
+							id="email"
+							label={t("auth.email")}
+							autoComplete="email"
+							{...passwordForm.register("email")}
+							error={!!passwordForm.formState.errors.email}
+							helperText={passwordForm.formState.errors.email?.message}
+						/>
 
- 						<TextField
- 							margin="normal"
- 							required
- 							fullWidth
- 							id="password"
- 							label={t("auth.password")}
- 							type={showPassword ? "text" : "password"}
- 							autoComplete="new-password"
- 							{...passwordForm.register("password")}
- 							error={!!passwordForm.formState.errors.password}
- 							helperText={passwordForm.formState.errors.password?.message}
- 							InputProps={{
- 								endAdornment: (
- 									<InputAdornment position="end">
- 										<IconButton
- 											onClick={() => setShowPassword(!showPassword)}
- 											edge="end"
- 										>
- 											{showPassword ? <VisibilityOff /> : <Visibility />}
- 										</IconButton>
- 									</InputAdornment>
-								),
- 							}}
- 						/>
-
- 						<TextField
- 							margin="normal"
- 							required
- 							fullWidth
- 							id="confirmPassword"
- 							label={t("auth.confirmPassword")}
- 							type={showConfirmPassword ? "text" : "password"}
- 							autoComplete="new-password"
- 							{...passwordForm.register("confirmPassword")}
- 							error={!!passwordForm.formState.errors.confirmPassword}
- 							helperText={passwordForm.formState.errors.confirmPassword?.message}
- 							InputProps={{
- 								endAdornment: (
- 									<InputAdornment position="end">
- 										<IconButton
- 											onClick={() => setShowConfirmPassword(!showConfirmPassword)}
- 											edge="end"
- 										>
- 											{showConfirmPassword ? <VisibilityOff /> : <Visibility />}
- 										</IconButton>
+						<TextField
+							margin="normal"
+							required
+							fullWidth
+							id="password"
+							label={t("auth.password")}
+							type={showPassword ? "text" : "password"}
+							autoComplete="new-password"
+							{...passwordForm.register("password")}
+							error={!!passwordForm.formState.errors.password}
+							helperText={passwordForm.formState.errors.password?.message}
+							InputProps={{
+								endAdornment: (
+									<InputAdornment position="end">
+										<IconButton
+											onClick={() => setShowPassword(!showPassword)}
+											edge="end"
+										>
+											{showPassword ? <VisibilityOff /> : <Visibility />}
+										</IconButton>
 									</InputAdornment>
 								),
- 							}}
- 						/>
+							}}
+						/>
 
- 						<Box sx={{ mt: 2, mb: 3 }}>
- 							<Typography
- 								variant="caption"
- 								color="textSecondary"
- 								display="block"
- 								gutterBottom
- 							>
- 								{t("auth.passwordRequirements")}:
- 							</Typography>
+						<TextField
+							margin="normal"
+							required
+							fullWidth
+							id="confirmPassword"
+							label={t("auth.confirmPassword")}
+							type={showConfirmPassword ? "text" : "password"}
+							autoComplete="new-password"
+							{...passwordForm.register("confirmPassword")}
+							error={!!passwordForm.formState.errors.confirmPassword}
+							helperText={
+								passwordForm.formState.errors.confirmPassword?.message
+							}
+							InputProps={{
+								endAdornment: (
+									<InputAdornment position="end">
+										<IconButton
+											onClick={() =>
+												setShowConfirmPassword(!showConfirmPassword)
+											}
+											edge="end"
+										>
+											{showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+										</IconButton>
+									</InputAdornment>
+								),
+							}}
+						/>
+
+						<Box sx={{ mt: 2, mb: 3 }}>
+							<Typography
+								variant="caption"
+								color="textSecondary"
+								display="block"
+								gutterBottom
+							>
+								{t("auth.passwordRequirements")}:
+							</Typography>
 							<Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-<Chip
- 									size="small"
- 									label={t("auth.min8Chars")}
- 									sx={{ fontSize: "0.7rem" }}
- 									color={passwordValue.length >= 8 ? "success" : "default"}
- 								/>
- 								<Chip
- 									size="small"
- 									label={t("auth.uppercase")}
- 									sx={{ fontSize: "0.7rem" }}
- 									color={/[A-Z]/.test(passwordValue) ? "success" : "default"}
- 								/>
- 								<Chip
- 									size="small"
- 									label={t("auth.lowercase")}
- 									sx={{ fontSize: "0.7rem" }}
- 									color={/[a-z]/.test(passwordValue) ? "success" : "default"}
- 								/>
- 								<Chip
- 									size="small"
- 									label={t("auth.number")}
- 									sx={{ fontSize: "0.7rem" }}
- 									color={/[0-9]/.test(passwordValue) ? "success" : "default"}
- 								/>
- 							</Box>
- 						</Box>
+								<Chip
+									size="small"
+									label={t("auth.min8Chars")}
+									sx={{ fontSize: "0.7rem" }}
+									color={passwordValue.length >= 8 ? "success" : "default"}
+								/>
+								<Chip
+									size="small"
+									label={t("auth.uppercase")}
+									sx={{ fontSize: "0.7rem" }}
+									color={/[A-Z]/.test(passwordValue) ? "success" : "default"}
+								/>
+								<Chip
+									size="small"
+									label={t("auth.lowercase")}
+									sx={{ fontSize: "0.7rem" }}
+									color={/[a-z]/.test(passwordValue) ? "success" : "default"}
+								/>
+								<Chip
+									size="small"
+									label={t("auth.number")}
+									sx={{ fontSize: "0.7rem" }}
+									color={/[0-9]/.test(passwordValue) ? "success" : "default"}
+								/>
+							</Box>
+						</Box>
 
- 						<Button
- 							type="submit"
- 							fullWidth
- 							variant="contained"
- 							sx={{ mt: 1, mb: 2, borderRadius: 2, backgroundColor: "#e65100" }}
- 							disabled={loading}
- 						>
- 							{loading ? <CircularProgress size={24} /> : t("auth.createAccount")}
- 						</Button>
+						<Button
+							type="submit"
+							fullWidth
+							variant="contained"
+							sx={{ mt: 1, mb: 2, borderRadius: 2, backgroundColor: "#e65100" }}
+							disabled={loading}
+						>
+							{loading ? (
+								<CircularProgress size={24} />
+							) : (
+								t("auth.createAccount")
+							)}
+						</Button>
 
- 						<Box sx={{ textAlign: "center" }}>
- 							<Link component={RouterLink} to="/login" variant="body2">
- 								{t("auth.alreadyHaveAccount")}
- 							</Link>
- 						</Box>
- 					</Paper>
- 				) : (
- 					<Paper
- 						component="form"
- 						onSubmit={telegramForm.handleSubmit(onSubmitTelegram)}
- 						sx={{ p: 3, width: "100%", borderRadius: 3 }}
- 					>
- 						{error && (
- 							<Alert severity="error" sx={{ mb: 2 }}>
- 								{error}
- 							</Alert>
- 						)}
+						<Box sx={{ textAlign: "center" }}>
+							<Link component={RouterLink} to="/login" variant="body2">
+								{t("auth.alreadyHaveAccount")}
+							</Link>
+						</Box>
+					</Paper>
+				) : (
+					<Paper
+						component="form"
+						onSubmit={telegramForm.handleSubmit(onSubmitTelegram)}
+						sx={{ p: 3, width: "100%", borderRadius: 3 }}
+					>
+						{error && (
+							<Alert severity="error" sx={{ mb: 2 }}>
+								{error}
+							</Alert>
+						)}
 
- 						<Alert severity="info" sx={{ mb: 2 }}>
- 							{t("auth.verifyViaTelegram")}
- 						</Alert>
+						<Alert severity="info" sx={{ mb: 2 }}>
+							{t("auth.verifyViaTelegram")}
+						</Alert>
 
- 						<TextField
- 							margin="normal"
- 							fullWidth
- 							id="referrer_id"
- 							label={t("auth.referrerIdOptional")}
- 							autoComplete="off"
- 							autoFocus
- 							{...telegramForm.register("referrer_id")}
- 							error={!!telegramForm.formState.errors.referrer_id}
- 							helperText={telegramForm.formState.errors.referrer_id?.message || t("auth.enterReferrerId")}
- 						/>
+						<TextField
+							margin="normal"
+							fullWidth
+							id="referrer_id"
+							label={t("auth.referrerIdOptional")}
+							autoComplete="off"
+							autoFocus
+							{...telegramForm.register("referrer_id")}
+							error={!!telegramForm.formState.errors.referrer_id}
+							helperText={
+								telegramForm.formState.errors.referrer_id?.message ||
+								t("auth.enterReferrerId")
+							}
+						/>
 
- 						<Button
- 							type="submit"
- 							fullWidth
- 							variant="contained"
- 							sx={{ mt: 3, mb: 2, borderRadius: 2, backgroundColor: "#0088cc" }}
- 							disabled={loading}
- 							startIcon={<TelegramIcon />}
- 						>
- 							{loading ? <CircularProgress size={24} /> : t("auth.continueWithTelegram")}
- 						</Button>
+						<Button
+							type="submit"
+							fullWidth
+							variant="contained"
+							sx={{ mt: 3, mb: 2, borderRadius: 2, backgroundColor: "#0088cc" }}
+							disabled={loading}
+							startIcon={<TelegramIcon />}
+						>
+							{loading ? (
+								<CircularProgress size={24} />
+							) : (
+								t("auth.continueWithTelegram")
+							)}
+						</Button>
 
- 						<Box sx={{ textAlign: "center" }}>
- 							<Link component={RouterLink} to="/login" variant="body2">
- 								{t("auth.alreadyHaveAccount")}
- 							</Link>
- 						</Box>
- 					</Paper>
- 				)}
- 			</Box>
- 		</Container>
- 	);
- };
+						<Box sx={{ textAlign: "center" }}>
+							<Link component={RouterLink} to="/login" variant="body2">
+								{t("auth.alreadyHaveAccount")}
+							</Link>
+						</Box>
+					</Paper>
+				)}
+			</Box>
+		</Container>
+	);
+};
 
- export default Register;
+export default Register;

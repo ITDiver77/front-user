@@ -18,7 +18,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useLanguage } from "../../i18n/LanguageContext";
@@ -58,7 +58,10 @@ const NewConnectionModal = ({
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string>("");
 	const [serverLoading, setServerLoading] = useState(true);
-	const [priceInfo, setPriceInfo] = useState<{ price: number; reason: string } | null>(null);
+	const [priceInfo, setPriceInfo] = useState<{
+		price: number;
+		reason: string;
+	} | null>(null);
 	const [maxConnections, setMaxConnections] = useState(1);
 	const [connectionsUsed, setConnectionsUsed] = useState(0);
 
@@ -79,7 +82,7 @@ const NewConnectionModal = ({
 	});
 
 	const months = watch("months");
-	const pricePerMonth = priceInfo?.price ?? 0;
+	const _pricePerMonth = priceInfo?.price ?? 0;
 	const isFirstConnection = connectionsUsed === 0;
 	const pricePerConnection = isFirstConnection
 		? maxConnections >= 5
@@ -101,9 +104,9 @@ const NewConnectionModal = ({
 			setServers(serversData);
 			setPriceInfo({ price: priceData.price, reason: priceData.reason });
 			setConnectionsUsed(connectionsData.used);
-		} catch (err: any) {
+		} catch (err: unknown) {
 			setError(t("modals.failedToLoadServers"));
-			console.error(err);
+			if (import.meta.env.DEV) console.error(err);
 		} finally {
 			setServerLoading(false);
 		}
@@ -136,8 +139,12 @@ const NewConnectionModal = ({
 				onCreate();
 				onClose();
 			}
-		} catch (err: any) {
-			setError(err.message || t("modals.failedToCreateConnection"));
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error
+					? err.message
+					: t("modals.failedToCreateConnection");
+			setError(message);
 		} finally {
 			setLoading(false);
 		}
@@ -165,7 +172,9 @@ const NewConnectionModal = ({
 							{...register("serverName")}
 							disabled={serverLoading}
 						>
-							{serverLoading && <MenuItem value="">{t("common.loading")}</MenuItem>}
+							{serverLoading && (
+								<MenuItem value="">{t("common.loading")}</MenuItem>
+							)}
 							{servers.map((server) => (
 								<MenuItem key={server.id} value={server.name}>
 									{t(`servers.${server.name}`)} ({server.region})
@@ -185,8 +194,7 @@ const NewConnectionModal = ({
 						{...register("connectionName")}
 						error={!!errors.connectionName}
 						helperText={
-							errors.connectionName?.message ||
-							t("modals.connectionNameHelper")
+							errors.connectionName?.message || t("modals.connectionNameHelper")
 						}
 					/>
 					<TextField
@@ -242,7 +250,8 @@ const NewConnectionModal = ({
 									{t("connectionCard.price")}: {pricePerConnection} ₽
 								</Typography>
 								<Typography variant="h6">
-									{t("modals.total")}: {totalPrice} ₽ {t("modals.for")} {months} {months !== 1 ? t("modals.months") : t("modals.month")}
+									{t("modals.total")}: {totalPrice} ₽ {t("modals.for")} {months}{" "}
+									{months !== 1 ? t("modals.months") : t("modals.month")}
 								</Typography>
 								{priceInfo?.reason && (
 									<Typography variant="caption" color="textSecondary">

@@ -25,9 +25,12 @@ export const supportService = {
 	 * @returns {Promise<ConversationListItem[]>} List of user's conversations
 	 */
 	getConversations: async () => {
-		const response = await api.get<{ conversations: ConversationListItem[]; total: number; skip: number; limit: number }>(
-			"/support/conversations",
-		);
+		const response = await api.get<{
+			conversations: ConversationListItem[];
+			total: number;
+			skip: number;
+			limit: number;
+		}>("/support/conversations");
 		return response.data.conversations;
 	},
 

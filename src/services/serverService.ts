@@ -1,4 +1,4 @@
-import { type Server, ServerListResponse } from "../types/server";
+import type { Server } from "../types/server";
 import api from "./api";
 
 export const serverService = {

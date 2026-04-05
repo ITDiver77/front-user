@@ -214,22 +214,22 @@ const handlers = [
 	}),
 
 	// User endpoints
-	rest.get("/api/v1/users/me", (req, res, ctx) => {
+	rest.get("/api/v1/users/me", (_req, res, ctx) => {
 		return res(ctx.json(mockUser));
 	}),
 
 	rest.put("/api/v1/users/me", (req, res, ctx) => {
 		capturedRequests.updateProfile = req.body;
-		return res(ctx.json({ ...mockUser, ...req.body }));
+		return res(ctx.json({ ...mockUser, ...(req.body as object) }));
 	}),
 
-	rest.delete("/api/v1/users/me", (req, res, ctx) => {
+	rest.delete("/api/v1/users/me", (_req, res, ctx) => {
 		capturedRequests.deleteAccount = true;
 		return res(ctx.status(204));
 	}),
 
 	// Connection endpoints
-	rest.get("/api/v1/connections/my", (req, res, ctx) => {
+	rest.get("/api/v1/connections/my", (_req, res, ctx) => {
 		return res(ctx.json(mockConnections));
 	}),
 
@@ -243,15 +243,15 @@ const handlers = [
 
 	rest.post("/api/v1/connections/", (req, res, ctx) => {
 		capturedRequests.createConnection = req.body;
-		return res(ctx.json({ ...mockConnections[0], ...req.body }));
+		return res(ctx.json({ ...mockConnections[0], ...(req.body as object) }));
 	}),
 
 	rest.put("/api/v1/connections/:connectionName", (req, res, ctx) => {
 		capturedRequests.updateConnection = {
 			name: req.params.connectionName,
-			...req.body,
+			...(req.body as object),
 		};
-		return res(ctx.json({ ...mockConnections[0], ...req.body }));
+		return res(ctx.json({ ...mockConnections[0], ...(req.body as object) }));
 	}),
 
 	rest.delete("/api/v1/connections/:connectionName", (req, res, ctx) => {
@@ -284,13 +284,16 @@ const handlers = [
 	}),
 
 	// Cancel deletion for connection marked for deletion
-	rest.post("/api/v1/connections/my/:connectionName/cancel-delete", (req, res, ctx) => {
-		capturedRequests.cancelDeletion = req.params.connectionName;
-		return res(ctx.json({ message: "Deletion cancelled" }));
-	}),
+	rest.post(
+		"/api/v1/connections/my/:connectionName/cancel-delete",
+		(req, res, ctx) => {
+			capturedRequests.cancelDeletion = req.params.connectionName;
+			return res(ctx.json({ message: "Deletion cancelled" }));
+		},
+	),
 
 	// Get connections used by user
-	rest.get("/api/v1/users/me/connections-used", (req, res, ctx) => {
+	rest.get("/api/v1/users/me/connections-used", (_req, res, ctx) => {
 		return res(ctx.json({ connections_used: 1, max_connections: 3 }));
 	}),
 
@@ -312,8 +315,8 @@ const handlers = [
 
 	// Payment endpoints
 	rest.get("/api/v1/payments/", (req, res, ctx) => {
-		const limit = parseInt(req.url.searchParams.get("limit") || "100");
-		const offset = parseInt(req.url.searchParams.get("offset") || "0");
+		const limit = parseInt(req.url.searchParams.get("limit") || "100", 10);
+		const offset = parseInt(req.url.searchParams.get("offset") || "0", 10);
 		capturedRequests.getPayments = { limit, offset };
 		return res(
 			ctx.json({
@@ -341,7 +344,7 @@ const handlers = [
 		"/api/v1/payments/transaction/:paymentId/status",
 		(req, res, ctx) => {
 			const payment = mockPayments.find(
-				(p) => p.id === parseInt(req.params.paymentId as string),
+				(p) => p.id === parseInt(req.params.paymentId as string, 10),
 			);
 			if (!payment)
 				return res(ctx.json({ detail: "Not found" }), ctx.status(404));

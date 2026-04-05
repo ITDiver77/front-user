@@ -159,7 +159,7 @@ The frontend requires the following backend endpoints:
 - `GET /payments/` with JWT user filtering
 - `POST /payments/initiate` with connection awareness
 
-See [API_CHANGE_REQUEST.md](API_CHANGE_REQUEST.md) for detailed specifications.
+See product.md for full project overview.
 
 ### Mock Mode
 
@@ -321,7 +321,7 @@ npm run build -- --debug
 ## Support
 
 For issues and questions:
-1. Check the [API_CHANGE_REQUEST.md](API_CHANGE_REQUEST.md) for backend requirements
-2. Review the troubleshooting section
+1. Check the troubleshooting section
+2. Review product.md and context.md for project info
 3. Check existing GitHub issues
 4. Contact the development team

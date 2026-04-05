@@ -13,7 +13,7 @@ import {
 	Select,
 	Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useLanguage } from "../../i18n/LanguageContext";
@@ -57,26 +57,26 @@ const ChangeServerModal = ({
 		},
 	});
 
+	const fetchServers = useCallback(async () => {
+		setServerLoading(true);
+		try {
+			const data = await serverService.getActiveServers();
+			setServers(data);
+		} catch (err: unknown) {
+			setError(t("modals.failedToLoadServers"));
+			if (import.meta.env.DEV) console.error(err);
+		} finally {
+			setServerLoading(false);
+		}
+	}, [t]);
+
 	useEffect(() => {
 		if (open) {
 			fetchServers();
 			reset();
 			setError("");
 		}
-	}, [open, reset]);
-
-	const fetchServers = async () => {
-		setServerLoading(true);
-		try {
-			const data = await serverService.getActiveServers();
-			setServers(data);
-		} catch (err: any) {
-			setError(t("modals.failedToLoadServers"));
-			console.error(err);
-		} finally {
-			setServerLoading(false);
-		}
-	};
+	}, [open, reset, fetchServers]);
 
 	const onSubmit = async (data: ChangeServerFormData) => {
 		setLoading(true);
@@ -85,8 +85,10 @@ const ChangeServerModal = ({
 			await connectionService.changeServer(connectionName, data.newServerName);
 			onSuccess();
 			onClose();
-		} catch (err: any) {
-			setError(err.message || t("modals.failedToChangeServer"));
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : t("modals.failedToChangeServer");
+			setError(message);
 		} finally {
 			setLoading(false);
 		}
@@ -94,7 +96,9 @@ const ChangeServerModal = ({
 
 	return (
 		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-			<DialogTitle>{t("modals.changeServer")} {connectionName}</DialogTitle>
+			<DialogTitle>
+				{t("modals.changeServer")} {connectionName}
+			</DialogTitle>
 			<DialogContent>
 				{error && (
 					<Alert severity="error" sx={{ mb: 2 }}>
@@ -102,7 +106,8 @@ const ChangeServerModal = ({
 					</Alert>
 				)}
 				<Typography variant="body2" sx={{ mb: 2 }}>
-					{t("modals.currentServer")}: <strong>{currentServerName || t("modals.unknown")}</strong>
+					{t("modals.currentServer")}:{" "}
+					<strong>{currentServerName || t("modals.unknown")}</strong>
 				</Typography>
 				<form id="change-server-form" onSubmit={handleSubmit(onSubmit)}>
 					<FormControl fullWidth margin="normal" error={!!errors.newServerName}>
@@ -113,7 +118,9 @@ const ChangeServerModal = ({
 							{...register("newServerName")}
 							disabled={serverLoading}
 						>
-							{serverLoading && <MenuItem value="">{t("common.loading")}</MenuItem>}
+							{serverLoading && (
+								<MenuItem value="">{t("common.loading")}</MenuItem>
+							)}
 							{servers
 								.filter((server) => server.name !== currentServerName)
 								.map((server) => (

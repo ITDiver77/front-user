@@ -66,7 +66,6 @@ describe("connectionService", () => {
 		it("should create new connection", async () => {
 			const connection = await connectionService.createConnection({
 				server_name: "US-West",
-				months: 1,
 			});
 
 			expect(connection).toBeDefined();
@@ -75,7 +74,6 @@ describe("connectionService", () => {
 			const requests = getCapturedRequests();
 			expect(requests.createConnection).toEqual({
 				server_name: "US-West",
-				months: 1,
 			});
 		});
 	});

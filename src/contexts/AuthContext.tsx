@@ -4,21 +4,19 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
+	useMemo,
 	useState,
 } from "react";
 import { authService } from "../services/authService";
 import { userService } from "../services/userService";
-import type { TelegramRegisterResponse } from "../types/user";
+import type { TelegramRegisterResponse, User } from "../types/user";
 
-interface User {
-	username: string;
-	telegram_verified?: boolean;
-}
+type AuthUser = Pick<User, "username" | "telegram_verified">;
 
 interface AuthContextType {
 	isAuthenticated: boolean;
 	loading: boolean;
-	user: User | null;
+	user: AuthUser | null;
 	login: (
 		username: string,
 		password: string,
@@ -39,7 +37,7 @@ interface AuthContextType {
 		oldPassword: string,
 		newPassword: string,
 	) => Promise<boolean>;
-	updateUser: (userData: Partial<User>) => void;
+	updateUser: (userData: Partial<AuthUser>) => void;
 	setAuthFromToken: (token: string) => Promise<void>;
 }
 
@@ -67,18 +65,21 @@ interface StoredUserData {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [loading, setLoading] = useState(true);
-	const [user, setUser] = useState<User | null>(null);
+	const [user, setUser] = useState<AuthUser | null>(null);
 
-	const saveUserData = useCallback((userData: StoredUserData, rememberMe: boolean) => {
-		const data = JSON.stringify(userData);
-		if (rememberMe) {
-			localStorage.setItem(STORAGE_KEY, data);
-			sessionStorage.removeItem(STORAGE_KEY);
-		} else {
-			sessionStorage.setItem(STORAGE_KEY, data);
-			localStorage.removeItem(STORAGE_KEY);
-		}
-	}, []);
+	const saveUserData = useCallback(
+		(userData: StoredUserData, rememberMe: boolean) => {
+			const data = JSON.stringify(userData);
+			if (rememberMe) {
+				localStorage.setItem(STORAGE_KEY, data);
+				sessionStorage.removeItem(STORAGE_KEY);
+			} else {
+				sessionStorage.setItem(STORAGE_KEY, data);
+				localStorage.removeItem(STORAGE_KEY);
+			}
+		},
+		[],
+	);
 
 	const clearUserData = useCallback(() => {
 		localStorage.removeItem(STORAGE_KEY);
@@ -115,130 +116,139 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		restoreSession();
 	}, []);
 
-	const storeToken = (token: string, rememberMe: boolean) => {
+	const storeToken = useCallback((token: string, rememberMe: boolean) => {
 		if (rememberMe) {
 			localStorage.setItem("token", token);
 		} else {
 			sessionStorage.setItem("token", token);
 		}
-	};
+	}, []);
 
-	const clearToken = () => {
+	const clearToken = useCallback(() => {
 		localStorage.removeItem("token");
 		sessionStorage.removeItem("token");
-	};
+	}, []);
 
-	const login = async (
-		username: string,
-		password: string,
-		rememberMe: boolean,
-	): Promise<boolean> => {
-		try {
-			const response = await authService.login({ username, password });
-			storeToken(response.access_token, rememberMe);
-			saveUserData({ username }, rememberMe);
-			setIsAuthenticated(true);
-			setUser({ username });
-			return true;
-		} catch (error) {
-			console.error("Login failed", error);
-			return false;
-		}
-	};
-
-	const register = async (
-		username: string,
-		password: string,
-		telegramId?: number,
-	): Promise<{
-		success: boolean;
-		telegramResponse?: TelegramRegisterResponse;
-	}> => {
-		try {
-			const response = await authService.register({
-				username,
-				password,
-				telegram_id: telegramId,
-			});
-
-			// Check if this is a telegram registration response
-			if ("temp_password" in response) {
-				// Telegram registration - no auto-login, return response for display
-				return {
-					success: true,
-					telegramResponse: response as TelegramRegisterResponse,
-				};
+	const login = useCallback(
+		async (
+			username: string,
+			password: string,
+			rememberMe: boolean,
+		): Promise<boolean> => {
+			try {
+				const response = await authService.login({ username, password });
+				storeToken(response.access_token, rememberMe);
+				saveUserData({ username }, rememberMe);
+				setIsAuthenticated(true);
+				setUser({ username, telegram_verified: false });
+				return true;
+			} catch (error) {
+				console.error("Login failed", error);
+				return false;
 			}
+		},
+		[storeToken, saveUserData],
+	);
 
-			// Standard registration - store token and login
-			storeToken(response.access_token, true);
-			saveUserData({ username }, true);
-			setIsAuthenticated(true);
-			setUser({ username });
-			return { success: true };
-		} catch (error) {
-			console.error("Registration failed", error);
-			return { success: false };
-		}
-	};
+	const register = useCallback(
+		async (
+			username: string,
+			password: string,
+			telegramId?: number,
+		): Promise<{
+			success: boolean;
+			telegramResponse?: TelegramRegisterResponse;
+		}> => {
+			try {
+				const response = await authService.register({
+					username,
+					password,
+					telegram_id: telegramId,
+				});
 
-	const logout = () => {
+				if ("temp_password" in response) {
+					return {
+						success: true,
+						telegramResponse: response as TelegramRegisterResponse,
+					};
+				}
+
+				storeToken(response.access_token, true);
+				saveUserData({ username }, true);
+				setIsAuthenticated(true);
+				setUser({ username, telegram_verified: false });
+				return { success: true };
+			} catch (error) {
+				console.error("Registration failed", error);
+				return { success: false };
+			}
+		},
+		[storeToken, saveUserData],
+	);
+
+	const logout = useCallback(() => {
 		clearToken();
 		clearUserData();
 		setIsAuthenticated(false);
 		setUser(null);
-	};
+	}, [clearToken, clearUserData]);
 
-	const forgotPassword = async (username: string): Promise<boolean> => {
-		try {
-			await authService.forgotPassword({ username });
-			return true;
-		} catch (error) {
-			console.error("Forgot password request failed", error);
-			return false;
-		}
-	};
+	const forgotPassword = useCallback(
+		async (username: string): Promise<boolean> => {
+			try {
+				await authService.forgotPassword({ username });
+				return true;
+			} catch (error) {
+				console.error("Forgot password request failed", error);
+				return false;
+			}
+		},
+		[],
+	);
 
-	const resetPassword = async (
-		token: string,
-		newPassword: string,
-	): Promise<boolean> => {
-		try {
-			await authService.resetPassword({ token, new_password: newPassword });
-			return true;
-		} catch (error) {
-			console.error("Reset password failed", error);
-			return false;
-		}
-	};
+	const resetPassword = useCallback(
+		async (token: string, newPassword: string): Promise<boolean> => {
+			try {
+				await authService.resetPassword({ token, new_password: newPassword });
+				return true;
+			} catch (error) {
+				console.error("Reset password failed", error);
+				return false;
+			}
+		},
+		[],
+	);
 
-	const changePassword = async (
-		oldPassword: string,
-		newPassword: string,
-	): Promise<boolean> => {
-		try {
-			await authService.changePassword({
-				old_password: oldPassword,
-				new_password: newPassword,
+	const changePassword = useCallback(
+		async (oldPassword: string, newPassword: string): Promise<boolean> => {
+			try {
+				await authService.changePassword({
+					old_password: oldPassword,
+					new_password: newPassword,
+				});
+				return true;
+			} catch (error) {
+				console.error("Change password failed", error);
+				return false;
+			}
+		},
+		[],
+	);
+
+	const updateUser = useCallback(
+		(userData: Partial<AuthUser>) => {
+			setUser((prev) => {
+				if (!prev) return null;
+				const updated = { ...prev, ...userData };
+				const rememberMe = !!localStorage.getItem("token");
+				saveUserData(updated, rememberMe);
+				return updated;
 			});
-			return true;
-		} catch (error) {
-			console.error("Change password failed", error);
-			return false;
-		}
-	};
+		},
+		[saveUserData],
+	);
 
-	const updateUser = (userData: Partial<User>) => {
-		setUser((prev) => {
-			if (!prev) return null;
-			const updated = { ...prev, ...userData };
-			const rememberMe = !!localStorage.getItem("token");
-			saveUserData(updated, rememberMe);
-			return updated;
-		});
-	};
-
-	const setAuthFromToken = async (token: string) => {
+	const setAuthFromToken = useCallback(async (token: string) => {
 		try {
 			localStorage.setItem("token", token);
 			sessionStorage.removeItem("token");
@@ -252,25 +262,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		} catch (e) {
 			console.error("Invalid token", e);
 		}
-	};
+	}, []);
 
-	return (
-		<AuthContext.Provider
-			value={{
-				isAuthenticated,
-				loading,
-				user,
-				login,
-				register,
-				logout,
-				forgotPassword,
-				resetPassword,
-				changePassword,
-				updateUser,
-				setAuthFromToken,
-			}}
-		>
-			{children}
-		</AuthContext.Provider>
+	const value = useMemo<AuthContextType>(
+		() => ({
+			isAuthenticated,
+			loading,
+			user,
+			login,
+			register,
+			logout,
+			forgotPassword,
+			resetPassword,
+			changePassword,
+			updateUser,
+			setAuthFromToken,
+		}),
+		[
+			isAuthenticated,
+			loading,
+			user,
+			login,
+			register,
+			logout,
+			forgotPassword,
+			resetPassword,
+			changePassword,
+			updateUser,
+			setAuthFromToken,
+		],
 	);
+
+	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

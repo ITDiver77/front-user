@@ -24,7 +24,9 @@ export const redCrimsonTheme = createTheme({
 		},
 		text: { primary: "#FFEBEE", secondary: "#EF9A9A" },
 	},
-	typography: { fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif' },
+	typography: {
+		fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+	},
 	shape: { borderRadius: 12 },
 	components: {
 		MuiCssBaseline: {
@@ -44,7 +46,11 @@ export const redCrimsonTheme = createTheme({
 		},
 		MuiCard: {
 			styleOverrides: {
-				root: { borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.3)", background: "#2A1E1E" },
+				root: {
+					borderRadius: 16,
+					boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+					background: "#2A1E1E",
+				},
 			},
 		},
 		MuiPaper: {

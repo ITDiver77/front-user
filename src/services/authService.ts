@@ -63,8 +63,8 @@ export const authService = {
 		try {
 			const response = await api.post<AuthResponse>("/auth/login", data);
 			return response.data;
-		} catch (error: any) {
-			throw new Error(error.message || "Login failed");
+		} catch (error: unknown) {
+			throw new Error(error instanceof Error ? error.message : "Login failed");
 		}
 	},
 
@@ -83,8 +83,10 @@ export const authService = {
 				data,
 			);
 			return response.data;
-		} catch (error: any) {
-			throw new Error(error.message || "Registration start failed");
+		} catch (error: unknown) {
+			throw new Error(
+				error instanceof Error ? error.message : "Registration start failed",
+			);
 		}
 	},
 
@@ -103,8 +105,10 @@ export const authService = {
 				data,
 			);
 			return response.data;
-		} catch (error: any) {
-			throw new Error(error.message || "Registration failed");
+		} catch (error: unknown) {
+			throw new Error(
+				error instanceof Error ? error.message : "Registration failed",
+			);
 		}
 	},
 
@@ -123,8 +127,12 @@ export const authService = {
 				data,
 			);
 			return response.data;
-		} catch (error: any) {
-			throw new Error(error.message || "Email registration start failed");
+		} catch (error: unknown) {
+			throw new Error(
+				error instanceof Error
+					? error.message
+					: "Email registration start failed",
+			);
 		}
 	},
 
@@ -141,8 +149,10 @@ export const authService = {
 				{ code },
 			);
 			return response.data;
-		} catch (error: any) {
-			throw new Error(error.message || "Email verification failed");
+		} catch (error: unknown) {
+			throw new Error(
+				error instanceof Error ? error.message : "Email verification failed",
+			);
 		}
 	},
 
@@ -158,8 +168,10 @@ export const authService = {
 				`/auth/register/verify/${token}`,
 			);
 			return response.data;
-		} catch (error: any) {
-			throw new Error(error.message || "Email verification failed");
+		} catch (error: unknown) {
+			throw new Error(
+				error instanceof Error ? error.message : "Email verification failed",
+			);
 		}
 	},
 
@@ -171,8 +183,12 @@ export const authService = {
 	async forgotPassword(data: ForgotPasswordRequest): Promise<void> {
 		try {
 			await api.post("/auth/restore", data);
-		} catch (error: any) {
-			throw new Error(error.message || "Forgot password request failed");
+		} catch (error: unknown) {
+			throw new Error(
+				error instanceof Error
+					? error.message
+					: "Forgot password request failed",
+			);
 		}
 	},
 
@@ -184,8 +200,10 @@ export const authService = {
 	async resetPassword(data: ResetPasswordRequest): Promise<void> {
 		try {
 			await api.post("/auth/reset", data);
-		} catch (error: any) {
-			throw new Error(error.message || "Password reset failed");
+		} catch (error: unknown) {
+			throw new Error(
+				error instanceof Error ? error.message : "Password reset failed",
+			);
 		}
 	},
 
@@ -197,8 +215,10 @@ export const authService = {
 	async changePassword(data: ChangePasswordRequest): Promise<void> {
 		try {
 			await api.post("/auth/change-password", data);
-		} catch (error: any) {
-			throw new Error(error.message || "Password change failed");
+		} catch (error: unknown) {
+			throw new Error(
+				error instanceof Error ? error.message : "Password change failed",
+			);
 		}
 	},
 
@@ -216,8 +236,12 @@ export const authService = {
 				`/auth/register/status/${registrationToken}`,
 			);
 			return response.data;
-		} catch (error: any) {
-			throw new Error(error.message || "Failed to get registration status");
+		} catch (error: unknown) {
+			throw new Error(
+				error instanceof Error
+					? error.message
+					: "Failed to get registration status",
+			);
 		}
 	},
 };

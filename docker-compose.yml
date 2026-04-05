@@ -9,8 +9,8 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL:-/api/v1}
-        - VITE_PAYMENT_SUCCESS_URL=${VITE_PAYMENT_SUCCESS_URL:-https://portal.mythicuser.cloudns.nz/payment/success}
-        - VITE_PAYMENT_FAIL_URL=${VITE_PAYMENT_FAIL_URL:-https://portal.mythicuser.cloudns.nz/payment/fail}
+        - VITE_PAYMENT_SUCCESS_URL=${VITE_PAYMENT_SUCCESS_URL:-https://mythicalvpn.cloudns.nz/payment/success}
+        - VITE_PAYMENT_FAIL_URL=${VITE_PAYMENT_FAIL_URL:-https://mythicalvpn.cloudns.nz/payment/fail}
         - VITE_APP_TITLE=${VITE_APP_TITLE:-VPN User Panel}
         - VITE_MOCK_AUTH=${VITE_MOCK_AUTH:-false}
     container_name: vpn_front_user

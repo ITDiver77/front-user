@@ -21,7 +21,9 @@ export const limeGreenTheme = createTheme({
 		background: { default: "#F9FBE7", paper: "#FFFFFF" },
 		text: { primary: "#33691E", secondary: "#689F38" },
 	},
-	typography: { fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif' },
+	typography: {
+		fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+	},
 	shape: { borderRadius: 12 },
 	components: {
 		MuiCssBaseline: {
@@ -41,7 +43,11 @@ export const limeGreenTheme = createTheme({
 		},
 		MuiCard: {
 			styleOverrides: {
-				root: { borderRadius: 16, boxShadow: "0 2px 12px rgba(124, 179, 66, 0.15)", background: "#FFFFFF" },
+				root: {
+					borderRadius: 16,
+					boxShadow: "0 2px 12px rgba(124, 179, 66, 0.15)",
+					background: "#FFFFFF",
+				},
 			},
 		},
 		MuiPaper: {

@@ -34,7 +34,20 @@ const darkThemes: ThemeName[] = [
 	"redCrimson",
 ];
 
-const lightThemes: ThemeName[] = ["limeGreen", "rosePink", "honey", "ocean", "lavender", "sunset", "violet", "teal", "coral", "skyBlue", "peach", "sage"];
+const lightThemes: ThemeName[] = [
+	"limeGreen",
+	"rosePink",
+	"honey",
+	"ocean",
+	"lavender",
+	"sunset",
+	"violet",
+	"teal",
+	"coral",
+	"skyBlue",
+	"peach",
+	"sage",
+];
 
 function getThemeConfig(name: ThemeName) {
 	return availableThemes.find((t) => t.name === name);
@@ -66,12 +79,12 @@ export function ThemeSelector() {
 	const darkSorted = darkThemes
 		.map(getThemeConfig)
 		.filter(Boolean)
-		.sort((a, b) => a!.label.localeCompare(b!.label));
+		.sort((a, b) => a?.label.localeCompare(b?.label));
 
 	const lightSorted = lightThemes
 		.map(getThemeConfig)
 		.filter(Boolean)
-		.sort((a, b) => a!.label.localeCompare(b!.label));
+		.sort((a, b) => a?.label.localeCompare(b?.label));
 
 	return (
 		<>

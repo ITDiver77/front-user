@@ -14,8 +14,6 @@ import {
 	FormControlLabel,
 	InputLabel,
 	MenuItem,
-	Radio,
-	RadioGroup,
 	Select,
 	Slider,
 	Tooltip,
@@ -78,7 +76,6 @@ const PaymentInitiationModal = ({
 	open,
 	onClose,
 	connectionName,
-	currentPrice,
 	connections,
 	onSuccess,
 	isFromPayments = false,
@@ -93,7 +90,7 @@ const PaymentInitiationModal = ({
 		handleSubmit,
 		watch,
 		setValue,
-		formState: { errors },
+		formState: { errors: _errors },
 		reset,
 	} = useForm<PaymentInitiationFormData>({
 		resolver: zodResolver(paymentInitiationSchema),
@@ -151,8 +148,10 @@ const PaymentInitiationModal = ({
 			} else {
 				startPolling(response.payment_id);
 			}
-		} catch (err: any) {
-			setError(err.message || t("modals.paymentInitFailed"));
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : t("modals.paymentInitFailed");
+			setError(message);
 			setLoading(false);
 		}
 	};
@@ -160,11 +159,11 @@ const PaymentInitiationModal = ({
 	const startPolling = async (paymentId: number) => {
 		setPolling(true);
 		try {
-			const payment = await paymentService.pollPaymentStatus(paymentId);
+			const _payment = await paymentService.pollPaymentStatus(paymentId);
 			setPolling(false);
 			onSuccess(paymentId);
 			onClose();
-		} catch (err: any) {
+		} catch (_err: unknown) {
 			setPolling(false);
 			setError(t("modals.paymentPollingFailed"));
 		}
@@ -292,19 +291,17 @@ const PaymentInitiationModal = ({
 						<Divider sx={{ my: 1, borderColor: "rgba(255,255,255,0.2)" }} />
 						<Typography variant="body2" sx={{ opacity: 0.9 }}>
 							{payForAll ? (
-								<>
-									{activeConnections.map((c) => {
-										const isFirst = c.connection_name === firstConnectionName;
-										const mc = c.max_connections || 1;
-										const price = calculateConnectionPrice(mc, isFirst);
-										return (
-											<Box key={c.connection_name} component="span">
-												{c.connection_name}: {months} × {price}₽ ={" "}
-												{price * months}₽ (max={mc})
-											</Box>
-										);
-									})}
-								</>
+								activeConnections.map((c) => {
+									const isFirst = c.connection_name === firstConnectionName;
+									const mc = c.max_connections || 1;
+									const price = calculateConnectionPrice(mc, isFirst);
+									return (
+										<Box key={c.connection_name} component="span">
+											{c.connection_name}: {months} × {price}₽ ={" "}
+											{price * months}₽ (max={mc})
+										</Box>
+									);
+								})
 							) : (
 								<>
 									{months}{" "}

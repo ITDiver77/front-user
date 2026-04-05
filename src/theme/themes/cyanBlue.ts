@@ -24,7 +24,9 @@ export const cyanBlueTheme = createTheme({
 		},
 		text: { primary: "#E0F7FA", secondary: "#80DEEA" },
 	},
-	typography: { fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif' },
+	typography: {
+		fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+	},
 	shape: { borderRadius: 12 },
 	components: {
 		MuiCssBaseline: {
@@ -45,7 +47,11 @@ export const cyanBlueTheme = createTheme({
 		},
 		MuiCard: {
 			styleOverrides: {
-				root: { borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.3)", background: "#102530" },
+				root: {
+					borderRadius: 16,
+					boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+					background: "#102530",
+				},
 			},
 		},
 		MuiPaper: {

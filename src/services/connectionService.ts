@@ -1,8 +1,7 @@
-import {
-	ChangeServerRequest,
-	type Connection,
-	type ConnectionCreateRequest,
-	type ConnectionUpdateRequest,
+import type {
+	Connection,
+	ConnectionCreateRequest,
+	ConnectionUpdateRequest,
 } from "../types/connection";
 import api from "./api";
 
@@ -49,10 +48,12 @@ export const connectionService = {
 
 	// Toggle auto-renew (dedicated endpoint - does NOT affect VPN connection state)
 	toggleAutoRenew: async (connectionName: string, autoRenew: boolean) => {
-		const response = await api.post<{ connection_name: string; auto_renew: boolean }>(
-			`/connections/my/${connectionName}/toggle-auto-renew`,
-			{ auto_renew: autoRenew },
-		);
+		const response = await api.post<{
+			connection_name: string;
+			auto_renew: boolean;
+		}>(`/connections/my/${connectionName}/toggle-auto-renew`, {
+			auto_renew: autoRenew,
+		});
 		return response.data;
 	},
 
@@ -76,14 +77,11 @@ export const connectionService = {
 
 	// Request grace period for unpaid connection
 	requestGrace: async (connectionName: string) => {
-		const response = await api.post<{ 
-			connection_name: string; 
+		const response = await api.post<{
+			connection_name: string;
 			grace_date: string;
 			message: string;
-		}>(
-			`/connections/my/${connectionName}/request-grace`,
-			{},
-		);
+		}>(`/connections/my/${connectionName}/request-grace`, {});
 		return response.data;
 	},
 

@@ -20,9 +20,10 @@ export const userService = {
 		try {
 			const response = await api.get<User>("/users/me");
 			return response.data;
-		} catch (error) {
-			const err = error as any;
-			throw new Error(`Failed to fetch user profile: ${err.message}`);
+		} catch (error: unknown) {
+			throw new Error(
+				`Failed to fetch user profile: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
 		}
 	},
 
@@ -36,9 +37,10 @@ export const userService = {
 		try {
 			const response = await api.put<User>("/users/me", data);
 			return response.data;
-		} catch (error) {
-			const err = error as any;
-			throw new Error(`Failed to update profile: ${err.message}`);
+		} catch (error: unknown) {
+			throw new Error(
+				`Failed to update profile: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
 		}
 	},
 
@@ -53,9 +55,10 @@ export const userService = {
 				"/users/me/telegram/rebind",
 			);
 			return response.data;
-		} catch (error) {
-			const err = error as any;
-			throw new Error(`Failed to start Telegram rebind: ${err.message}`);
+		} catch (error: unknown) {
+			throw new Error(
+				`Failed to start Telegram rebind: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
 		}
 	},
 
@@ -68,9 +71,10 @@ export const userService = {
 		try {
 			const response = await api.get<UserPriceResponse>("/users/me/price");
 			return response.data;
-		} catch (error) {
-			const err = error as any;
-			throw new Error(`Failed to fetch user price: ${err.message}`);
+		} catch (error: unknown) {
+			throw new Error(
+				`Failed to fetch user price: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
 		}
 	},
 
@@ -81,9 +85,10 @@ export const userService = {
 	deleteAccount: async () => {
 		try {
 			await api.delete("/users/me");
-		} catch (error) {
-			const err = error as any;
-			throw new Error(`Failed to delete account: ${err.message}`);
+		} catch (error: unknown) {
+			throw new Error(
+				`Failed to delete account: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
 		}
 	},
 
@@ -98,9 +103,10 @@ export const userService = {
 				"/users/me/connections-used",
 			);
 			return response.data;
-		} catch (error) {
-			const err = error as any;
-			throw new Error(`Failed to fetch connections used: ${err.message}`);
+		} catch (error: unknown) {
+			throw new Error(
+				`Failed to fetch connections used: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
 		}
 	},
 
@@ -117,9 +123,10 @@ export const userService = {
 				{ email },
 			);
 			return response.data;
-		} catch (error) {
-			const err = error as any;
-			throw new Error(`Failed to start email change: ${err.message}`);
+		} catch (error: unknown) {
+			throw new Error(
+				`Failed to start email change: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
 		}
 	},
 
@@ -136,9 +143,10 @@ export const userService = {
 				{ code },
 			);
 			return response.data;
-		} catch (error) {
-			const err = error as any;
-			throw new Error(`Failed to verify email change: ${err.message}`);
+		} catch (error: unknown) {
+			throw new Error(
+				`Failed to verify email change: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
 		}
 	},
 
@@ -149,9 +157,10 @@ export const userService = {
 	cancelEmailChange: async () => {
 		try {
 			await api.post("/me/email/cancel");
-		} catch (error) {
-			const err = error as any;
-			throw new Error(`Failed to cancel email change: ${err.message}`);
+		} catch (error: unknown) {
+			throw new Error(
+				`Failed to cancel email change: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
 		}
 	},
 
@@ -165,9 +174,10 @@ export const userService = {
 			const response =
 				await api.get<PendingEmailChangeResponse>("/me/email/pending");
 			return response.data;
-		} catch (error) {
-			const err = error as any;
-			throw new Error(`Failed to get pending email change: ${err.message}`);
+		} catch (error: unknown) {
+			throw new Error(
+				`Failed to get pending email change: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
 		}
 	},
 };

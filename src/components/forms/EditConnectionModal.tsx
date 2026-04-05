@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useLanguage } from "../../i18n";
-import { connectionService } from "../../services/connectionService";
 import type { Connection } from "../../types/connection";
 
 interface EditConnectionModalProps {
@@ -68,7 +67,7 @@ const getPriceBreakdown = (
 		if (maxConnections >= 5) return "100+100+100+100+0 = 400₽";
 		let breakdown = "";
 		for (let i = 1; i <= maxConnections; i++) {
-			breakdown += (i > 1 ? "+" : "") + "100";
+			breakdown += `${i > 1 ? "+" : ""}100`;
 		}
 		return `${breakdown} = ${calculateConnectionPrice(maxConnections, false)}₽`;
 	}
@@ -105,8 +104,9 @@ const EditConnectionModal = ({
 			);
 			await onSave(maxConnections, newPrice);
 			onClose();
-		} catch (err: any) {
-			setError(err.message || t("common.error"));
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : t("common.error");
+			setError(message);
 		} finally {
 			setLoading(false);
 		}

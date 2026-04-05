@@ -20,16 +20,17 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../i18n";
+import { ApiError } from "../services/api";
 import { authService } from "../services/authService";
 import { userService } from "../services/userService";
 import type { User, UserUpdateRequest } from "../types/user";
-import { changePasswordSchema, emailSchema } from "../utils/validation";
+import {
+	changePasswordSchema,
+	emailSchema,
+	profileSchema,
+} from "../utils/validation";
 
-type ProfileFormData = {
-	firstName: string;
-	lastName: string;
-	displayName: string;
-};
+type ProfileFormData = z.infer<typeof profileSchema>;
 
 type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
@@ -63,6 +64,7 @@ const Profile = () => {
 		formState: { errors: profileErrors },
 		reset: resetProfile,
 	} = useForm<ProfileFormData>({
+		resolver: zodResolver(profileSchema),
 		defaultValues: {
 			firstName: "",
 			lastName: "",
@@ -84,11 +86,7 @@ const Profile = () => {
 		},
 	});
 
-	useEffect(() => {
-		fetchProfile();
-	}, []);
-
-	const fetchProfile = async () => {
+	const fetchProfile = useCallback(async () => {
 		setProfileLoading(true);
 		try {
 			const data = await userService.getMyProfile();
@@ -99,12 +97,20 @@ const Profile = () => {
 				lastName: data.last_name || "",
 				displayName: data.display_name || "",
 			});
-		} catch (err: any) {
-			setProfileError(err.message || "Failed to fetch profile");
+		} catch (err: unknown) {
+			if (err instanceof ApiError) {
+				setProfileError(err.message);
+			} else {
+				setProfileError(t("profile.failedToFetchProfile"));
+			}
 		} finally {
 			setProfileLoading(false);
 		}
-	};
+	}, [updateUser, resetProfile, t]);
+
+	useEffect(() => {
+		fetchProfile();
+	}, [fetchProfile]);
 
 	const handleStartRelink = async () => {
 		setRebinding(true);
@@ -112,8 +118,12 @@ const Profile = () => {
 			const response = await userService.rebindTelegram();
 			setRebindLink(response.link);
 			setRebindToken(response.rebind_token);
-		} catch (err: any) {
-			setProfileError(err.message || "Failed to start Telegram rebind");
+		} catch (err: unknown) {
+			if (err instanceof ApiError) {
+				setProfileError(err.message);
+			} else {
+				setProfileError(t("common.error"));
+			}
 			setRelinkDialogOpen(false);
 		} finally {
 			setRebinding(false);
@@ -132,11 +142,10 @@ const Profile = () => {
 				setRebindLink(null);
 				setRebindToken(null);
 				setRelinkDialogOpen(false);
+				setSuccess(t("profile.telegramRelinkSuccess"));
 			}
-		} catch {
-			// Continue polling
-		}
-	}, [rebindToken, updateUser]);
+		} catch {}
+	}, [rebindToken, updateUser, t]);
 
 	useEffect(() => {
 		if (!rebindToken) return;
@@ -156,10 +165,14 @@ const Profile = () => {
 				display_name: data.displayName || null,
 			};
 			await userService.updateProfile(updateData);
-			setSuccess("Profile updated successfully");
+			setSuccess(t("profile.profileUpdatedSuccess"));
 			fetchProfile();
-		} catch (err: any) {
-			setProfileError(err.message || "Failed to update profile");
+		} catch (err: unknown) {
+			if (err instanceof ApiError) {
+				setProfileError(err.message);
+			} else {
+				setProfileError(t("common.error"));
+			}
 		} finally {
 			setLoading(false);
 		}
@@ -172,15 +185,17 @@ const Profile = () => {
 		try {
 			const ok = await changePassword(data.oldPassword, data.newPassword);
 			if (ok) {
-				setSuccess("Password changed successfully");
+				setSuccess(t("profile.passwordUpdatedSuccess"));
 				resetPassword();
 			} else {
-				setPasswordError(
-					"Failed to change password. Check your current password.",
-				);
+				setPasswordError(t("profile.failedToChangePassword"));
 			}
-		} catch (err: any) {
-			setPasswordError(err.message || "Failed to change password");
+		} catch (err: unknown) {
+			if (err instanceof ApiError) {
+				setPasswordError(err.message);
+			} else {
+				setPasswordError(t("common.error"));
+			}
 		} finally {
 			setLoading(false);
 		}
@@ -198,8 +213,12 @@ const Profile = () => {
 			const response = await userService.startEmailChange(newEmail);
 			setMaskedPendingEmail(response.email);
 			setEmailStep("verify");
-		} catch (err: any) {
-			setEmailError(err.message || t("profile.failedToSendCode"));
+		} catch (err: unknown) {
+			if (err instanceof ApiError) {
+				setEmailError(err.message);
+			} else {
+				setEmailError(t("common.error"));
+			}
 		} finally {
 			setEmailLoading(false);
 		}
@@ -217,8 +236,12 @@ const Profile = () => {
 			setVerificationCode("");
 			setMaskedPendingEmail(null);
 			fetchProfile();
-		} catch (err: any) {
-			setEmailError(err.message || t("profile.failedToVerifyCode"));
+		} catch (err: unknown) {
+			if (err instanceof ApiError) {
+				setEmailError(err.message);
+			} else {
+				setEmailError(t("common.error"));
+			}
 		} finally {
 			setEmailLoading(false);
 		}
@@ -227,9 +250,7 @@ const Profile = () => {
 	const handleCancelEmailChange = async () => {
 		try {
 			await userService.cancelEmailChange();
-		} catch {
-			// Ignore errors
-		}
+		} catch {}
 		setEmailDialogOpen(false);
 		setEmailStep("input");
 		setNewEmail("");

@@ -48,7 +48,7 @@ describe("authService", () => {
 
 		it("should throw error on failed login", async () => {
 			server.use(
-				rest.post("/api/v1/auth/login", (req, res, ctx) => {
+				rest.post("/api/v1/auth/login", (_req, res, ctx) => {
 					return res(
 						ctx.status(401),
 						ctx.json({ detail: "Invalid credentials" }),
@@ -80,7 +80,7 @@ describe("authService", () => {
 
 		it("should throw error when registration start fails", async () => {
 			server.use(
-				rest.post("/api/v1/auth/register/start", (req, res, ctx) => {
+				rest.post("/api/v1/auth/register/start", (_req, res, ctx) => {
 					return res(
 						ctx.status(400),
 						ctx.json({ detail: "Username already exists" }),
@@ -136,7 +136,7 @@ describe("authService", () => {
 
 		it("should throw error when old password is incorrect", async () => {
 			server.use(
-				rest.post("/api/v1/auth/change-password", (req, res, ctx) => {
+				rest.post("/api/v1/auth/change-password", (_req, res, ctx) => {
 					return res(
 						ctx.status(400),
 						ctx.json({ detail: "Current password is incorrect" }),

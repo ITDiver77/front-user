@@ -21,7 +21,9 @@ export const rosePinkTheme = createTheme({
 		background: { default: "#FFF0F5", paper: "#FFFFFF" },
 		text: { primary: "#212121", secondary: "#757575" },
 	},
-	typography: { fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif' },
+	typography: {
+		fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+	},
 	shape: { borderRadius: 12 },
 	components: {
 		MuiCssBaseline: {
@@ -41,7 +43,11 @@ export const rosePinkTheme = createTheme({
 		},
 		MuiCard: {
 			styleOverrides: {
-				root: { borderRadius: 16, boxShadow: "0 2px 12px rgba(233, 30, 99, 0.15)", background: "#FFFFFF" },
+				root: {
+					borderRadius: 16,
+					boxShadow: "0 2px 12px rgba(233, 30, 99, 0.15)",
+					background: "#FFFFFF",
+				},
 			},
 		},
 		MuiPaper: {

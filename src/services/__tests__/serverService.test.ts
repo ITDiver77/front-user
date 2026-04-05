@@ -8,11 +8,7 @@ import {
 	vi,
 } from "vitest";
 import { serverService } from "../../services/serverService";
-import {
-	getCapturedRequests,
-	resetCapturedRequests,
-	server,
-} from "../../test/msw/handlers";
+import { resetCapturedRequests, server } from "../../test/msw/handlers";
 
 // Mock import.meta.env for axios
 vi.stubGlobal("importMeta", {

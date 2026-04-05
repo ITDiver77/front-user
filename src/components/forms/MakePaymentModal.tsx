@@ -103,7 +103,9 @@ const MakePaymentModal = ({
 					</span>
 				</Tooltip>
 				<Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
-					{t("modals.payForAllConnections", { count: activeConnections.length })}
+					{t("modals.payForAllConnections", {
+						count: activeConnections.length,
+					})}
 				</Typography>
 
 				<Divider sx={{ my: 2 }} />
@@ -136,8 +138,8 @@ const MakePaymentModal = ({
 						control={<Radio />}
 						label={
 							<>
-								6 ${t("modals.monthsOption")} — ${(monthlyTotal * 6).toFixed(2)} ₽
-								(-10% = ${getPrice(6, monthlyTotal).toFixed(2)} ₽)
+								6 ${t("modals.monthsOption")} — ${(monthlyTotal * 6).toFixed(2)}{" "}
+								₽ (-10% = ${getPrice(6, monthlyTotal).toFixed(2)} ₽)
 							</>
 						}
 					/>
@@ -146,8 +148,9 @@ const MakePaymentModal = ({
 						control={<Radio />}
 						label={
 							<>
-								12 ${t("modals.monthsOption")} — ${(monthlyTotal * 12).toFixed(2)} ₽
-								(-20% = ${getPrice(12, monthlyTotal).toFixed(2)} ₽)
+								12 ${t("modals.monthsOption")} — $
+								{(monthlyTotal * 12).toFixed(2)} ₽ (-20% = $
+								{getPrice(12, monthlyTotal).toFixed(2)} ₽)
 							</>
 						}
 					/>

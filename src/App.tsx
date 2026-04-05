@@ -15,7 +15,7 @@ const Layout = lazy(() => import("./components/Layout/Layout"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
+const _Dashboard = lazy(() => import("./pages/Dashboard"));
 const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
 const Instructions = lazy(() => import("./pages/Instructions"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -99,6 +99,14 @@ function AppRoutes() {
 						}
 					/>
 					<Route
+						path="/reset-password"
+						element={
+							<PageWrapper>
+								<ForgotPassword />
+							</PageWrapper>
+						}
+					/>
+					<Route
 						path="/"
 						element={
 							<PrivateRoute>
@@ -106,14 +114,7 @@ function AppRoutes() {
 							</PrivateRoute>
 						}
 					>
-						<Route
-							index
-							element={
-								<PageWrapper>
-									<Dashboard />
-								</PageWrapper>
-							}
-						/>
+						<Route index element={<Navigate to="/profile" replace />} />
 						<Route
 							path="payment-history"
 							element={
@@ -164,13 +165,13 @@ function AppContent() {
 }
 
 function App() {
- 	return (
- 		<LanguageProvider>
- 			<AuthProvider>
- 				<AppContent />
- 			</AuthProvider>
- 		</LanguageProvider>
- 	);
- }
+	return (
+		<LanguageProvider>
+			<AuthProvider>
+				<AppContent />
+			</AuthProvider>
+		</LanguageProvider>
+	);
+}
 
 export default App;

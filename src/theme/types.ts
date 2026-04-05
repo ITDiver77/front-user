@@ -131,7 +131,33 @@ export const cuteTransitions = {
 	slow: "0.5s ease",
 };
 
-export type ThemeName = "violet" | "teal" | "telegram" | "dark" | "darkBlue" | "darkPurple" | "darkTeal" | "amberGold" | "greenMint" | "rosePink" | "indigoSlate" | "orangeDeep" | "cyanBlue" | "redCrimson" | "limeGreen" | "brownCoffee" | "pinkPurple" | "greySteel" | "honey" | "ocean" | "lavender" | "sunset" | "coral" | "skyBlue" | "peach" | "sage";
+export type ThemeName =
+	| "violet"
+	| "teal"
+	| "telegram"
+	| "dark"
+	| "darkBlue"
+	| "darkPurple"
+	| "darkTeal"
+	| "amberGold"
+	| "greenMint"
+	| "rosePink"
+	| "indigoSlate"
+	| "orangeDeep"
+	| "cyanBlue"
+	| "redCrimson"
+	| "limeGreen"
+	| "brownCoffee"
+	| "pinkPurple"
+	| "greySteel"
+	| "honey"
+	| "ocean"
+	| "lavender"
+	| "sunset"
+	| "coral"
+	| "skyBlue"
+	| "peach"
+	| "sage";
 
 export type ThemeMode = "light" | "dark" | "system";
 

@@ -2,6 +2,49 @@
 
 ## [Unreleased]
 
+### Security & Code Quality (2026-04-05)
+
+#### Security
+- nginx.conf: Repeated all security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy, Content-Security-Policy) in static assets location block to prevent header override by nginx location inheritance
+- nginx.conf: Added HSTS header (Strict-Transport-Security)
+- Dockerfile: Fixed healthcheck from `localhost` to `127.0.0.1` (Alpine IPv6 resolution issue)
+
+#### Error Handling & Type Safety
+- src/services/api.ts: Added `ApiError` class, DEV-only logging, `isRedirecting` flag to prevent 401 race condition
+- All service files (authService, userService, paymentService): Replaced `error: any` / `error as any` with `unknown` type and proper `instanceof Error` checks
+- All modal components (ChangeServer, NewConnection, EditConnection, PaymentInitiation): Replaced `err: any` with typed error handling
+- Dashboard, Support, PaymentHistory, useConnectionStatus: Replaced `err: any` with typed error handling
+
+#### Shared Validation
+- src/utils/validation.ts: Extracted shared `passwordSchema` (8 chars min + uppercase + lowercase + number), `emailRegistrationSchema`, `newPasswordSchema`, `profileSchema`
+- Register.tsx: Replaced inline schema with shared `emailRegistrationSchema`
+- ForgotPassword.tsx: Replaced inline schema with shared `newPasswordSchema`
+- Profile.tsx: Added `profileSchema` with zodResolver to profile form
+
+#### i18n
+- en.ts: Added 12 new translation keys for profile/dashboard notifications
+- ru.ts: Added matching Russian translations for all 12 keys
+- Profile.tsx: Replaced hardcoded English strings with `t()` calls
+- Support.tsx: Fixed i18n import path
+
+#### React Best Practices
+- AuthContext.tsx: Memoized provider value with `useMemo`, imported `User` type instead of duplicating interface
+- Dashboard.tsx: Replaced 4 `alert()` calls with Snackbar notification system, memoized `hasPaidConnections` with `useMemo`
+- Profile.tsx: Wrapped `fetchProfile` in `useCallback`
+- Support.tsx: Wrapped `fetchConversations` in `useCallback`, fixed `substr` → `substring`
+- ChangeServerModal.tsx: Wrapped `fetchServers` in `useCallback`, fixed `useEffect` dependency order
+- useTelegramWebApp.ts: Added `offClick()` cleanup in `hideMainButton` and `hideBackButton`
+- main.tsx: Replaced non-null assertion with explicit null check for root element
+
+#### Code Cleanup
+- Register.tsx: Removed unused `_verifyCodeResponse` watcher, removed unused import
+- ForgotPassword.tsx: Removed unused `useEffect` import
+- EditConnectionModal.tsx: Removed unused `connectionService` import
+- PaymentInitiationModal.tsx: Removed unused `currentPrice` prop, renamed unused `errors` destructure
+- Removed 5 unused npm dependencies: `@tma.js/sdk`, `js-cookie`, `react-helmet-async`, `@mui/x-data-grid`, `@types/js-cookie`
+- vite.config.ts: Moved hardcoded origin URL to `VITE_ORIGIN` env variable, moved allowedHosts to `VITE_ALLOWED_HOSTS` env variable
+- public/vite.svg: Created VPN-themed SVG favicon (was missing, causing 404)
+
 ### Added
 - Multi-theme system with 25 themes (13 dark, 12 light)
 - New light themes: honey, ocean, lavender, sunset, coral, skyBlue, peach, sage
@@ -20,6 +63,7 @@
 - Warning alert shown when user without paid connections tries to create new connection
 - Connection management: max_connections slider (1-5 slots), slot-based pricing formula, soft delete with marked_for_deletion flag
 - NewConnectionModal: max_connections slider with real-time price calculation based on slot formula
+- Email change/update feature in Profile page: users can add or change email with 4-digit verification (API: POST /users/me/email/start, POST /users/me/email/verify, POST /users/me/email/cancel, GET /users/me/email/pending)
 
 ### Fixed
 - Docker file watcher issue (ENOSPC) by increasing fs.inotify.max_user_watches

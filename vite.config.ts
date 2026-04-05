@@ -20,29 +20,45 @@ export default defineConfig(({ mode }) => {
 		server: {
 			port: 9556,
 			host: true,
-			origin: "https://front-user.mythicuser.cloudns.nz",
-			allowedHosts: [
-				"front-user.mythicuser.cloudns.nz",
-				"devel.mythicuser.cloudns.nz",
-				"localhost",
-				".mythicuser.cloudns.nz",
-			],
+			origin: env.VITE_ORIGIN || "https://mythicalvpn.cloudns.nz",
+			allowedHosts: env.VITE_ALLOWED_HOSTS
+				? env.VITE_ALLOWED_HOSTS.split(",")
+				: [
+						"mythicalvpn.cloudns.nz",
+						"devel.mythicalvpn.cloudns.nz",
+						"portal.mythicalvpn.cloudns.nz",
+						"localhost",
+						".mythicalvpn.cloudns.nz",
+					],
 			proxy: proxyConfig,
 		},
 		preview: {
 			port: 9556,
 			host: true,
-			allowedHosts: [
-				"front-user.mythicuser.cloudns.nz",
-				"devel.mythicuser.cloudns.nz",
-				"localhost",
-				".mythicuser.cloudns.nz",
-			],
+			allowedHosts: env.VITE_ALLOWED_HOSTS
+				? env.VITE_ALLOWED_HOSTS.split(",")
+				: [
+						"mythicalvpn.cloudns.nz",
+						"devel.mythicalvpn.cloudns.nz",
+						"portal.mythicalvpn.cloudns.nz",
+						"localhost",
+						".mythicalvpn.cloudns.nz",
+					],
 			proxy: proxyConfig,
 		},
 		build: {
 			outDir: "dist",
-			sourcemap: true,
+			sourcemap: false,
+			minify: "esbuild",
+			rollupOptions: {
+				output: {
+					manualChunks: {
+						vendor: ["react", "react-dom", "react-router-dom"],
+						mui: ["@mui/material", "@mui/icons-material"],
+						forms: ["react-hook-form", "@hookform/resolvers", "zod"],
+					},
+				},
+			},
 		},
 	};
 });

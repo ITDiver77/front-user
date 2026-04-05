@@ -24,7 +24,9 @@ export const pinkPurpleTheme = createTheme({
 		},
 		text: { primary: "#FCE4EC", secondary: "#F48FB1" },
 	},
-	typography: { fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif' },
+	typography: {
+		fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+	},
 	shape: { borderRadius: 12 },
 	components: {
 		MuiCssBaseline: {
@@ -45,7 +47,11 @@ export const pinkPurpleTheme = createTheme({
 		},
 		MuiCard: {
 			styleOverrides: {
-				root: { borderRadius: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.3)", background: "#251820" },
+				root: {
+					borderRadius: 16,
+					boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+					background: "#251820",
+				},
 			},
 		},
 		MuiPaper: {

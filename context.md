@@ -127,5 +127,74 @@ npm install
 npm run dev        # Start on port 9556
 npm run build      # Production build
 npm run lint       # Biome check
-npm run typecheck  # TypeScript check
+```
+
+## Troubleshooting
+
+### "Blocked request. This host is not allowed"
+
+Vite 5+ blocks requests to unknown hosts (DNS rebinding protection). When accessing via hostname (e.g., `*.abrdns.com`, `*.duckdns.org`):
+
+**Solution:** Add hostname to `allowedHosts` in `vite.config.ts`:
+```typescript
+server: {
+  allowedHosts: ['srv9.mythservers.abrdns.com']
+}
+```
+
+### "Connection refused" to backend
+
+1. Backend running on port 8000
+2. Proxy configured in vite.config.ts
+3. CORS settings on backend
+
+### Docker ENOSPC error
+
+Increase fs.inotify.max_user_watches:
+```bash
+echo 524288 | sudo tee /proc/sys/fs/inotify/max_user_watches
+```
+
+## Maintenance Tasks
+
+### Adding New Allowed Host
+Edit `vite.config.ts`:
+```typescript
+server: {
+  allowedHosts: [
+    'srv9.mythservers.abrdns.com',  // existing
+    'new-host.ddns.net'              // add here
+  ]
+}
+```
+
+### Changing Port (9556)
+1. Update `vite.config.ts` → `server.port`
+2. Update `nginx.conf` → `listen 9556`
+3. Update `docker-compose.yml` → port mappings
+
+## Deployment Rules
+
+**CRITICAL: NEVER use `docker run` directly. Always use master compose.**
+
+```bash
+# Rebuild after code changes
+cd /root/vpn-manager && docker compose build --no-cache front-user && docker compose up -d --force-recreate front-user
+
+# Restart only (no code changes)
+cd /root/vpn-manager && docker compose restart front-user
+```
+
+## Deployment Rules
+
+**CRITICAL: NEVER use `docker run` directly. ALWAYS use master compose.**
+
+### Rebuild and rede user portal
+```bash
+cd /root/vpn-manager && docker compose build --no-cache front-user && docker compose up -d --force-recreate front-user
+```
+
+### Restart only (no code changes)
+```bash
+cd /root/vpn-manager && docker compose restart front-user
 ```

@@ -11,12 +11,13 @@ import {
 	FormControlLabel,
 	Grid,
 	IconButton,
+	Snackbar,
 	Switch,
 	Tooltip,
 	Typography,
 } from "@mui/material";
 import { motion } from "framer-motion";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ConnectionCard from "../components/common/ConnectionCard";
 import { EmptyState } from "../components/common/EmptyState";
 import ChangeServerModal from "../components/forms/ChangeServerModal";
@@ -24,6 +25,7 @@ import NewConnectionModal from "../components/forms/NewConnectionModal";
 import PaymentInitiationModal from "../components/forms/PaymentInitiationModal";
 import { useConnectionStatusContext } from "../contexts/ConnectionStatusContext";
 import { useLanguage } from "../i18n";
+import { ApiError } from "../services/api";
 import { connectionService } from "../services/connectionService";
 import { staggerContainer } from "../styles/animations";
 import type { Connection } from "../types/connection";
@@ -53,6 +55,11 @@ const Dashboard = () => {
 	const [showDeleted, setShowDeleted] = useState(false);
 	const [localError, setLocalError] = useState<string>("");
 	const [showNoPaidWarning, setShowNoPaidWarning] = useState(false);
+	const [snackbar, setSnackbar] = useState<{
+		open: boolean;
+		message: string;
+		severity: "success" | "error" | "info";
+	}>({ open: false, message: "", severity: "success" });
 
 	const loading = contextLoading;
 	const error = contextError || localError;
@@ -60,16 +67,24 @@ const Dashboard = () => {
 	const fetchConnections = useCallback(async () => {
 		try {
 			await refresh();
-		} catch (err: any) {
-			setLocalError(err.message || "Failed to fetch connections");
+		} catch (err: unknown) {
+			if (err instanceof ApiError) {
+				setLocalError(err.message || "Failed to fetch connections");
+			} else {
+				setLocalError("Failed to fetch connections");
+			}
 		}
 	}, [refresh]);
 
-	const hasPaidConnections = connections.some((conn) => {
-		if (conn.is_deleted) return false;
-		const payDate = new Date(conn.paydate);
-		return payDate > new Date();
-	});
+	const hasPaidConnections = useMemo(
+		() =>
+			connections.some((conn) => {
+				if (conn.is_deleted) return false;
+				const payDate = new Date(conn.paydate);
+				return payDate > new Date();
+			}),
+		[connections],
+	);
 
 	useEffect(() => {
 		fetchConnections();
@@ -82,8 +97,16 @@ const Dashboard = () => {
 		try {
 			await connectionService.toggleAutoRenew(connectionName, autoRenew);
 			fetchConnections();
-		} catch (err) {
-			console.error("Failed to toggle auto-renew", err);
+		} catch (err: unknown) {
+			if (err instanceof ApiError) {
+				setSnackbar({ open: true, message: err.message, severity: "error" });
+			} else {
+				setSnackbar({
+					open: true,
+					message: t("common.error"),
+					severity: "error",
+				});
+			}
 		}
 	};
 
@@ -98,10 +121,26 @@ const Dashboard = () => {
 	const handleRequestGrace = async (connectionName: string) => {
 		try {
 			const result = await connectionService.requestGrace(connectionName);
-			alert(result.message);
+			setSnackbar({
+				open: true,
+				message: result.message || t("dashboard.graceRequested"),
+				severity: "success",
+			});
 			fetchConnections();
-		} catch (err: any) {
-			alert(err.response?.data?.detail || "Failed to request grace period");
+		} catch (err: unknown) {
+			if (err instanceof ApiError) {
+				setSnackbar({
+					open: true,
+					message: t("dashboard.graceRequestFailed"),
+					severity: "error",
+				});
+			} else {
+				setSnackbar({
+					open: true,
+					message: t("common.error"),
+					severity: "error",
+				});
+			}
 		}
 	};
 
@@ -110,18 +149,52 @@ const Dashboard = () => {
 			await connectionService.updateMyConnection(connectionName, {
 				marked_for_deletion: true,
 			});
+			setSnackbar({
+				open: true,
+				message: t("dashboard.connectionDeleted"),
+				severity: "success",
+			});
 			fetchConnections();
-		} catch (err: any) {
-			alert(err.response?.data?.detail || "Failed to delete connection");
+		} catch (err: unknown) {
+			if (err instanceof ApiError) {
+				setSnackbar({
+					open: true,
+					message: t("dashboard.deleteConnection"),
+					severity: "error",
+				});
+			} else {
+				setSnackbar({
+					open: true,
+					message: t("common.error"),
+					severity: "error",
+				});
+			}
 		}
 	};
 
 	const handleCancelDeletion = async (connectionName: string) => {
 		try {
 			await connectionService.cancelDeletion(connectionName);
+			setSnackbar({
+				open: true,
+				message: t("dashboard.deletionCancelled"),
+				severity: "success",
+			});
 			fetchConnections();
-		} catch (err: any) {
-			alert(err.response?.data?.detail || "Failed to cancel deletion");
+		} catch (err: unknown) {
+			if (err instanceof ApiError) {
+				setSnackbar({
+					open: true,
+					message: t("dashboard.cancelDeletionFailed"),
+					severity: "error",
+				});
+			} else {
+				setSnackbar({
+					open: true,
+					message: t("common.error"),
+					severity: "error",
+				});
+			}
 		}
 	};
 
@@ -155,7 +228,6 @@ const Dashboard = () => {
 		setShowNewConnectionModal(true);
 	};
 
-	// Filter connections based on showDeleted toggle
 	const filteredConnections = showDeleted
 		? connections
 		: connections.filter((c) => !c.is_deleted);
@@ -344,6 +416,20 @@ const Dashboard = () => {
 					onSuccess={handlePaymentSuccess}
 				/>
 			)}
+
+			<Snackbar
+				open={snackbar.open}
+				autoHideDuration={4000}
+				onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+				anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+			>
+				<Alert
+					severity={snackbar.severity}
+					onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+				>
+					{snackbar.message}
+				</Alert>
+			</Snackbar>
 		</Box>
 	);
 };

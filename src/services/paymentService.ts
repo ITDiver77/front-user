@@ -1,3 +1,4 @@
+import type { AxiosError } from "axios";
 import type {
 	Payment,
 	PaymentInitiationRequest,
@@ -43,8 +44,8 @@ export const paymentService = {
 			return response.data;
 		} catch (error) {
 			console.error("Failed to initiate payment", error);
-			const e = error as any;
-			const status = e.status || e.response?.status;
+			const axiosErr = error as AxiosError;
+			const status = axiosErr.status || axiosErr.response?.status;
 			if (status === 402) {
 				throw new Error("Payment required: insufficient funds");
 			}
@@ -75,8 +76,8 @@ export const paymentService = {
 			return response.data;
 		} catch (error) {
 			console.error("Failed to fetch payment status", error);
-			const e = error as any;
-			const status = e.status || e.response?.status;
+			const axiosErr = error as AxiosError;
+			const status = axiosErr.status || axiosErr.response?.status;
 			if (status === 404) {
 				throw new Error("Payment not found");
 			}

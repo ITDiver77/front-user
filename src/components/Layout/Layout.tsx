@@ -2,39 +2,36 @@ import {
 	Chat as ChatIcon,
 	ChevronLeft as ChevronLeftIcon,
 	ChevronRight as ChevronRightIcon,
-	Dashboard as DashboardIcon,
-	Help as HelpIcon,
 	ExitToApp as LogoutIcon,
 	Menu as MenuIcon,
-	Payment as PaymentIcon,
 	Person as PersonIcon,
 } from "@mui/icons-material";
 import {
- 	AppBar,
- 	Avatar,
- 	Badge,
- 	BottomNavigation,
- 	BottomNavigationAction,
- 	Box,
- 	Button,
- 	CssBaseline,
- 	Divider,
- 	Drawer,
- 	IconButton,
- 	List,
- 	ListItem,
- 	ListItemButton,
- 	ListItemIcon,
- 	ListItemText,
- 	Menu,
- 	MenuItem,
- 	Paper,
- 	Toolbar,
- 	Tooltip,
- 	Typography,
- 	useMediaQuery,
- 	useTheme,
- } from "@mui/material";
+	AppBar,
+	Avatar,
+	Badge,
+	BottomNavigation,
+	BottomNavigationAction,
+	Box,
+	Button,
+	CssBaseline,
+	Divider,
+	Drawer,
+	IconButton,
+	List,
+	ListItem,
+	ListItemButton,
+	ListItemIcon,
+	ListItemText,
+	Menu,
+	MenuItem,
+	Paper,
+	Toolbar,
+	Tooltip,
+	Typography,
+	useMediaQuery,
+	useTheme,
+} from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -47,26 +44,23 @@ import { ThemeSelector } from "../common/ThemeSelector";
 const drawerWidth = 240;
 
 const Layout = () => {
- 	const theme = useTheme();
- 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
- 	const [drawerOpen, setDrawerOpen] = useState(!isMobile);
- 	const [bottomNavValue, setBottomNavValue] = useState(0);
- 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
- 	const [unreadCount, setUnreadCount] = useState(0);
- 	const { user, logout } = useAuth();
- 	const navigate = useNavigate();
- 	const location = useLocation();
- 	const { isTelegram, setHeaderColor, setBackgroundColor } =
- 		useTelegramWebApp();
- 	const { t, language, setLanguage } = useLanguage();
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+	const [drawerOpen, setDrawerOpen] = useState(!isMobile);
+	const [bottomNavValue, setBottomNavValue] = useState(0);
+	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const [unreadCount, setUnreadCount] = useState(0);
+	const { user, logout } = useAuth();
+	const navigate = useNavigate();
+	const location = useLocation();
+	const { isTelegram, setHeaderColor, setBackgroundColor } =
+		useTelegramWebApp();
+	const { t, language, setLanguage } = useLanguage();
 
- 	const menuItems = [
- 		{ text: t("nav.dashboard"), path: "/", icon: <DashboardIcon /> },
- 		{ text: t("nav.paymentHistory"), path: "/payment-history", icon: <PaymentIcon /> },
- 		{ text: t("nav.instructions"), path: "/instructions", icon: <HelpIcon /> },
- 		{ text: t("nav.profile"), path: "/profile", icon: <PersonIcon /> },
- 		{ text: t("nav.support"), path: "/support", icon: <ChatIcon /> },
- 	];
+	const menuItems = [
+		{ text: t("nav.profile"), path: "/profile", icon: <PersonIcon /> },
+		{ text: t("nav.support"), path: "/support", icon: <ChatIcon /> },
+	];
 
 	useEffect(() => {
 		if (isTelegram) {
@@ -276,18 +270,18 @@ const Layout = () => {
 							<MenuIcon />
 						</IconButton>
 					)}
-<Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
- 						{t("app.title")}
- 					</Typography>
-<ThemeSelector />
- 					<Button
- 						color="inherit"
- 						onClick={() => setLanguage(language === "ru" ? "en" : "ru")}
- 						sx={{ minWidth: "auto", px: 1 }}
- 					>
- 						{language === "ru" ? "EN" : "RU"}
- 					</Button>
- 					<IconButton onClick={handleMenuOpen} color="inherit">
+					<Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+						{t("app.title")}
+					</Typography>
+					<ThemeSelector />
+					<Button
+						color="inherit"
+						onClick={() => setLanguage(language === "ru" ? "en" : "ru")}
+						sx={{ minWidth: "auto", px: 1 }}
+					>
+						{language === "ru" ? "EN" : "RU"}
+					</Button>
+					<IconButton onClick={handleMenuOpen} color="inherit">
 						<Badge
 							badgeContent="!"
 							color="error"
@@ -325,18 +319,18 @@ const Layout = () => {
 					>
 						<MenuItem disabled>{user?.username}</MenuItem>
 						<Divider />
-<MenuItem onClick={() => handleNavigation("/profile", 3)}>
- 							<ListItemIcon>
- 								<PersonIcon fontSize="small" />
- 							</ListItemIcon>
- 							{t("nav.profile")}
- 						</MenuItem>
- 						<MenuItem onClick={handleLogout}>
- 							<ListItemIcon>
- 								<LogoutIcon fontSize="small" />
- 							</ListItemIcon>
- 							{t("nav.logout")}
- 						</MenuItem>
+						<MenuItem onClick={() => handleNavigation("/profile", 0)}>
+							<ListItemIcon>
+								<PersonIcon fontSize="small" />
+							</ListItemIcon>
+							{t("nav.profile")}
+						</MenuItem>
+						<MenuItem onClick={handleLogout}>
+							<ListItemIcon>
+								<LogoutIcon fontSize="small" />
+							</ListItemIcon>
+							{t("nav.logout")}
+						</MenuItem>
 					</Menu>
 				</Toolbar>
 			</AppBar>
@@ -349,7 +343,7 @@ const Layout = () => {
 							sx={{
 								width: drawerOpen ? drawerWidth : theme.spacing(7),
 								flexShrink: 0,
-								[`& .MuiDrawer-paper`]: {
+								"& .MuiDrawer-paper": {
 									width: drawerOpen ? drawerWidth : theme.spacing(7),
 									boxSizing: "border-box",
 									transition: theme.transitions.create("width", {
@@ -417,7 +411,7 @@ const Layout = () => {
 					<BottomNavigation
 						showLabels
 						value={bottomNavValue}
-						onChange={(event, newValue) => {
+						onChange={(_event, newValue) => {
 							setBottomNavValue(newValue);
 							handleNavigation(menuItems[newValue].path, newValue);
 						}}
@@ -444,9 +438,9 @@ const Layout = () => {
 					borderTop: `1px solid ${theme.palette.divider}`,
 				}}
 			>
-<Typography variant="body2" color="inherit">
- 					{t("app.footer")}
- 				</Typography>
+				<Typography variant="body2" color="inherit">
+					{t("app.footer")}
+				</Typography>
 			</Box>
 		</Box>
 	);

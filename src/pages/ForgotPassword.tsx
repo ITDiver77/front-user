@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle } from "@mui/icons-material";
 import {
 	Alert,
 	Box,
@@ -9,11 +10,10 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { CheckCircle } from "@mui/icons-material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link as RouterLink, useSearchParams } from "react-router-dom";
-import type { z } from "zod";
+import { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../i18n/LanguageContext";
 import { forgotPasswordSchema } from "../utils/validation";
@@ -192,7 +192,11 @@ const ForgotPassword = () => {
 								sx={{ mt: 3, mb: 2 }}
 								disabled={loading}
 							>
-								{loading ? <CircularProgress size={24} /> : t("auth.resetPasswordButton")}
+								{loading ? (
+									<CircularProgress size={24} />
+								) : (
+									t("auth.resetPasswordButton")
+								)}
 							</Button>
 						</Box>
 						<Box sx={{ textAlign: "center", mt: 2 }}>
@@ -253,7 +257,11 @@ const ForgotPassword = () => {
 							sx={{ mt: 3, mb: 2 }}
 							disabled={loading}
 						>
-							{loading ? <CircularProgress size={24} /> : t("auth.sendResetLink")}
+							{loading ? (
+								<CircularProgress size={24} />
+							) : (
+								t("auth.sendResetLink")
+							)}
 						</Button>
 					</Box>
 					<Box sx={{ textAlign: "center", mt: 2 }}>

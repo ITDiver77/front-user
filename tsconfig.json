@@ -21,7 +21,7 @@
 		"noFallthroughCasesInSwitch": true,
 
 		/* Type declaration files */
-		"types": ["vite/client"]
+		"types": ["vite/client", "vitest/globals"]
 	},
 	"include": ["src"]
 }

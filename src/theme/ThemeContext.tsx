@@ -1,5 +1,5 @@
-import { createTheme, type Theme, ThemeProvider } from "@mui/material/styles";
-import React, {
+import { type Theme, ThemeProvider } from "@mui/material/styles";
+import {
 	createContext,
 	type ReactNode,
 	useContext,
@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { amberGoldTheme } from "./themes/amberGold";
 import { brownCoffeeTheme } from "./themes/brownCoffee";
+import { coralTheme } from "./themes/coral";
 import { cyanBlueTheme } from "./themes/cyanBlue";
 import { darkBlueTheme } from "./themes/darkBlue";
 import { darkPurpleTheme } from "./themes/darkPurple";
@@ -21,17 +22,16 @@ import { lavenderTheme } from "./themes/lavender";
 import { limeGreenTheme } from "./themes/limeGreen";
 import { oceanTheme } from "./themes/ocean";
 import { orangeDeepTheme } from "./themes/orangeDeep";
+import { peachTheme } from "./themes/peach";
 import { pinkPurpleTheme } from "./themes/pinkPurple";
 import { redCrimsonTheme } from "./themes/redCrimson";
 import { rosePinkTheme } from "./themes/rosePink";
+import { sageTheme } from "./themes/sage";
+import { skyBlueTheme } from "./themes/skyBlue";
 import { sunsetTheme } from "./themes/sunset";
 import { tealTheme } from "./themes/teal";
 import { createTelegramTheme } from "./themes/telegram";
 import { violetTheme } from "./themes/violet";
-import { coralTheme } from "./themes/coral";
-import { skyBlueTheme } from "./themes/skyBlue";
-import { peachTheme } from "./themes/peach";
-import { sageTheme } from "./themes/sage";
 import type { TelegramThemeParams, ThemeName } from "./types";
 
 interface ThemeContextValue {
@@ -92,7 +92,9 @@ function detectTelegramTheme(): {
 		return { isTelegram: false, params: null, isDark: false };
 	}
 
-	const tg = (window as any).Telegram?.WebApp;
+	// biome-ignore lint/suspicious/noExplicitAny: Telegram WebApp global
+	const win = window as any;
+	const tg = win.Telegram?.WebApp;
 	if (!tg) {
 		return { isTelegram: false, params: null, isDark: false };
 	}
@@ -140,7 +142,9 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 
 	useEffect(() => {
 		// Listen for Telegram theme changes
-		const tg = (window as any).Telegram?.WebApp;
+		// biome-ignore lint/suspicious/noExplicitAny: Telegram WebApp global
+		const win = window as any;
+		const tg = win.Telegram?.WebApp;
 		if (tg?.onEvent) {
 			const handleThemeChange = () => {
 				const detected = detectTelegramTheme();

@@ -16,8 +16,8 @@ import {
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EmptyState } from "../components/common/EmptyState";
-import { useLanguage } from "../i18n/LanguageContext";
 import PaymentInitiationModal from "../components/forms/PaymentInitiationModal";
+import { useLanguage } from "../i18n/LanguageContext";
 import { connectionService } from "../services/connectionService";
 import { paymentService } from "../services/paymentService";
 import {
@@ -77,8 +77,10 @@ const PaymentHistory = () => {
 		try {
 			const response = await paymentService.getMyPayments();
 			setPayments(response.payments);
-		} catch (err: any) {
-			setError(err.message || t("paymentHistory.fetchFailed"));
+		} catch (err: unknown) {
+			const message =
+				err instanceof Error ? err.message : t("paymentHistory.fetchFailed");
+			setError(message);
 		} finally {
 			setLoading(false);
 		}
@@ -273,9 +275,15 @@ const PaymentHistory = () => {
 										}
 									>
 										<MenuItem value="ALL">{t("paymentHistory.all")}</MenuItem>
-										<MenuItem value="COMPLETED">{t("paymentHistory.completed")}</MenuItem>
-										<MenuItem value="PENDING">{t("paymentHistory.pending")}</MenuItem>
-										<MenuItem value="FAILED">{t("paymentHistory.failed")}</MenuItem>
+										<MenuItem value="COMPLETED">
+											{t("paymentHistory.completed")}
+										</MenuItem>
+										<MenuItem value="PENDING">
+											{t("paymentHistory.pending")}
+										</MenuItem>
+										<MenuItem value="FAILED">
+											{t("paymentHistory.failed")}
+										</MenuItem>
 									</Select>
 								</FormControl>
 								{hasActiveFilters && (
@@ -388,7 +396,9 @@ const PaymentHistory = () => {
 						<EmptyState
 							icon={<PaymentHistoryIcon />}
 							title={
-								hasActiveFilters ? t("paymentHistory.noMatchingPayments") : t("paymentHistory.noPayments")
+								hasActiveFilters
+									? t("paymentHistory.noMatchingPayments")
+									: t("paymentHistory.noPayments")
 							}
 							description={
 								hasActiveFilters
@@ -401,10 +411,7 @@ const PaymentHistory = () => {
 										{t("paymentHistory.clearFilters")}
 									</Button>
 								) : (
-									<Button
-										variant="contained"
-										onClick={handleOpenModal}
-									>
+									<Button variant="contained" onClick={handleOpenModal}>
 										{t("paymentHistory.makePayment")}
 									</Button>
 								)

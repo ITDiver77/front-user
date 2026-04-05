@@ -1,9 +1,4 @@
-import {
-	format,
-	isValid,
-	parseISO,
-	startOfDay,
-} from "date-fns";
+import { format, isValid, parseISO, startOfDay } from "date-fns";
 
 export const formatDate = (dateString: string, formatStr = "PP") => {
 	try {
@@ -16,7 +11,7 @@ export const formatDate = (dateString: string, formatStr = "PP") => {
 			return format(fallback, formatStr);
 		}
 		return dateString;
-	} catch (e) {
+	} catch (_e) {
 		return dateString;
 	}
 };
@@ -32,7 +27,7 @@ export const parseDate = (dateString: string): Date | null => {
 			return fallback;
 		}
 		return null;
-	} catch (e) {
+	} catch (_e) {
 		return null;
 	}
 };
@@ -46,7 +41,7 @@ export const getDaysRemaining = (paydate: string): number => {
 		const diffTime = payDateNormalized.getTime() - today.getTime();
 		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 		return diffDays >= 0 ? diffDays : 0;
-	} catch (e) {
+	} catch (_e) {
 		return 0;
 	}
 };
@@ -66,7 +61,9 @@ export const getConnectionStatus = (
 	return "expired";
 };
 
-export const getStatusColor = (status: "active" | "expired" | "disabled" | "grace") => {
+export const getStatusColor = (
+	status: "active" | "expired" | "disabled" | "grace",
+) => {
 	switch (status) {
 		case "active":
 			return "success";

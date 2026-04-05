@@ -30,6 +30,7 @@ Current tasks, planned features, and deferred work.
 - [x] Register.tsx: Fix polling race condition
 - [x] Profile.tsx: Wire relink dialog to backend (POST /users/me/telegram/rebind)
 - [x] NewConnectionModal: Dynamic pricing from API (GET /users/me/price)
+- [x] Profile page: Email change/update with verification (POST /users/me/email/start, /verify, /cancel, GET /pending)
 
 ### Support Chat
 - [x] Support page with 2 UI variants (Telegram-like and modern cards)

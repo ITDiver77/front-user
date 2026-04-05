@@ -36,9 +36,10 @@ import {
 	useTheme,
 } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { EmptyState } from "../components/common/EmptyState";
-import { useLanguage } from "../i18n/LanguageContext";
+import { useLanguage } from "../i18n";
+import { ApiError } from "../services/api";
 import { supportService } from "../services/supportService";
 import { pageVariants, staggerItem } from "../styles/animations";
 import type {
@@ -47,20 +48,18 @@ import type {
 	SupportMessage,
 } from "../types/support";
 
-// Chat UI Variant type
 type ChatVariant = "telegram" | "cards";
 
-// Get contrasting text color based on background
-const getContrastText = (backgroundColor: string): string => {
-	const hex = backgroundColor.replace("#", "");
-	const r = parseInt(hex.substr(0, 2), 16);
-	const g = parseInt(hex.substr(2, 2), 16);
-	const b = parseInt(hex.substr(4, 2), 16);
+const getContrastText = (hexColor: string): string => {
+	if (!hexColor || hexColor.length < 4) return "#ffffff";
+	const hex = hexColor.replace("#", "");
+	const r = Number.parseInt(hex.substring(0, 2), 16);
+	const g = Number.parseInt(hex.substring(3, 4), 16);
+	const b = Number.parseInt(hex.substring(5, 6), 16);
 	const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 	return luminance > 0.5 ? "#000000" : "#ffffff";
 };
 
-// Component for message bubble - Variant A (Telegram-like)
 const TelegramBubble = ({
 	message,
 	isUser,
@@ -73,16 +72,14 @@ const TelegramBubble = ({
 
 	const getBubbleStyles = () => {
 		if (isUser) {
-			const bg =
-				theme.palette.primary.dark || theme.palette.primary.main;
+			const bg = theme.palette.primary.dark || theme.palette.primary.main;
 			return {
 				backgroundColor: bg,
 				color: getContrastText(bg),
 			};
 		}
 		if (isFromSupport) {
-			const bg =
-				theme.palette.success.dark || theme.palette.success.main;
+			const bg = theme.palette.success.dark || theme.palette.success.main;
 			return {
 				backgroundColor: bg,
 				color: getContrastText(bg),
@@ -146,7 +143,6 @@ const TelegramBubble = ({
 	);
 };
 
-// Component for message bubble - Variant B (Modern Cards)
 const CardBubble = ({ message }: { message: SupportMessage }) => {
 	const { t } = useLanguage();
 	const theme = useTheme();
@@ -201,8 +197,8 @@ const CardBubble = ({ message }: { message: SupportMessage }) => {
 						borderColor: isFromSupport ? "success.main" : "primary.main",
 						color: getContrastText(
 							isFromSupport
-								? (theme.palette.success.dark || theme.palette.success.main)
-								: (theme.palette.primary.dark || theme.palette.primary.main),
+								? theme.palette.success.dark || theme.palette.success.main
+								: theme.palette.primary.dark || theme.palette.primary.main,
 						),
 						maxWidth: "85%",
 					}}
@@ -219,7 +215,6 @@ const CardBubble = ({ message }: { message: SupportMessage }) => {
 	);
 };
 
-// New Conversation Dialog
 interface NewConversationDialogProps {
 	open: boolean;
 	onClose: () => void;
@@ -248,8 +243,9 @@ const NewConversationDialog = ({
 			onCreated(conversation);
 			setMessage("");
 			onClose();
-		} catch (err: any) {
-			const errorMessage = err?.message || t("support.ticketCreateFailed");
+		} catch (err: unknown) {
+			const errorMessage =
+				err instanceof ApiError ? err.message : t("support.ticketCreateFailed");
 			setError(errorMessage);
 		} finally {
 			setLoading(false);
@@ -303,13 +299,11 @@ const NewConversationDialog = ({
 	);
 };
 
-// Main Support Page
 const Support = () => {
 	const { t } = useLanguage();
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-	// State
 	const [conversations, setConversations] = useState<ConversationListItem[]>(
 		[],
 	);
@@ -324,49 +318,47 @@ const Support = () => {
 
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
-	// Fetch conversations
-	const fetchConversations = async () => {
+	const fetchConversations = useCallback(async () => {
 		try {
 			const data = await supportService.getConversations();
 			setConversations(data);
-		} catch (err) {
-			console.error("Failed to fetch conversations:", err);
+		} catch (err: unknown) {
+			if (import.meta.env.DEV) {
+				console.error("Failed to fetch conversations:", err);
+			}
 		}
-	};
+	}, []);
 
-	// Fetch initial data
 	useEffect(() => {
 		const init = async () => {
 			setLoading(true);
 			setError("");
 			try {
 				await fetchConversations();
-			} catch (err: any) {
-				const errorMessage = err?.message || t("support.loadFailed");
+			} catch (err: unknown) {
+				const errorMessage =
+					err instanceof ApiError ? err.message : t("support.loadFailed");
 				setError(errorMessage);
 			} finally {
 				setLoading(false);
 			}
 		};
 		init();
-	}, [t]);
+	}, [fetchConversations, t]);
 
-	// Auto-scroll to bottom when messages change
 	useEffect(() => {
 		if (selectedConversation?.messages) {
 			messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 		}
 	}, [selectedConversation?.messages]);
 
-	// Auto-refresh conversations every 30 seconds
 	useEffect(() => {
 		const interval = setInterval(() => {
 			fetchConversations();
 		}, 30000);
 		return () => clearInterval(interval);
-	}, []);
+	}, [fetchConversations]);
 
-	// Select conversation
 	const handleSelectConversation = async (id: number) => {
 		try {
 			const conversation = await supportService.getConversation(id);
@@ -377,13 +369,18 @@ const Support = () => {
 				),
 			);
 			window.dispatchEvent(new CustomEvent("support-messages-read"));
-		} catch (err: any) {
-			console.error("Failed to load conversation:", err);
-			setError(err?.message || t("support.loadConversationFailed"));
+		} catch (err: unknown) {
+			if (import.meta.env.DEV) {
+				console.error("Failed to load conversation:", err);
+			}
+			const errorMessage =
+				err instanceof ApiError
+					? err.message
+					: t("support.loadConversationFailed");
+			setError(errorMessage);
 		}
 	};
 
-	// Send message
 	const handleSendMessage = async () => {
 		if (!newMessage.trim() || !selectedConversation) return;
 
@@ -399,15 +396,18 @@ const Support = () => {
 			setSelectedConversation(updated);
 			setNewMessage("");
 			fetchConversations();
-		} catch (err: any) {
-			console.error("Failed to send message:", err);
-			setError(err?.message || t("support.sendMessageFailed"));
+		} catch (err: unknown) {
+			if (import.meta.env.DEV) {
+				console.error("Failed to send message:", err);
+			}
+			const errorMessage =
+				err instanceof ApiError ? err.message : t("support.sendMessageFailed");
+			setError(errorMessage);
 		} finally {
 			setSending(false);
 		}
 	};
 
-	// Close conversation
 	const handleCloseConversation = async () => {
 		if (!selectedConversation) return;
 
@@ -417,12 +417,13 @@ const Support = () => {
 			);
 			setSelectedConversation(updated);
 			fetchConversations();
-		} catch (err) {
-			console.error("Failed to close conversation:", err);
+		} catch (err: unknown) {
+			if (import.meta.env.DEV) {
+				console.error("Failed to close conversation:", err);
+			}
 		}
 	};
 
-	// Delete conversation
 	const handleDeleteConversation = async () => {
 		if (!selectedConversation) return;
 
@@ -430,14 +431,14 @@ const Support = () => {
 			await supportService.deleteConversation(selectedConversation.id);
 			setSelectedConversation(null);
 			fetchConversations();
-		} catch (err) {
-			console.error("Failed to delete conversation:", err);
+		} catch (err: unknown) {
+			if (import.meta.env.DEV) {
+				console.error("Failed to delete conversation:", err);
+			}
 		}
 	};
 
-	// Handle new conversation created
 	const handleConversationCreated = (conversation: SupportConversation) => {
-		// Convert SupportConversation to ConversationListItem for the list
 		const listItem: ConversationListItem = {
 			id: conversation.id,
 			user_id: conversation.user_id,
@@ -451,7 +452,6 @@ const Support = () => {
 		setSelectedConversation(conversation);
 	};
 
-	// Handle key press in message input
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
@@ -459,7 +459,6 @@ const Support = () => {
 		}
 	};
 
-	// Format date for conversation list
 	const formatDate = (dateString: string | null) => {
 		if (!dateString) return "";
 		const date = new Date(dateString);
@@ -481,7 +480,6 @@ const Support = () => {
 		}
 	};
 
-	// Render message bubbles based on variant
 	const renderMessage = (message: SupportMessage, isUser: boolean) => {
 		if (chatVariant === "telegram") {
 			return (
@@ -491,7 +489,6 @@ const Support = () => {
 		return <CardBubble key={message.id} message={message} />;
 	};
 
-	// Loading state
 	if (loading) {
 		return (
 			<Box
@@ -514,7 +511,6 @@ const Support = () => {
 					flexDirection: "column",
 				}}
 			>
-				{/* Header */}
 				<Box
 					sx={{
 						display: "flex",
@@ -561,7 +557,6 @@ const Support = () => {
 					</Alert>
 				)}
 
-				{/* Main Content */}
 				<Paper
 					elevation={0}
 					sx={{
@@ -574,7 +569,6 @@ const Support = () => {
 						bgcolor: "background.paper",
 					}}
 				>
-					{/* Conversations Sidebar */}
 					{(!isMobile || !selectedConversation) && (
 						<Box
 							sx={{
@@ -709,7 +703,6 @@ const Support = () => {
 						</Box>
 					)}
 
-					{/* Chat Area */}
 					{(!isMobile || selectedConversation) && (
 						<Box
 							sx={{
@@ -721,7 +714,6 @@ const Support = () => {
 						>
 							{selectedConversation ? (
 								<>
-									{/* Chat Header */}
 									<Box
 										sx={{
 											p: 2,
@@ -780,7 +772,6 @@ const Support = () => {
 										</Box>
 									</Box>
 
-									{/* Messages */}
 									<Box
 										sx={{
 											flex: 1,
@@ -800,7 +791,6 @@ const Support = () => {
 										<div ref={messagesEndRef} />
 									</Box>
 
-									{/* Message Input */}
 									{selectedConversation.status === "open" ? (
 										<Box
 											sx={{
@@ -888,7 +878,6 @@ const Support = () => {
 					)}
 				</Paper>
 
-				{/* New Conversation Dialog */}
 				<NewConversationDialog
 					open={showNewDialog}
 					onClose={() => setShowNewDialog(false)}
