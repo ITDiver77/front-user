@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### 2026-04-05
+- Added /auth/callback public route to App.tsx — lazy-loaded AuthCallback page for token-based auto-login
 - Created AuthCallback.tsx page — reads token from URL params, exchanges for JWT via loginByToken, sets auth state and redirects to dashboard
 - Added `loginByToken()` method to authService.ts — calls POST /auth/login-by-token, returns LoginByTokenResponse
 

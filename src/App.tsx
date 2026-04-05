@@ -20,6 +20,7 @@ const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
 const Instructions = lazy(() => import("./pages/Instructions"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Support = lazy(() => import("./pages/Support"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
 	<motion.div
@@ -103,6 +104,14 @@ function AppRoutes() {
 						element={
 							<PageWrapper>
 								<ForgotPassword />
+							</PageWrapper>
+						}
+					/>
+					<Route
+						path="/auth/callback"
+						element={
+							<PageWrapper>
+								<AuthCallback />
 							</PageWrapper>
 						}
 					/>

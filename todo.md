@@ -8,7 +8,7 @@ Current tasks, planned features, and deferred work.
 - [ ] Add `LoginByTokenResponse` type to `src/types/user.ts` — `{ access_token: string; username: string }`
 - [x] Add `loginByToken(loginToken)` method to `src/services/authService.ts` — POST `/auth/login-by-token`
 - [x] Create `src/pages/AuthCallback.tsx` — read `?token=` from URL, call `loginByToken`, on success `setAuthFromToken` + redirect `/`, on failure redirect `/login`
-- [ ] Add `/auth/callback` route to `src/App.tsx` — lazy-loaded AuthCallback page
+- [x] Add `/auth/callback` route to `src/App.tsx` — lazy-loaded AuthCallback page
 
 ### Security Fixes (P0/P1)
 - [x] AuthContext: Remove client-side JWT parsing, use /users/me API instead
