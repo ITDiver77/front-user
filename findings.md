@@ -10,3 +10,7 @@ Front-end code review findings for token-based auto-login implementation.
 ## FU-3: App.tsx route (2026-04-05)
 
 - Pre-existing: `_Dashboard` import on line 18 is unused (prefixed with `_`). Not related to this change. Not fixed.
+
+## FIX-1: getContrastText() hex parsing (2026-04-05)
+
+- No remaining issues. Fix was straightforward substring index correction.
