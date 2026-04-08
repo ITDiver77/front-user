@@ -446,7 +446,6 @@ const Support = () => {
 			created_at: conversation.created_at,
 			updated_at: conversation.updated_at,
 			last_message: conversation.messages?.[0]?.message || null,
-			last_message_at: conversation.messages?.[0]?.created_at || null,
 		};
 		setConversations((prev) => [listItem, ...prev]);
 		setSelectedConversation(conversation);
@@ -691,7 +690,7 @@ const Support = () => {
 															}
 														/>
 														<Typography variant="caption" color="text.disabled">
-															{formatDate(conv.last_message_at)}
+															{formatDate(conv.updated_at)}
 														</Typography>
 													</ListItemButton>
 												</ListItem>

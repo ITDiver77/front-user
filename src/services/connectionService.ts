@@ -15,7 +15,7 @@ export const connectionService = {
 	// Get connection by name (must belong to current user)
 	getConnection: async (connectionName: string) => {
 		const response = await api.get<Connection>(
-			`/connections/${connectionName}`,
+			`/connections/my/${connectionName}`,
 		);
 		return response.data;
 	},
@@ -23,7 +23,7 @@ export const connectionService = {
 	// Create connection for current user
 	createConnection: async (connectionData: ConnectionCreateRequest) => {
 		const response = await api.post<Connection>(
-			"/connections/",
+			"/connections/my",
 			connectionData,
 		);
 		return response.data;
@@ -35,15 +35,14 @@ export const connectionService = {
 		connectionData: ConnectionUpdateRequest,
 	) => {
 		const response = await api.put<Connection>(
-			`/connections/${connectionName}`,
+			`/connections/my/${connectionName}`,
 			connectionData,
 		);
 		return response.data;
 	},
 
-	// Delete connection (must belong to current user)
 	deleteConnection: async (connectionName: string) => {
-		await api.delete(`/connections/${connectionName}`);
+		await api.delete(`/connections/my/${connectionName}`);
 	},
 
 	// Toggle auto-renew (dedicated endpoint - does NOT affect VPN connection state)
@@ -60,7 +59,7 @@ export const connectionService = {
 	// Toggle enabled/disabled state
 	toggleEnabled: async (connectionName: string, enabled: boolean) => {
 		const response = await api.put<Connection>(
-			`/connections/${connectionName}`,
+			`/connections/my/${connectionName}`,
 			{ enabled },
 		);
 		return response.data;
@@ -69,7 +68,7 @@ export const connectionService = {
 	// Change server for connection
 	changeServer: async (connectionName: string, newServerName: string) => {
 		const response = await api.post<Connection>(
-			`/connections/${connectionName}/change-server`,
+			`/connections/my/${connectionName}/change-server`,
 			{ new_server_name: newServerName },
 		);
 		return response.data;

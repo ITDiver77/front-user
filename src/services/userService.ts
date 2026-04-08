@@ -29,7 +29,7 @@ export const userService = {
 
 	/**
 	 * Update current user profile
-	 * @param {UserUpdateRequest} data - Profile update data (telegram_id)
+	 * @param {UserUpdateRequest} data - Profile update data (first_name, last_name, display_name)
 	 * @returns {Promise<User>} Updated user data
 	 * @throws {Error} When network error, API error, or validation fails
 	 */

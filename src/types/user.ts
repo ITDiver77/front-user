@@ -17,7 +17,6 @@ export interface UserUpdateRequest {
 	first_name?: string | null;
 	last_name?: string | null;
 	display_name?: string | null;
-	telegram_id?: number | null;
 }
 
 export interface TelegramRegisterResponse {
@@ -59,8 +58,6 @@ export interface EmailVerificationResponse {
 }
 
 export interface TelegramRebindResponse {
-	success: boolean;
-	rebind_token: string;
 	link: string;
 }
 
@@ -82,7 +79,7 @@ export interface ConnectionsUsedResponse {
 
 export interface StartEmailChangeResponse {
 	message: string;
-	email: string;
+	new_email: string;
 }
 
 export interface VerifyEmailChangeResponse {
@@ -91,7 +88,12 @@ export interface VerifyEmailChangeResponse {
 }
 
 export interface PendingEmailChangeResponse {
-	pending: boolean;
-	email?: string;
-	expires_at?: string;
+	has_pending_change: boolean;
+	new_email: string | null;
+	expires_at: string | null;
+}
+
+export interface LoginByTokenResponse {
+	access_token: string;
+	username: string;
 }

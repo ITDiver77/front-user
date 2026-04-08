@@ -20,12 +20,15 @@ export interface SupportConversation {
 export interface ConversationListItem {
 	id: number;
 	user_id: number;
+	username?: string | null;
+	first_name?: string | null;
+	last_name?: string | null;
 	status: "open" | "closed";
 	created_at: string;
 	updated_at: string;
 	last_message: string | null;
-	last_message_at: string | null;
 	has_unread_answers?: boolean;
+	deleted_for_user?: boolean;
 }
 
 export interface CreateConversationRequest {

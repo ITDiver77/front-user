@@ -21,7 +21,6 @@ import type { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../i18n";
 import { ApiError } from "../services/api";
-import { authService } from "../services/authService";
 import { userService } from "../services/userService";
 import type { User, UserUpdateRequest } from "../types/user";
 import {
@@ -46,7 +45,6 @@ const Profile = () => {
 	const [relinkDialogOpen, setRelinkDialogOpen] = useState(false);
 	const [linkDialogOpen, setLinkDialogOpen] = useState(false);
 	const [rebindLink, setRebindLink] = useState<string | null>(null);
-	const [rebindToken, setRebindToken] = useState<string | null>(null);
 	const [rebinding, setRebinding] = useState(false);
 	const [emailDialogOpen, setEmailDialogOpen] = useState(false);
 	const [emailStep, setEmailStep] = useState<"input" | "verify">("input");
@@ -117,7 +115,6 @@ const Profile = () => {
 		try {
 			const response = await userService.rebindTelegram();
 			setRebindLink(response.link);
-			setRebindToken(response.rebind_token);
 		} catch (err: unknown) {
 			if (err instanceof ApiError) {
 				setProfileError(err.message);
@@ -129,30 +126,6 @@ const Profile = () => {
 			setRebinding(false);
 		}
 	};
-
-	const pollRebindStatus = useCallback(async () => {
-		if (!rebindToken) return;
-
-		try {
-			const status = await authService.getRegistrationStatus(rebindToken);
-			if (status.status === "completed") {
-				const data = await userService.getMyProfile();
-				setProfile(data);
-				updateUser({ telegram_verified: data.telegram_verified });
-				setRebindLink(null);
-				setRebindToken(null);
-				setRelinkDialogOpen(false);
-				setSuccess(t("profile.telegramRelinkSuccess"));
-			}
-		} catch {}
-	}, [rebindToken, updateUser, t]);
-
-	useEffect(() => {
-		if (!rebindToken) return;
-
-		const interval = setInterval(pollRebindStatus, 3000);
-		return () => clearInterval(interval);
-	}, [rebindToken, pollRebindStatus]);
 
 	const onProfileSubmit = async (data: ProfileFormData) => {
 		setLoading(true);
@@ -211,7 +184,7 @@ const Profile = () => {
 		setEmailError("");
 		try {
 			const response = await userService.startEmailChange(newEmail);
-			setMaskedPendingEmail(response.email);
+			setMaskedPendingEmail(response.new_email);
 			setEmailStep("verify");
 		} catch (err: unknown) {
 			if (err instanceof ApiError) {
@@ -574,7 +547,6 @@ const Profile = () => {
 						onClick={() => {
 							setRelinkDialogOpen(false);
 							setRebindLink(null);
-							setRebindToken(null);
 						}}
 					>
 						{rebindLink ? t("common.close") : t("common.cancel")}

@@ -20,11 +20,22 @@ Current tasks, planned features, and deferred work.
 - [x] Implement seamless registration between frontend and bot
 - [ ] Test registration flow end-to-end
 
+### API Contract Alignment (2026-04-08)
+- [x] Connection type: added subscription_url, subscription_token, status fields
+- [x] Copy button: use subscription_url (always available) instead of connection_string
+- [x] ConnectionDetailsModal: show subscription URL section
+- [x] connectionService: all methods use user-scoped /connections/my/ routes
+- [x] Types aligned: PendingEmailChangeResponse, TelegramRebindResponse, ConversationListItem
+- [x] Types cleaned: removed price from ConnectionUpdateRequest, telegram_id from UserUpdateRequest
+- [x] Types: StartEmailChangeResponse field renamed email → new_email
+- [x] Profile.tsx: cleaned up dead rebindToken polling code
+- [x] MSW mocks: aligned with backend response shapes
+
 ### Completed
 - [x] Fix registration to point to correct bot (@Myth_vpnbot)
 - [x] Register.tsx - add password fields + toggle for Telegram vs password registration
 - [x] Backend integration when `/connections/my` and `/users/me` are ready
-- [x] Connection string copy functionality (after backend adds field)
+- [x] Connection string copy functionality (now uses subscription_url)
 - [x] Auto-renew toggle UI (after backend adds field)
 - [x] Server change functionality (after backend endpoint ready)
 - [x] Multi-theme system (Violet, Teal, Telegram, Light)
@@ -79,7 +90,10 @@ Current tasks, planned features, and deferred work.
 ## Low Priority / Backlog
 
 - [ ] Mobile app (PWA)
-- [ ] Referral program UI
+- [ ] Referral program UI (backend endpoint: GET /users/me/referrals)
+- [ ] Re-enable connection (backend endpoint: POST /connections/my/{name}/reenable)
+- [ ] Available inbounds UI (backend endpoint: GET /connections/my/{name}/available-inbounds)
+- [ ] Switch inbound protocol (backend endpoint: POST /connections/my/{name}/switch-inbound)
 - [ ] Multi-language support
 
 ## Dependencies

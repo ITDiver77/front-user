@@ -37,6 +37,7 @@ import {
 	pulseVariants,
 } from "../../styles/animations";
 import type { Connection } from "../../types/connection";
+import { getCopyValue } from "../../utils/connectionHelpers";
 import {
 	formatDate,
 	getConnectionStatus,
@@ -110,8 +111,9 @@ const ConnectionCard = ({
 	};
 
 	const handleCopyConfig = () => {
-		if (connection.connection_string) {
-			navigator.clipboard.writeText(connection.connection_string).then(() => {
+		const value = getCopyValue(connection);
+		if (value) {
+			navigator.clipboard.writeText(value).then(() => {
 				setCopySuccess(true);
 				setTimeout(() => setCopySuccess(false), 2000);
 			});

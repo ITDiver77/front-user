@@ -107,6 +107,27 @@ const ConnectionDetailsModal = ({
 
 				<Divider sx={{ my: 2 }} />
 
+				{connection.subscription_url && (
+					<>
+						<Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+							Subscription URL:
+						</Typography>
+						<Typography
+							variant="body2"
+							sx={{
+								fontFamily: "monospace",
+								backgroundColor: "action.hover",
+								p: 1,
+								borderRadius: 1,
+								wordBreak: "break-all",
+								mb: 2,
+							}}
+						>
+							{connection.subscription_url}
+						</Typography>
+					</>
+				)}
+
 				<Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
 					{t("connectionCard.connectionString")}:
 				</Typography>

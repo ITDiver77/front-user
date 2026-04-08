@@ -130,7 +130,7 @@ const NewConnectionModal = ({
 				server_name: data.serverName,
 				months: data.months,
 				payment_method: "card",
-				max_connections: maxConnections,
+				amount: totalPrice,
 			});
 
 			if (paymentResponse.redirect_url) {

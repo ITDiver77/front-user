@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### 2026-04-08
+- Aligned all frontend types and API services with central_manager backend contract after gRPC agent migration
+- Connection type: added `subscription_url`, `subscription_token`, `status` fields from backend response
+- Copy button: now uses `subscription_url` (always available) instead of `connection_string` (often null during async ops)
+- ConnectionDetailsModal: shows subscription URL section when available
+- connectionService: fixed `changeServer` to use user-scoped endpoint (`/connections/my/{name}/change-server`)
+- connectionService: aligned all methods to user-scoped routes (`/connections/my/...`) instead of admin routes
+- Types: `PendingEmailChangeResponse` now uses `has_pending_change`/`new_email` matching backend field names
+- Types: `TelegramRebindResponse` now only has `link` (backend doesn't return `success`/`rebind_token`)
+- Types: `ConversationListItem` added `username`, `first_name`, `last_name`, `deleted_for_user`; removed non-existent `last_message_at`
+- Types: removed `price` from `ConnectionUpdateRequest` (only admin can set price)
+- Types: removed `telegram_id` from `UserUpdateRequest` (uses dedicated rebind flow)
+- Types: added `max_connections` to `ConnectionCreateRequest`; removed `username`/`index` from `ConnectionUpdateRequest`
+- Types: `StartEmailChangeResponse` field renamed `email` → `new_email` to match backend
+- Profile.tsx: cleaned up dead `rebindToken` polling code (backend rebind no longer uses token-based status)
+- MSW mocks: fixed `connections-used` response to use `used` instead of `connections_used`; added `subscription_token`, `subscription_url`, `status` to mock connections
+
 ### 2026-04-05
 - Implemented save credentials feature on Login page — checkbox defaults to enabled, saves username+password to localStorage (base64 encoded) on successful login, auto-fills on next visit. Unchecking clears stored credentials.
 - Fixed hardcoded colors in Support.tsx — replaced #e8f0fe with grey.100, grey.300/500 with action.disabled tokens, grey.50 with grey.100 for dark theme compatibility

@@ -6,21 +6,20 @@ const mockImportMeta = {
 
 globalThis.importMeta = mockImportMeta;
 
-// Mock window.location
-Object.defineProperty(window, "location", {
-	value: {
-		href: "",
-		pathname: "/",
-		assign: vi.fn(),
-	},
-	writable: true,
-});
+delete (globalThis as Record<string, unknown>).XMLHttpRequest;
 
-// Mock window.location.href setter
+const locationMock = {
+	href: "",
+	pathname: "/",
+	assign: vi.fn(),
+};
+
 Object.defineProperty(window, "location", {
+	get: () => locationMock,
 	set: (value: string) => {
-		window.location.href = value;
+		locationMock.href = value;
 	},
+	configurable: true,
 });
 
 // Mock localStorage

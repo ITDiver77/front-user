@@ -3,7 +3,7 @@ export interface Connection {
 	username: string;
 	index: number;
 	connection_name: string;
-	short_id: string;
+	client_uuid: string;
 	price: number;
 	paydate: string;
 	grace_date: string | null;
@@ -17,25 +17,24 @@ export interface Connection {
 	deleted_at?: string | null;
 	max_connections?: number;
 	marked_for_deletion?: boolean;
+	subscription_token?: string;
+	subscription_url?: string | null;
+	status?: string;
 }
 
 export interface ConnectionCreateRequest {
 	username?: string;
 	index?: number;
-	short_id?: string;
-	price?: number;
 	paydate?: string;
 	enabled?: boolean;
 	connection_string?: string;
 	auto_renew?: boolean;
 	server_name?: string;
+	max_connections?: number;
 }
 
 export interface ConnectionUpdateRequest {
-	username?: string;
 	index?: number;
-	short_id?: string;
-	price?: number;
 	paydate?: string;
 	enabled?: boolean;
 	is_active?: boolean;

@@ -1,29 +1,64 @@
-import {
-	afterAll,
-	beforeAll,
-	beforeEach,
-	describe,
-	expect,
-	it,
-	vi,
-} from "vitest";
-import { serverService } from "../../services/serverService";
-import { resetCapturedRequests, server } from "../../test/msw/handlers";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock import.meta.env for axios
-vi.stubGlobal("importMeta", {
-	env: { VITE_API_BASE_URL: "http://localhost:8000/api/v1" },
-});
+vi.mock("../api", () => ({
+	default: {
+		get: vi.fn(),
+		post: vi.fn(),
+		put: vi.fn(),
+		delete: vi.fn(),
+	},
+	ApiError: class ApiError extends Error {
+		status?: number;
+		data?: unknown;
+		constructor(status: number | undefined, message: string, data?: unknown) {
+			super(message);
+			this.name = "ApiError";
+			this.status = status;
+			this.data = data;
+		}
+	},
+}));
+
+import api from "../api";
+import { serverService } from "../serverService";
+
+const mockApi = api as any;
+
+const mockServers = [
+	{
+		id: 1,
+		name: "US-West",
+		host: "us.example.com",
+		port: 51820,
+		api_key: "",
+		region: "US",
+		is_default: true,
+		max_users: 100,
+		is_active: true,
+		created_at: "",
+	},
+	{
+		id: 2,
+		name: "EU-Central",
+		host: "eu.example.com",
+		port: 51820,
+		api_key: "",
+		region: "EU",
+		is_default: false,
+		max_users: 100,
+		is_active: true,
+		created_at: "",
+	},
+];
 
 describe("serverService", () => {
-	beforeAll(() => server.listen());
-	afterAll(() => server.close());
 	beforeEach(() => {
-		resetCapturedRequests();
+		vi.clearAllMocks();
 	});
 
 	describe("getActiveServers", () => {
 		it("should fetch list of active servers", async () => {
+			mockApi.get.mockResolvedValue({ data: mockServers });
 			const servers = await serverService.getActiveServers();
 
 			expect(servers).toHaveLength(2);
@@ -35,6 +70,7 @@ describe("serverService", () => {
 		});
 
 		it("should include region and other server details", async () => {
+			mockApi.get.mockResolvedValue({ data: mockServers });
 			const servers = await serverService.getActiveServers();
 
 			expect(servers[0].region).toBe("US");
@@ -46,6 +82,7 @@ describe("serverService", () => {
 
 	describe("getServer", () => {
 		it("should fetch server by name", async () => {
+			mockApi.get.mockResolvedValue({ data: mockServers[0] });
 			const server = await serverService.getServer("US-West");
 
 			expect(server.name).toBe("US-West");
@@ -53,6 +90,7 @@ describe("serverService", () => {
 		});
 
 		it("should throw error for non-existent server", async () => {
+			mockApi.get.mockRejectedValue(new Error("Not found"));
 			await expect(serverService.getServer("NonExistent")).rejects.toThrow();
 		});
 	});
