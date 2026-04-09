@@ -90,10 +90,10 @@ Current tasks, planned features, and deferred work.
 ## Low Priority / Backlog
 
 - [ ] Mobile app (PWA)
-- [ ] Referral program UI (backend endpoint: GET /users/me/referrals)
-- [ ] Re-enable connection (backend endpoint: POST /connections/my/{name}/reenable)
-- [ ] Available inbounds UI (backend endpoint: GET /connections/my/{name}/available-inbounds)
-- [ ] Switch inbound protocol (backend endpoint: POST /connections/my/{name}/switch-inbound)
+- [ ] Re-enable connection UI (service method ready: POST /connections/my/{name}/reenable)
+- [ ] Available inbounds UI (service method ready: GET /connections/my/{name}/available-inbounds)
+- [ ] Switch inbound protocol UI (service method ready: POST /connections/my/{name}/switch-inbound)
+- [ ] Referral program UI (service method ready: GET /users/me/referrals)
 - [ ] Multi-language support
 
 ## Dependencies

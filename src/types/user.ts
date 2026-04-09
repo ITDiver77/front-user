@@ -97,3 +97,9 @@ export interface LoginByTokenResponse {
 	access_token: string;
 	username: string;
 }
+
+export interface ReferralsResponse {
+	total_referrals: number;
+	active_referrals: number;
+	earnings: number;
+}

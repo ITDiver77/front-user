@@ -1,6 +1,7 @@
 import type {
 	ConnectionsUsedResponse,
 	PendingEmailChangeResponse,
+	ReferralsResponse,
 	StartEmailChangeResponse,
 	TelegramRebindResponse,
 	User,
@@ -179,5 +180,10 @@ export const userService = {
 				`Failed to get pending email change: ${error instanceof Error ? error.message : "Unknown error"}`,
 			);
 		}
+	},
+
+	getReferrals: async () => {
+		const response = await api.get<ReferralsResponse>("/users/me/referrals");
+		return response.data;
 	},
 };

@@ -19,6 +19,14 @@
 - Profile.tsx: cleaned up dead `rebindToken` polling code (backend rebind no longer uses token-based status)
 - MSW mocks: fixed `connections-used` response to use `used` instead of `connections_used`; added `subscription_token`, `subscription_url`, `status` to mock connections
 
+### 2026-04-09
+- Added `reenableConnection` service method (POST /connections/my/{name}/reenable)
+- Added `getAvailableInbounds` service method (GET /connections/my/{name}/available-inbounds)
+- Added `switchInbound` service method (POST /connections/my/{name}/switch-inbound)
+- Added `getReferrals` service method (GET /users/me/referrals)
+- Added types: Inbound, SwitchInboundRequest, SwitchInboundResponse, ReenableConnectionResponse, ReferralsResponse
+- Added MSW mock handlers for all 4 new endpoints
+
 ### 2026-04-05
 - Implemented save credentials feature on Login page — checkbox defaults to enabled, saves username+password to localStorage (base64 encoded) on successful login, auto-fills on next visit. Unchecking clears stored credentials.
 - Fixed hardcoded colors in Support.tsx — replaced #e8f0fe with grey.100, grey.300/500 with action.disabled tokens, grey.50 with grey.100 for dark theme compatibility

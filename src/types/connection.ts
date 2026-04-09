@@ -48,3 +48,27 @@ export interface ConnectionUpdateRequest {
 export interface ChangeServerRequest {
 	new_server_name: string;
 }
+
+export interface Inbound {
+	id: number;
+	server_id: number;
+	tag: string;
+	protocol: string;
+	port: number;
+	enabled: boolean;
+}
+
+export interface SwitchInboundRequest {
+	inbound_id: number;
+}
+
+export interface SwitchInboundResponse {
+	connection_name: string;
+	active_inbound_id: number;
+}
+
+export interface ReenableConnectionResponse {
+	connection_name: string;
+	enabled: boolean;
+	message: string;
+}

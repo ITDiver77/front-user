@@ -372,6 +372,68 @@ const handlers = [
 		capturedRequests.paymentStatus = req.params.paymentId;
 		return res(ctx.json(payment));
 	}),
+
+	rest.post(
+		`${API}/connections/my/:connectionName/reenable`,
+		(req, res, ctx) => {
+			return res(
+				ctx.json({
+					connection_name: req.params.connectionName,
+					enabled: true,
+					message: "Connection re-enabled successfully",
+				}),
+			);
+		},
+	),
+
+	rest.get(
+		`${API}/connections/my/:connectionName/available-inbounds`,
+		(_req, res, ctx) => {
+			return res(
+				ctx.json([
+					{
+						id: 1,
+						server_id: 1,
+						tag: "vless-in",
+						protocol: "vless",
+						port: 443,
+						enabled: true,
+					},
+					{
+						id: 2,
+						server_id: 1,
+						tag: "vmess-in",
+						protocol: "vmess",
+						port: 8443,
+						enabled: true,
+					},
+				]),
+			);
+		},
+	),
+
+	rest.post(
+		`${API}/connections/my/:connectionName/switch-inbound`,
+		(req, res, ctx) => {
+			const body = req.body as { inbound_id: number };
+			return res(
+				ctx.json({
+					connection_name: req.params.connectionName,
+					active_inbound_id: body.inbound_id,
+				}),
+			);
+		},
+	),
+
+	rest.get(`${API}/users/me/referrals`, (_req, res, ctx) => {
+		return res(
+			ctx.json({
+				total_referrals: 5,
+				active_referrals: 3,
+				earnings: 1500,
+			}),
+		);
+	}),
 ];
 
 // Create and export server

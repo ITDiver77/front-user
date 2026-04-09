@@ -2,6 +2,9 @@ import type {
 	Connection,
 	ConnectionCreateRequest,
 	ConnectionUpdateRequest,
+	Inbound,
+	ReenableConnectionResponse,
+	SwitchInboundResponse,
 } from "../types/connection";
 import api from "./api";
 
@@ -109,5 +112,27 @@ export const connectionService = {
 	 */
 	cancelDeletion: async (connectionName: string): Promise<void> => {
 		await api.post(`/connections/my/${connectionName}/cancel-delete`);
+	},
+
+	reenableConnection: async (connectionName: string) => {
+		const response = await api.post<ReenableConnectionResponse>(
+			`/connections/my/${connectionName}/reenable`,
+		);
+		return response.data;
+	},
+
+	getAvailableInbounds: async (connectionName: string) => {
+		const response = await api.get<Inbound[]>(
+			`/connections/my/${connectionName}/available-inbounds`,
+		);
+		return response.data;
+	},
+
+	switchInbound: async (connectionName: string, inboundId: number) => {
+		const response = await api.post<SwitchInboundResponse>(
+			`/connections/my/${connectionName}/switch-inbound`,
+			{ inbound_id: inboundId },
+		);
+		return response.data;
 	},
 };
