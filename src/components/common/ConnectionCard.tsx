@@ -450,6 +450,7 @@ const ConnectionCard = ({
 				open={detailsModalOpen}
 				onClose={() => setDetailsModalOpen(false)}
 				connection={connection}
+				onRefresh={() => window.location.reload()}
 			/>
 
 			{/* Change Server Modal */}

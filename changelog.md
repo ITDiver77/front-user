@@ -26,6 +26,10 @@
 - Added `getReferrals` service method (GET /users/me/referrals)
 - Added types: Inbound, SwitchInboundRequest, SwitchInboundResponse, ReenableConnectionResponse, ReferralsResponse
 - Added MSW mock handlers for all 4 new endpoints
+- ConnectionDetailsModal: added re-enable button for disabled connections
+- ConnectionDetailsModal: added available inbounds section showing protocol/tag/port for active connections
+- ConnectionDetailsModal: added switch inbound button per inbound
+- Added 10 new i18n keys (en + ru) for re-enable and inbound features
 
 ### 2026-04-05
 - Implemented save credentials feature on Login page — checkbox defaults to enabled, saves username+password to localStorage (base64 encoded) on successful login, auto-fills on next visit. Unchecking clears stored credentials.

@@ -55,7 +55,8 @@ export const ru = {
 		startOver: "Начать заново",
 		verificationComplete: "Подтверждение завершено!",
 		verifyWithTelegram: "Подтверждение через Telegram",
-		openTelegramBot: "Откройте наш Telegram бот для завершения регистрации.",
+		openTelegramBot:
+			"Нажмите кнопку ниже, чтобы открыть Telegram и завершить регистрацию.",
 		accountVerified:
 			"Ваш аккаунт подтверждён. Вы будете автоматически авторизованы.",
 		openTelegramBotButton: "Открыть Telegram бот",
@@ -266,6 +267,16 @@ export const ru = {
 		no: "Нет",
 		connectionString: "Строка подключения",
 		createdAt: "Создано",
+		reenableConnection: "Повторно включить подключение",
+		reenableSuccess: "Подключение успешно повторно включено",
+		reenableFailed: "Не удалось повторно включить подключение",
+		availableInbounds: "Доступные протоколы",
+		noInbounds: "Нет доступных протоколов",
+		switchInbound: "Переключить",
+		switchInboundSuccess: "Протокол успешно переключён",
+		switchInboundFailed: "Не удалось переключить протокол",
+		loadingInbounds: "Загрузка протоколов...",
+		inboundsError: "Не удалось загрузить протоколы",
 	},
 	paymentHistory: {
 		title: "История платежей",

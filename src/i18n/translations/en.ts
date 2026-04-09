@@ -55,7 +55,8 @@ export const en = {
 		startOver: "Start Over",
 		verificationComplete: "Verification Complete!",
 		verifyWithTelegram: "Verify with Telegram",
-		openTelegramBot: "Open our Telegram bot to complete registration.",
+		openTelegramBot:
+			"Click the button below to open Telegram and complete registration.",
 		accountVerified:
 			"Your account has been verified. You'll be logged in automatically.",
 		openTelegramBotButton: "Open Telegram Bot",
@@ -265,6 +266,16 @@ export const en = {
 		no: "No",
 		connectionString: "Connection string",
 		createdAt: "Created at",
+		reenableConnection: "Re-enable connection",
+		reenableSuccess: "Connection re-enabled successfully",
+		reenableFailed: "Failed to re-enable connection",
+		availableInbounds: "Available protocols",
+		noInbounds: "No protocols available",
+		switchInbound: "Switch",
+		switchInboundSuccess: "Protocol switched successfully",
+		switchInboundFailed: "Failed to switch protocol",
+		loadingInbounds: "Loading protocols...",
+		inboundsError: "Failed to load protocols",
 	},
 	paymentHistory: {
 		title: "Payment History",
