@@ -110,11 +110,10 @@ const PaymentInitiationModal = ({
 	const sortedActive = [...activeConnections].sort((a, b) => a.index - b.index);
 	const firstConnectionName = sortedActive[0]?.connection_name;
 
-	const totalPriceAll = activeConnections.reduce((sum, c) => {
-		const isFirst = c.connection_name === firstConnectionName;
-		const mc = c.max_connections || 1;
-		return sum + calculateConnectionPrice(mc, isFirst);
-	}, 0);
+	const totalPriceAll = activeConnections.reduce(
+		(sum, c) => sum + (c.price || 0),
+		0,
+	);
 
 	// Find the connection being paid for (when not payForAll)
 	const currentConnection = connections.find(
@@ -122,10 +121,7 @@ const PaymentInitiationModal = ({
 	);
 	const basePrice = payForAll
 		? totalPriceAll
-		: calculateConnectionPrice(
-				currentConnection?.max_connections || 1,
-				currentConnection?.connection_name === firstConnectionName,
-			);
+		: currentConnection?.price || 0;
 	const discount = getDiscount(months);
 	const totalAmount = basePrice * months * (1 - discount);
 
@@ -291,23 +287,17 @@ const PaymentInitiationModal = ({
 						<Divider sx={{ my: 1, borderColor: "rgba(255,255,255,0.2)" }} />
 						<Typography variant="body2" sx={{ opacity: 0.9 }}>
 							{payForAll ? (
-								activeConnections.map((c) => {
-									const isFirst = c.connection_name === firstConnectionName;
-									const mc = c.max_connections || 1;
-									const price = calculateConnectionPrice(mc, isFirst);
-									return (
-										<Box key={c.connection_name} component="span">
-											{c.connection_name}: {months} × {price}₽ ={" "}
-											{price * months}₽ (max={mc})
-										</Box>
-									);
-								})
+								activeConnections.map((c) => (
+									<Box key={c.connection_name} component="span">
+										{c.connection_name}: {months} × {c.price || 0}₽ ={" "}
+										{(c.price || 0) * months}₽
+									</Box>
+								))
 							) : (
 								<>
 									{months}{" "}
 									{months !== 1 ? t("modals.months") : t("modals.month")} ×{" "}
-									{basePrice} ₽/{t("modals.month")} (max=
-									{currentConnection?.max_connections || 1})
+									{basePrice} ₽/{t("modals.month")}
 								</>
 							)}
 							{discount > 0 && (

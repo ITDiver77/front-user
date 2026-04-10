@@ -634,49 +634,11 @@ const Register = () => {
 									href={telegramResponse.telegram_link}
 									target="_blank"
 									rel="noopener noreferrer"
-									sx={{ mb: 2, borderRadius: 2 }}
+									sx={{ mb: 2, borderRadius: 2, py: 1.5, fontSize: "1.1rem" }}
 									startIcon={<TelegramIcon />}
 								>
 									{t("auth.openTelegramBotButton")}
 								</Button>
-
-								<Divider sx={{ my: 2 }} />
-
-								<Typography variant="body2" color="textSecondary" gutterBottom>
-									{t("auth.instructions")}:
-								</Typography>
-								<ol style={{ margin: 0, paddingLeft: 20 }}>
-									<li>
-										<Typography variant="body2">{t("auth.step1")}</Typography>
-									</li>
-									<li>
-										<Typography variant="body2">{t("auth.step2")}</Typography>
-									</li>
-									<li>
-										<Typography variant="body2">
-											{t("auth.enterToken")}{" "}
-											<strong>{telegramResponse.registration_token}</strong>
-										</Typography>
-									</li>
-								</ol>
-
-								<Box sx={{ mt: 2 }}>
-									<Typography variant="caption" color="textSecondary">
-										{t("auth.registrationToken")}:
-									</Typography>
-									<Paper
-										variant="outlined"
-										sx={{
-											mt: 0.5,
-											p: 1,
-											backgroundColor: "grey.50",
-											fontFamily: "monospace",
-											fontSize: "0.75rem",
-										}}
-									>
-										{telegramResponse.registration_token}
-									</Paper>
-								</Box>
 
 								{pollingStatus === "checking" && (
 									<Box sx={{ textAlign: "center", py: 2 }}>

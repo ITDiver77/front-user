@@ -265,7 +265,7 @@ const ConnectionCard = ({
 						>
 							{t("connectionCard.daysRemaining")}:{" "}
 							{daysRemaining > 0
-								? `${daysRemaining} ${t("connectionCard.days")}`
+								? `${daysRemaining.toFixed(1)} ${t("connectionCard.days")}`
 								: t("connectionCard.expired")}
 						</Typography>
 

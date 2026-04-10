@@ -15,7 +15,7 @@ const Layout = lazy(() => import("./components/Layout/Layout"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const _Dashboard = lazy(() => import("./pages/Dashboard"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
 const Instructions = lazy(() => import("./pages/Instructions"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -123,7 +123,14 @@ function AppRoutes() {
 							</PrivateRoute>
 						}
 					>
-						<Route index element={<Navigate to="/profile" replace />} />
+						<Route
+							index
+							element={
+								<PageWrapper>
+									<Dashboard />
+								</PageWrapper>
+							}
+						/>
 						<Route
 							path="payment-history"
 							element={

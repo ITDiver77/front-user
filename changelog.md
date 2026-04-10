@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### 2026-04-10
+- PaymentInitiationModal: use `connection.price` from backend instead of calculating locally
+- getDaysRemaining: now returns 1 decimal precision (e.g., 29.9 instead of 29)
+- ConnectionCard: displays days remaining with 1 decimal
+- Test infrastructure: fixed axios crash in happy-dom via window.location mock fix
+- Test infrastructure: replaced MSW HTTP interception with vi.mock() due to MSW/axios v1.7 incompatibility
+- Types: `short_id` replaced with `client_uuid` in Connection type (backend API change)
+- Types: removed `price` from ConnectionCreateRequest (backend no longer accepts it)
+
 ### 2026-04-08
 - Aligned all frontend types and API services with central_manager backend contract after gRPC agent migration
 - Connection type: added `subscription_url`, `subscription_token`, `status` fields from backend response

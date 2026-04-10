@@ -36,11 +36,10 @@ export const getDaysRemaining = (paydate: string): number => {
 	try {
 		const payDate = parseDate(paydate);
 		if (!payDate) return 0;
-		const today = startOfDay(new Date());
-		const payDateNormalized = startOfDay(payDate);
-		const diffTime = payDateNormalized.getTime() - today.getTime();
-		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-		return diffDays >= 0 ? diffDays : 0;
+		const now = new Date();
+		const diffTime = payDate.getTime() - now.getTime();
+		const diffDays = diffTime / (1000 * 60 * 60 * 24);
+		return diffDays >= 0 ? Math.round(diffDays * 10) / 10 : 0;
 	} catch (_e) {
 		return 0;
 	}

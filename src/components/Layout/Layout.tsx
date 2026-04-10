@@ -2,8 +2,11 @@ import {
 	Chat as ChatIcon,
 	ChevronLeft as ChevronLeftIcon,
 	ChevronRight as ChevronRightIcon,
+	Dashboard as DashboardIcon,
+	Help as HelpIcon,
 	ExitToApp as LogoutIcon,
 	Menu as MenuIcon,
+	Payment as PaymentIcon,
 	Person as PersonIcon,
 } from "@mui/icons-material";
 import {
@@ -58,6 +61,17 @@ const Layout = () => {
 	const { t, language, setLanguage } = useLanguage();
 
 	const menuItems = [
+		{ text: t("nav.dashboard"), path: "/", icon: <DashboardIcon /> },
+		{
+			text: t("nav.paymentHistory"),
+			path: "/payment-history",
+			icon: <PaymentIcon />,
+		},
+		{
+			text: t("nav.instructions"),
+			path: "/instructions",
+			icon: <HelpIcon />,
+		},
 		{ text: t("nav.profile"), path: "/profile", icon: <PersonIcon /> },
 		{ text: t("nav.support"), path: "/support", icon: <ChatIcon /> },
 	];
@@ -125,10 +139,10 @@ const Layout = () => {
 		let badgeContent = 0;
 		let showBadge = false;
 
-		if (item.text === "Profile" && !user?.telegram_verified) {
+		if (item.path === "/profile" && !user?.telegram_verified) {
 			showBadge = true;
 			badgeContent = 1;
-		} else if (item.text === "Support" && unreadCount > 0) {
+		} else if (item.path === "/support" && unreadCount > 0) {
 			showBadge = true;
 			badgeContent = unreadCount;
 		}

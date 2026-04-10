@@ -25,8 +25,13 @@ const CREDENTIALS_KEY = "vpn_saved_credentials";
 
 const saveCredentials = (username: string, password: string) => {
 	try {
-		localStorage.setItem(CREDENTIALS_KEY, btoa(JSON.stringify({ username, password })));
-	} catch { /* ignore storage errors */ }
+		localStorage.setItem(
+			CREDENTIALS_KEY,
+			btoa(JSON.stringify({ username, password })),
+		);
+	} catch {
+		/* ignore storage errors */
+	}
 };
 
 const loadCredentials = (): { username: string; password: string } | null => {
@@ -34,11 +39,17 @@ const loadCredentials = (): { username: string; password: string } | null => {
 		const raw = localStorage.getItem(CREDENTIALS_KEY);
 		if (!raw) return null;
 		return JSON.parse(atob(raw));
-	} catch { return null; }
+	} catch {
+		return null;
+	}
 };
 
 const clearCredentials = () => {
-	try { localStorage.removeItem(CREDENTIALS_KEY); } catch { /* ignore */ }
+	try {
+		localStorage.removeItem(CREDENTIALS_KEY);
+	} catch {
+		/* ignore */
+	}
 };
 
 const Login = () => {
