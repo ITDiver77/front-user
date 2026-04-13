@@ -96,6 +96,7 @@ export const en = {
 		confirmNewPassword: "Confirm New Password",
 		resetPasswordButton: "Reset Password",
 		backToSignIn: "Back to Sign In",
+		loginViaTelegram: "Login via Telegram",
 	},
 	dashboard: {
 		myConnections: "My Connections",
@@ -132,6 +133,16 @@ export const en = {
 		deletionFailed: "Failed to mark connection for deletion",
 		deletionCancelled: "Deletion cancelled successfully",
 		cancelDeletionFailed: "Failed to cancel deletion",
+		totalDebt: "Total Debt",
+		totalDebtAmount: "Total debt: {amount} ₽",
+		payDebt: "Pay debt",
+		disputeDebt: "Dispute debt",
+		debtDisputeSubject: "Debt dispute",
+		debtDisputeMessage: "Hello, I want to dispute the debt of {amount} ₽ on connection {connection}.",
+		debtPaymentTitle: "Pay off debt",
+		debtPaymentDescription: "Debt payment: {amount} ₽",
+		debtPaymentSuccess: "Debt paid successfully",
+		debtPaymentFailed: "Failed to pay debt",
 	},
 	profile: {
 		title: "Profile",
@@ -221,6 +232,8 @@ export const en = {
 		minutes: "minutes",
 	},
 	connectionCard: {
+		debt: "Debt",
+		debtAmount: "Debt: {amount} ₽",
 		server: "Server",
 		price: "Price",
 		perMonth: "/month",

@@ -1,12 +1,17 @@
 import {
 	Add as AddIcon,
+	Chat as ChatIcon,
+	Payment as PaymentIcon,
 	Sync as SyncIcon,
+	Warning as WarningIcon,
 	Wifi as WifiIcon,
 } from "@mui/icons-material";
 import {
 	Alert,
 	Box,
 	Button,
+	Card,
+	CardContent,
 	CircularProgress,
 	FormControlLabel,
 	Grid,
@@ -18,6 +23,7 @@ import {
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ConnectionCard from "../components/common/ConnectionCard";
 import { EmptyState } from "../components/common/EmptyState";
 import ChangeServerModal from "../components/forms/ChangeServerModal";
@@ -27,6 +33,8 @@ import { useConnectionStatusContext } from "../contexts/ConnectionStatusContext"
 import { useLanguage } from "../i18n";
 import { ApiError } from "../services/api";
 import { connectionService } from "../services/connectionService";
+import { paymentService } from "../services/paymentService";
+import { supportService } from "../services/supportService";
 import { staggerContainer } from "../styles/animations";
 import type { Connection } from "../types/connection";
 
@@ -43,6 +51,7 @@ const Dashboard = () => {
 		acknowledgeStatusChange,
 	} = useConnectionStatusContext();
 	const { t } = useLanguage();
+	const navigate = useNavigate();
 
 	const [showNewConnectionModal, setShowNewConnectionModal] = useState(false);
 	const [changeServerModalOpen, setChangeServerModalOpen] = useState(false);
@@ -83,6 +92,15 @@ const Dashboard = () => {
 				const payDate = new Date(conn.paydate);
 				return payDate > new Date();
 			}),
+		[connections],
+	);
+
+	const totalDebt = useMemo(
+		() =>
+			connections.reduce(
+				(sum, c) => sum + (c.debt && c.debt > 0 ? c.debt : 0),
+				0,
+			),
 		[connections],
 	);
 
@@ -220,6 +238,40 @@ const Dashboard = () => {
 		setPaymentConnection(null);
 	};
 
+	const handlePayDebt = async (connectionName: string, amount: number) => {
+		try {
+			const response = await paymentService.initiatePayment({
+				connection_name: connectionName,
+				months: 0,
+				amount,
+			});
+			if (response.redirect_url) {
+				window.location.href = response.redirect_url;
+			}
+		} catch (err: unknown) {
+			setSnackbar({
+				open: true,
+				message: err instanceof Error ? err.message : t("dashboard.debtPaymentFailed"),
+				severity: "error",
+			});
+		}
+	};
+
+	const handleDisputeDebt = async (connectionName: string, amount: number) => {
+		try {
+			await supportService.createConversation(
+				t("dashboard.debtDisputeMessage", { amount: amount.toFixed(2), connection: connectionName }),
+			);
+			navigate("/support");
+		} catch {
+			setSnackbar({
+				open: true,
+				message: t("common.error"),
+				severity: "error",
+			});
+		}
+	};
+
 	const handleOpenNewConnectionModal = () => {
 		if (!hasPaidConnections) {
 			setShowNoPaidWarning(true);
@@ -336,6 +388,72 @@ const Dashboard = () => {
 					{t("dashboard.noPaidForNewConnection")}
 				</Alert>
 			)}
+
+			{totalDebt > 0 && (
+				<Card
+					sx={{
+						mb: 3,
+						border: "2px solid",
+						borderColor: "error.main",
+						backgroundColor: (theme) =>
+							theme.palette.mode === "dark" ? "error.dark" : "error.light",
+					}}
+				>
+					<CardContent>
+						<Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+							<WarningIcon color="error" />
+							<Typography variant="h6" fontWeight={700} color="error.main">
+								{t("dashboard.totalDebt")}
+							</Typography>
+						</Box>
+						<Typography variant="h5" fontWeight={700} color="error.main" sx={{ mb: 2 }}>
+							{totalDebt.toFixed(2)} ₽
+						</Typography>
+						{connections
+							.filter((c) => c.debt && c.debt > 0)
+							.map((c) => (
+								<Box
+									key={c.connection_name}
+									sx={{
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "space-between",
+										py: 1,
+										px: 2,
+										mb: 1,
+										borderRadius: 1,
+										bgcolor: "action.hover",
+									}}
+								>
+									<Typography variant="body1">
+										{c.connection_name}: <strong>{c.debt!.toFixed(2)} ₽</strong>
+									</Typography>
+									<Box sx={{ display: "flex", gap: 1 }}>
+										<Button
+											variant="contained"
+											size="small"
+											color="warning"
+											startIcon={<PaymentIcon />}
+											onClick={() => handlePayDebt(c.connection_name, c.debt!)}
+										>
+											{t("dashboard.payDebt")}
+										</Button>
+										<Button
+											variant="outlined"
+											size="small"
+											color="inherit"
+											startIcon={<ChatIcon />}
+											onClick={() => handleDisputeDebt(c.connection_name, c.debt!)}
+										>
+											{t("dashboard.disputeDebt")}
+										</Button>
+									</Box>
+								</Box>
+							))}
+					</CardContent>
+				</Card>
+			)}
+
 			{filteredConnections.length === 0 ? (
 				<motion.div
 					variants={staggerContainer}

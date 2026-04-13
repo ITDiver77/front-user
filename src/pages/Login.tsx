@@ -18,6 +18,7 @@ import type { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../i18n";
 import { loginSchema } from "../utils/validation";
+import { config } from "../config";
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
@@ -155,16 +156,44 @@ const Login = () => {
 						control={<Checkbox color="primary" {...register("rememberMe")} />}
 						label={t("auth.rememberMe")}
 					/>
+					<Box
+					sx={{
+					mt: 2,
+					py: 2,
+					 px: 2,
+					 bgcolor: "#0088cc",
+					 borderRadius: 1,
+					textAlign: "center",
+					}}
+					>
 					<Button
-						type="submit"
+						type="button"
 						fullWidth
 						variant="contained"
-						sx={{ mt: 3, mb: 2 }}
-						disabled={loading}
+						href={`https://t.me/${config.TELEGRAM_BOT_NAME}?start=login`}
+						sx={{
+							bgcolor: "#0088cc",
+								color: "white",
+							textTransform: "none",
+								fontWeight: 600,
+								"&:hover": {
+									bgcolor: "#006699",
+								},
+							}}
 					>
-						{loading ? <CircularProgress size={24} /> : t("auth.signIn")}
+						{t("auth.loginViaTelegram") || "Войти через Telegram"}
 					</Button>
-					<Box sx={{ display: "flex", justifyContent: "space-between" }}>
+				</Box>
+				<Button
+					type="submit"
+					fullWidth
+					variant="contained"
+					sx={{ mt: 3, mb: 2 }}
+					disabled={loading}
+				>
+					{loading ? <CircularProgress size={24} /> : t("auth.signIn")}
+				</Button>
+				<Box sx={{ display: "flex", justifyContent: "space-between" }}>
 						<Link component={RouterLink} to="/register" variant="body2">
 							{t("auth.dontHaveAccount")}
 						</Link>

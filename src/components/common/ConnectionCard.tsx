@@ -5,6 +5,7 @@ import {
 	Payment as PaymentIcon,
 	Settings as SettingsIcon,
 	Sync as SyncIcon,
+	Warning as WarningIcon,
 	Wifi as WifiIcon,
 	WifiOff as WifiOffIcon,
 } from "@mui/icons-material";
@@ -285,6 +286,18 @@ const ConnectionCard = ({
 								/>
 							</Box>
 						)}
+
+					{connection.debt && connection.debt > 0 && (
+						<Alert
+							severity="error"
+							sx={{ mt: 2, mb: 1 }}
+							icon={<WarningIcon fontSize="small" />}
+						>
+							<Typography variant="body2" fontWeight={600}>
+								{t("connectionCard.debt")}: {connection.debt.toFixed(2)} ₽
+							</Typography>
+						</Alert>
+					)}
 
 						<Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
 							<Typography variant="body2" sx={{ mr: 1 }}>

@@ -20,6 +20,7 @@ export interface Connection {
 	subscription_token?: string;
 	subscription_url?: string | null;
 	status?: string;
+	debt?: number;
 }
 
 export interface ConnectionCreateRequest {

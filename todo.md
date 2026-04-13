@@ -4,6 +4,14 @@ Current tasks, planned features, and deferred work.
 
 ## High Priority
 
+### Debt Feature
+- [x] Add `debt?: number` to Connection type
+- [x] Display per-connection debt on ConnectionCard (red warning)
+- [x] Dashboard debt summary panel with total user debt
+- [x] "Погасить долг" button — initiates payment via paymentService
+- [x] "Обжаловать долг" button — creates support conversation and navigates to /support
+- [x] RU/EN translations for all debt strings
+
 ### Token-Based Auto-Login
 - [ ] Add `LoginByTokenResponse` type to `src/types/user.ts` — `{ access_token: string; username: string }`
 - [x] Add `loginByToken(loginToken)` method to `src/services/authService.ts` — POST `/auth/login-by-token`

@@ -1,5 +1,26 @@
 # Changelog - VPN User Frontend
 
+## [2026-04-13] Debt Feature + Bugfixes
+
+### Added
+- Debt (долг) display: per-connection red warning on ConnectionCard when `debt > 0`
+- Dashboard debt summary panel showing total user debt with per-connection breakdown
+- "Погасить долг" button: initiates payment for debt amount via paymentService
+- "Обжаловать долг" button: creates support conversation with admin and navigates to /support
+- `debt?: number` field on Connection type
+- Russian and English translations for all debt-related UI strings
+
+### Fixed
+- PaymentInitiationModal: uses `connection.price` from backend instead of local `calculateConnectionPrice()`
+- `getDaysRemaining()`: returns 1 decimal precision (e.g., 29.9 instead of 29)
+- Test infrastructure: fixed `window.location` mock crash in happy-dom (axios import-time error)
+- Test infrastructure: replaced MSW with `vi.mock()` due to MSW v1 / axios v1.7 incompatibility
+- Types: `short_id` → `client_uuid` in Connection type (backend API change)
+- Types: removed `price` from ConnectionCreateRequest (backend no longer accepts it)
+
+### Changed
+- All 49 service tests now pass (previously all broken)
+
 ## [2026-04-13] Backend-Calculated Pricing
 
 ### Added

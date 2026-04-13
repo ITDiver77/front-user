@@ -83,7 +83,9 @@ const Register = () => {
 
 	const [registrationMethod, setRegistrationMethod] = useState<
 		"email" | "telegram"
-	>("telegram");
+	>(
+		"email"
+	);
 	const [step, setStep] = useState<"form" | "telegram_wait" | "verify_code">(
 		"form",
 	);
@@ -680,37 +682,6 @@ const Register = () => {
 				<Typography component="h1" variant="h4" gutterBottom>
 					{t("auth.createAccount")}
 				</Typography>
-
-				<Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-					<Button
-						variant={registrationMethod === "email" ? "contained" : "outlined"}
-						onClick={() => handleMethodChange("email")}
-						startIcon={<EmailIcon />}
-						sx={{
-							borderRadius: 3,
-							px: 3,
-							backgroundColor:
-								registrationMethod === "email" ? "#e65100" : undefined,
-						}}
-					>
-						{t("auth.emailPassword")}
-					</Button>
-					<Button
-						variant={
-							registrationMethod === "telegram" ? "contained" : "outlined"
-						}
-						onClick={() => handleMethodChange("telegram")}
-						startIcon={<TelegramIcon />}
-						sx={{
-							borderRadius: 3,
-							px: 3,
-							backgroundColor:
-								registrationMethod === "telegram" ? "#0088cc" : undefined,
-						}}
-					>
-						Telegram
-					</Button>
-				</Box>
 
 				{referrerId && (
 					<Alert severity="info" sx={{ mb: 2, width: "100%" }}>

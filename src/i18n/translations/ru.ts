@@ -97,6 +97,7 @@ export const ru = {
 		confirmNewPassword: "Подтвердите новый пароль",
 		resetPasswordButton: "Сбросить пароль",
 		backToSignIn: "Вернуться ко входу",
+		loginViaTelegram: "Войти через Telegram",
 	},
 	dashboard: {
 		myConnections: "Мои подключения",
@@ -133,6 +134,16 @@ export const ru = {
 		deletionFailed: "Не удалось пометить подключение к удалению",
 		deletionCancelled: "Удаление успешно отменено",
 		cancelDeletionFailed: "Не удалось отменить удаление",
+		totalDebt: "Общая задолженность",
+		totalDebtAmount: "Сумма долга: {amount} ₽",
+		payDebt: "Погасить долг",
+		disputeDebt: "Обжаловать долг",
+		debtDisputeSubject: "Обжалование долга",
+		debtDisputeMessage: "Здравствуйте, хочу обжаловать задолженность в размере {amount} ₽ по подключению {connection}.",
+		debtPaymentTitle: "Погашение долга",
+		debtPaymentDescription: "Оплата задолженности: {amount} ₽",
+		debtPaymentSuccess: "Долг успешно погашен",
+		debtPaymentFailed: "Не удалось погасить долг",
 	},
 	profile: {
 		title: "Профиль",
@@ -222,6 +233,8 @@ export const ru = {
 		minutes: "минут",
 	},
 	connectionCard: {
+		debt: "Долг",
+		debtAmount: "Долг: {amount} ₽",
 		server: "Сервер",
 		price: "Цена",
 		perMonth: "/мес",
