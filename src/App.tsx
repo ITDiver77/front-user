@@ -58,6 +58,29 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 	return <>{children}</>;
 };
 
+const OptionalAuthRoute = () => {
+	const { isAuthenticated, loading } = useAuth();
+
+	if (loading) {
+		return (
+			<Box
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				minHeight="100vh"
+			>
+				<CircularProgress />
+			</Box>
+		);
+	}
+
+	if (isAuthenticated) {
+		return <Layout />;
+	}
+
+	return <PublicLayout />;
+};
+
 function AppRoutes() {
 	const location = useLocation();
 
@@ -116,10 +139,10 @@ function AppRoutes() {
 							</PageWrapper>
 						}
 					/>
-					{/* Public instructions route — accessible without login */}
+					{/* Instructions — uses Layout when authenticated, PublicLayout when not */}
 					<Route
 						path="/instructions"
-						element={<PublicLayout />}
+						element={<OptionalAuthRoute />}
 					>
 						<Route
 							index
@@ -151,14 +174,6 @@ function AppRoutes() {
 							element={
 								<PageWrapper>
 									<PaymentHistory />
-								</PageWrapper>
-							}
-						/>
-						<Route
-							path="instructions"
-							element={
-								<PageWrapper>
-									<Instructions />
 								</PageWrapper>
 							}
 						/>
