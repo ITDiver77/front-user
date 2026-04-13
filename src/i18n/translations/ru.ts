@@ -98,6 +98,7 @@ export const ru = {
 		resetPasswordButton: "Сбросить пароль",
 		backToSignIn: "Вернуться ко входу",
 		loginViaTelegram: "Войти через Telegram",
+		telegramVpnRequired: "Для авторизации через Telegram должен быть включен VPN",
 	},
 	dashboard: {
 		myConnections: "Мои подключения",

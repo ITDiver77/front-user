@@ -97,6 +97,7 @@ export const en = {
 		resetPasswordButton: "Reset Password",
 		backToSignIn: "Back to Sign In",
 		loginViaTelegram: "Login via Telegram",
+		telegramVpnRequired: "VPN must be enabled to login via Telegram",
 	},
 	dashboard: {
 		myConnections: "My Connections",
