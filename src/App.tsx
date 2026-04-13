@@ -10,6 +10,7 @@ import { pageVariants } from "./styles/animations";
 
 // Layout
 const Layout = lazy(() => import("./components/Layout/Layout"));
+const PublicLayout = lazy(() => import("./components/Layout/PublicLayout"));
 
 // Pages
 const Login = lazy(() => import("./pages/Login"));
@@ -115,6 +116,20 @@ function AppRoutes() {
 							</PageWrapper>
 						}
 					/>
+					{/* Public instructions route — accessible without login */}
+					<Route
+						path="/instructions"
+						element={<PublicLayout />}
+					>
+						<Route
+							index
+							element={
+								<PageWrapper>
+									<Instructions />
+								</PageWrapper>
+							}
+						/>
+					</Route>
 					<Route
 						path="/"
 						element={

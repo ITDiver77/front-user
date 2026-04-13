@@ -368,6 +368,108 @@ export const en = {
 		importConfig: "Import configuration",
 		enterCredentials: "Enter credentials",
 		connect: "Connect",
+		toc: "Table of Contents",
+		nav: {
+			login: "Login",
+			register: "Register",
+		},
+		registration: {
+			title: "Registration Guide",
+			description:
+				"Follow these steps to create your account and get started with MythicalVPN.",
+			step1Title: "Step 1: Open the Portal",
+			step1Desc:
+				"Open your browser and go to the VPN portal website. You will see the login page with options to sign in or register.",
+			step1Screenshot: "Portal landing page",
+			step2Title: "Step 2: Start Registration",
+			step2Desc:
+				'Click the "Register" button on the login page to begin creating your account.',
+			step2Screenshot: "Registration button on login page",
+			step3Title: "Step 3: Fill in Your Details",
+			step3Desc:
+				"Enter your desired username, email address, and create a strong password. Make sure your password meets the security requirements.",
+			step3Screenshot: "Registration form",
+			step4Title: "Step 4: Verify via Telegram",
+			step4Desc:
+				"Open the Telegram bot @Myth_vpnbot and follow the verification instructions to confirm your account.",
+			step4Screenshot: "Telegram verification",
+			step5Title: "Step 5: Save Your Credentials",
+			step5Desc:
+				"After successful registration, save your credentials in a secure place. You will need them to log in.",
+			step5Screenshot: "Credentials display",
+			step6Title: "Step 6: Login",
+			step6Desc:
+				"Use your saved credentials to login to the portal and start setting up your VPN connections.",
+			step6Screenshot: "Login form",
+		},
+		vpnSetup: {
+			title: "VPN Setup",
+			description: "Choose your operating system and follow the step-by-step guide to set up your VPN connection.",
+			downloadConfig: "Download the configuration file from your dashboard",
+			enterCreds: "Enter your VPN credentials (username and password from your profile)",
+			screenshot: "VPN client screenshot",
+		},
+		theme: {
+			title: "Changing Color Theme",
+			description:
+				"Customize the look of your panel by selecting from a variety of color themes.",
+			step1Title: "Open Theme Selector",
+			step1Desc:
+				"Click the palette icon in the top right corner of the navigation bar to open the theme selector.",
+			step1Screenshot: "Theme selector button",
+			step2Title: "Choose Your Theme",
+			step2Desc:
+				"Browse available dark and light themes and select one you like. Each theme has a name and description.",
+			step2Screenshot: "Theme selection panel",
+			step3Title: "Apply Theme",
+			step3Desc:
+				"Click on a theme to apply it. The change takes effect immediately — no need to save.",
+			step3Screenshot: "Applied theme",
+		},
+		server: {
+			title: "Changing VPN Server",
+			description:
+				"You can change your VPN server at any time to improve speed or access different locations.",
+			step1Title: "Find Your Connection",
+			step1Desc:
+				"Go to the Dashboard and find the connection you want to change the server for.",
+			step1Screenshot: "Dashboard with connections",
+			step2Title: "Click Change Server",
+			step2Desc:
+				'Click the "Change Server" button on the connection card to open the server selection dialog.',
+			step2Screenshot: "Change server button",
+			step3Title: "Select New Server",
+			step3Desc:
+				"Choose a new server from the list and confirm. A new configuration will be generated automatically.",
+			step3Screenshot: "Server selection",
+		},
+		connections: {
+			title: "Managing Connections",
+			description:
+				"Learn how to create and manage your VPN connections, including adding new connections and adjusting connection slots.",
+			newTitle: "Creating a New Connection",
+			newStep1Title: "Click New Connection",
+			newStep1Desc:
+				"On the Dashboard, click the \"New Connection\" button to start creating a new VPN connection.",
+			newStep1Screenshot: "New connection button",
+			newStep2Title: "Configure Connection",
+			newStep2Desc:
+				"Select server, duration, and number of connection slots. Review the total price before proceeding.",
+			newStep2Screenshot: "Connection configuration",
+			newStep3Title: "Complete Payment",
+			newStep3Desc:
+				"Proceed to payment to activate your new connection. Choose your preferred payment method.",
+			newStep3Screenshot: "Payment process",
+			slotsTitle: "Changing Number of Connection Slots",
+			slotsStep1Title: "Open Connection Settings",
+			slotsStep1Desc:
+				"Click the edit button on your connection card to open the connection settings.",
+			slotsStep1Screenshot: "Edit connection",
+			slotsStep2Title: "Adjust Slots",
+			slotsStep2Desc:
+				"Change the number of connection slots as needed. Each additional slot is paid separately.",
+			slotsStep2Screenshot: "Slot adjustment",
+		},
 		windows: {
 			title: "Windows",
 			step1: "Download and install OpenVPN Connect from the official website",

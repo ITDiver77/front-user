@@ -229,11 +229,21 @@ const PaymentInitiationModal = ({
 								<Typography variant="h4" fontWeight="bold">
 									{priceBreakdown.total.toFixed(2)} ₽
 								</Typography>
+								{priceBreakdown.breakdown.length > 0 && priceBreakdown.breakdown[0].bulk_discount > 0 && (
+									<Typography variant="body2" sx={{ mt: 0.5, color: "success.main", fontWeight: 600 }}>
+										-{Math.round(priceBreakdown.breakdown[0].bulk_discount * 100)}% {t("modals.discountApplied", { percent: `${Math.round(priceBreakdown.breakdown[0].bulk_discount * 100)}%` })}
+									</Typography>
+								)}
 								<Divider sx={{ my: 1, borderColor: "rgba(255,255,255,0.2)" }} />
 								{priceBreakdown.breakdown.map((item) => (
 									<Box key={item.connection_name} sx={{ mb: 0.5 }}>
 										<Typography variant="body2" sx={{ opacity: 0.9 }}>
 											{item.connection_name}: {item.months_to_charge} × {item.rounded_monthly_price} ₽ = {item.charge} ₽
+											{item.bulk_discount > 0 && (
+												<Box component="span" sx={{ ml: 1, color: "success.main", fontWeight: 600 }}>
+													(-{Math.round(item.bulk_discount * 100)}%)
+												</Box>
+											)}
 											{item.months_paid_ahead > 0 && (
 												<Box component="span" sx={{ ml: 1, fontStyle: "italic" }}>
 													({item.months_paid_ahead} {t("modals.monthsPaidAhead") || "months already paid"})
