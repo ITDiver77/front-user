@@ -17,7 +17,6 @@ interface EditConnectionModalProps {
 	open: boolean;
 	onClose: () => void;
 	connection: Connection;
-	isFirstConnection: boolean;
 	onSave: (maxConnections: number, newPrice: number) => Promise<void>;
 }
 
@@ -35,49 +34,29 @@ const getConnectionWord = (count: number): string => {
 
 const calculateConnectionPrice = (
 	maxConnections: number,
-	isFirstConnection: boolean,
+	basePrice: number,
 ): number => {
-	if (isFirstConnection) {
-		// First connection: slot 1 = 150, slots 2-4 = 100, slot 5 = free
-		if (maxConnections >= 5) return 450; // 150+100+100+100+0
-		let price = 150;
-		for (let i = 2; i <= maxConnections; i++) {
-			price += 100;
-		}
-		return price;
-	} else {
-		// Not first: slot 1 = 100, slots 2-4 = 100, slot 5 = free
-		if (maxConnections >= 5) return 400; // 100+100+100+100+0
-		return maxConnections * 100;
-	}
+	const paidSlots = Math.min(maxConnections - 1, 3);
+	return basePrice + paidSlots * 100;
 };
 
 const getPriceBreakdown = (
 	maxConnections: number,
-	isFirstConnection: boolean,
+	basePrice: number,
 ): string => {
-	if (isFirstConnection) {
-		if (maxConnections >= 5) return "150+100+100+100+0 = 450₽";
-		let breakdown = "150";
-		for (let i = 2; i <= maxConnections; i++) {
-			breakdown += `+100`;
-		}
-		return `${breakdown} = ${calculateConnectionPrice(maxConnections, true)}₽`;
-	} else {
-		if (maxConnections >= 5) return "100+100+100+100+0 = 400₽";
-		let breakdown = "";
-		for (let i = 1; i <= maxConnections; i++) {
-			breakdown += `${i > 1 ? "+" : ""}100`;
-		}
-		return `${breakdown} = ${calculateConnectionPrice(maxConnections, false)}₽`;
+	const paidSlots = Math.min(maxConnections - 1, 3);
+	if (maxConnections >= 5) return `${basePrice}+100+100+100+0 = ${basePrice + 300}₽`;
+	let breakdown = `${basePrice}`;
+	for (let i = 0; i < paidSlots; i++) {
+		breakdown += "+100";
 	}
+	return `${breakdown} = ${calculateConnectionPrice(maxConnections, basePrice)}₽`;
 };
 
 const EditConnectionModal = ({
 	open,
 	onClose,
 	connection,
-	isFirstConnection,
 	onSave,
 }: EditConnectionModalProps) => {
 	const { t } = useLanguage();
@@ -86,6 +65,8 @@ const EditConnectionModal = ({
 	);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string>("");
+
+	const basePrice = connection.price || 150;
 
 	useEffect(() => {
 		if (open) {
@@ -98,10 +79,7 @@ const EditConnectionModal = ({
 		setLoading(true);
 		setError("");
 		try {
-			const newPrice = calculateConnectionPrice(
-				maxConnections,
-				isFirstConnection,
-			);
+			const newPrice = calculateConnectionPrice(maxConnections, basePrice);
 			await onSave(maxConnections, newPrice);
 			onClose();
 		} catch (err: unknown) {
@@ -157,7 +135,7 @@ const EditConnectionModal = ({
 				<Typography variant="body1" sx={{ mb: 1, textAlign: "center" }}>
 					{t("connectionCard.price")}:{" "}
 					<strong>
-						{calculateConnectionPrice(maxConnections, isFirstConnection)} ₽
+						{calculateConnectionPrice(maxConnections, basePrice)} ₽
 					</strong>
 				</Typography>
 
@@ -166,7 +144,7 @@ const EditConnectionModal = ({
 					color="text.secondary"
 					sx={{ textAlign: "center", mb: 2 }}
 				>
-					{getPriceBreakdown(maxConnections, isFirstConnection)}
+					{getPriceBreakdown(maxConnections, basePrice)}
 				</Typography>
 			</DialogContent>
 			<DialogActions>

@@ -660,6 +660,7 @@ export const en = {
 		discountApplied: "{percent} discount applied!",
 		bulkDiscountBadge: "−{percent}",
 		bulkDiscountNotice: "{percent}% off for {months} months",
+		creditRemaining: "remaining credit",
 		estimated: "estimated",
 		for: "for",
 		pricePerSlot: "per slot",

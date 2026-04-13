@@ -18,6 +18,7 @@ export interface PriceBreakdown {
 		months_to_charge: number;
 		rounded_monthly_price: number;
 		charge: number;
+		credit: number;
 		bulk_discount: number;
 	}>;
 }

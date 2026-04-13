@@ -39,12 +39,23 @@ const MakePaymentModal = ({
 	const [activeConnections, setActiveConnections] = useState<Connection[]>([]);
 	const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown | null>(null);
 	const [calculatingPrice, setCalculatingPrice] = useState(false);
+	const [previewDiscounts, setPreviewDiscounts] = useState<Record<number, number>>({});
 
 	const fetchConnections = useCallback(async () => {
 		try {
 			const connections = await connectionService.getMyConnections();
 			const active = connections.filter((c) => !c.is_deleted && c.auto_renew);
 			setActiveConnections(active);
+			if (active.length > 0) {
+				const [r6, r12] = await Promise.all([
+					paymentService.calculatePrice(6).catch(() => null),
+					paymentService.calculatePrice(12).catch(() => null),
+				]);
+				const discounts: Record<number, number> = {};
+				if (r6 && r6.breakdown.length > 0) discounts[6] = r6.breakdown[0].bulk_discount;
+				if (r12 && r12.breakdown.length > 0) discounts[12] = r12.breakdown[0].bulk_discount;
+				setPreviewDiscounts(discounts);
+			}
 		} catch (err) {
 			console.error("Failed to fetch connections", err);
 			setActiveConnections([]);
@@ -129,7 +140,9 @@ const MakePaymentModal = ({
 						label={
 							<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
 								<span>6 {t("modals.monthsOption")}</span>
-								<Chip label={t("modals.bulkDiscountBadge", { percent: 10 })} size="small" color="success" />
+								{previewDiscounts[6] > 0 && (
+									<Chip label={t("modals.bulkDiscountBadge", { percent: Math.round(previewDiscounts[6] * 100) })} size="small" color="success" />
+								)}
 							</Box>
 						}
 					/>
@@ -139,7 +152,9 @@ const MakePaymentModal = ({
 						label={
 							<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
 								<span>12 {t("modals.monthsOption")}</span>
-								<Chip label={t("modals.bulkDiscountBadge", { percent: 20 })} size="small" color="success" />
+								{previewDiscounts[12] > 0 && (
+									<Chip label={t("modals.bulkDiscountBadge", { percent: Math.round(previewDiscounts[12] * 100) })} size="small" color="success" />
+								)}
 							</Box>
 						}
 					/>
@@ -156,14 +171,19 @@ const MakePaymentModal = ({
 						{priceBreakdown.breakdown.length > 0 && (
 							<Box sx={{ mb: 2 }}>
 								{priceBreakdown.breakdown.map((item) => (
-									<Typography key={item.connection_name} variant="body2" sx={{ mb: 0.5 }}>
-										{item.connection_name}: {item.months_to_charge} × {item.rounded_monthly_price} ₽ = {item.charge} ₽
-										{item.months_paid_ahead > 0 && (
-											<Box component="span" sx={{ ml: 1, fontStyle: "italic", color: "text.secondary" }}>
-												({item.months_paid_ahead} {t("modals.monthsPaidAhead") || "months already paid"})
-											</Box>
+									<Box key={item.connection_name} sx={{ mb: 1 }}>
+										<Typography variant="body2">
+											{item.connection_name}: {item.months_to_charge} × {item.rounded_monthly_price} ₽ = {item.months_to_charge * item.rounded_monthly_price} ₽
+										</Typography>
+										{item.credit > 0 && (
+											<Typography variant="body2" sx={{ color: "success.main", pl: 2 }}>
+												−{item.credit} ₽ ({t("modals.creditRemaining")})
+											</Typography>
 										)}
-									</Typography>
+										<Typography variant="body2" fontWeight="bold">
+											= {item.charge} ₽
+										</Typography>
+									</Box>
 								))}
 							</Box>
 						)}

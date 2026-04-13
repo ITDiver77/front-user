@@ -454,7 +454,6 @@ const ConnectionCard = ({
 				open={editModalOpen}
 				onClose={() => setEditModalOpen(false)}
 				connection={connection}
-				isFirstConnection={isFirstConnection}
 				onSave={handleSaveMaxConnections}
 			/>
 
