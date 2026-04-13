@@ -71,7 +71,9 @@ export const ru = {
 		emailPassword: "Email + Пароль",
 		referrerId: "ID реферера",
 		enterCredentials:
-			"Введите ваши реквизиты. Код подтверждения будет отправлен на ваш email.",
+			"Введите вашу почту. Код подтверждения будет отправлен на ваш email.",
+		usernameHint: "Латинские буквы, цифры и подчёркивания",
+		passwordHint: "Введите пароль, отвечающий требованиям ниже",
 		passwordRequirements: "Требования к паролю:",
 		min8Chars: "Мин. 8 символов",
 		uppercase: "Заглавная буква",

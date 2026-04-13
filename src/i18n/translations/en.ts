@@ -71,7 +71,9 @@ export const en = {
 		emailPassword: "Email + Password",
 		referrerId: "Referrer ID",
 		enterCredentials:
-			"Enter your credentials. A verification code will be sent to your email.",
+			"Enter your email. A verification code will be sent to your email.",
+		usernameHint: "Latin letters, numbers and underscores",
+		passwordHint: "Enter a password that meets the requirements below",
 		passwordRequirements: "Password requirements:",
 		min8Chars: "Min 8 characters",
 		uppercase: "Uppercase",

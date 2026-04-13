@@ -734,7 +734,7 @@ const Register = () => {
 									!/^[a-zA-Z0-9_]+$/.test(usernameValue)) ||
 								!!usernameExistsError
 							}
-							helperText={usernameExistsError || getUsernameHelperText()}
+							helperText={usernameExistsError || getUsernameHelperText() || t("auth.usernameHint")}
 						/>
 
 						<TextField
@@ -766,7 +766,7 @@ const Register = () => {
 							autoComplete="new-password"
 							{...passwordForm.register("password")}
 							error={!!passwordForm.formState.errors.password}
-							helperText={passwordForm.formState.errors.password?.message}
+							helperText={passwordForm.formState.errors.password?.message || t("auth.passwordHint")}
 							InputProps={{
 								endAdornment: (
 									<InputAdornment position="end">
