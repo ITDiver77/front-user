@@ -259,10 +259,10 @@ const Dashboard = () => {
 
 	const handleDisputeDebt = async (connectionName: string, amount: number) => {
 		try {
-			await supportService.createConversation(
+			const conversation = await supportService.createConversation(
 				t("dashboard.debtDisputeMessage", { amount: amount.toFixed(2), connection: connectionName }),
 			);
-			navigate("/support");
+			navigate(`/support?conversation=${conversation.id}`);
 		} catch {
 			setSnackbar({
 				open: true,

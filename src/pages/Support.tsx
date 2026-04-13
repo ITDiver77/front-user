@@ -37,6 +37,7 @@ import {
 } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { EmptyState } from "../components/common/EmptyState";
 import { useLanguage } from "../i18n";
 import { ApiError } from "../services/api";
@@ -303,6 +304,7 @@ const Support = () => {
 	const { t } = useLanguage();
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+	const [searchParams] = useSearchParams();
 
 	const [conversations, setConversations] = useState<ConversationListItem[]>(
 		[],
@@ -380,6 +382,20 @@ const Support = () => {
 			setError(errorMessage);
 		}
 	};
+
+	useEffect(() => {
+		const conversationId = searchParams.get("conversation");
+		if (conversationId && !loading && conversations.length > 0) {
+			supportService.getConversation(Number(conversationId)).then((conversation) => {
+				setSelectedConversation(conversation);
+				setConversations((prev) =>
+					prev.map((c) =>
+						c.id === Number(conversationId) ? { ...c, has_unread_answers: false } : c,
+					),
+				);
+			}).catch(() => {});
+		}
+	}, [searchParams, loading, conversations.length]);
 
 	const handleSendMessage = async () => {
 		if (!newMessage.trim() || !selectedConversation) return;
