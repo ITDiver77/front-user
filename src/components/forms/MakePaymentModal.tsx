@@ -1,6 +1,7 @@
 import {
 	Box,
 	Button,
+	Chip,
 	CircularProgress,
 	Dialog,
 	DialogActions,
@@ -125,12 +126,22 @@ const MakePaymentModal = ({
 					<FormControlLabel
 						value={6}
 						control={<Radio />}
-						label={`6 ${t("modals.monthsOption")}`}
+						label={
+							<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+								<span>6 {t("modals.monthsOption")}</span>
+								<Chip label={t("modals.bulkDiscountBadge", { percent: 10 })} size="small" color="success" />
+							</Box>
+						}
 					/>
 					<FormControlLabel
 						value={12}
 						control={<Radio />}
-						label={`12 ${t("modals.monthsOption")}`}
+						label={
+							<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+								<span>12 {t("modals.monthsOption")}</span>
+								<Chip label={t("modals.bulkDiscountBadge", { percent: 20 })} size="small" color="success" />
+							</Box>
+						}
 					/>
 				</RadioGroup>
 
