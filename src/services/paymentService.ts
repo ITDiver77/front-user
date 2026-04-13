@@ -7,14 +7,21 @@ import type {
 } from "../types/payment";
 import api from "./api";
 
+export interface PriceBreakdown {
+	total: number;
+	months: number;
+	breakdown: Array<{
+		connection_name: string;
+		price: number;
+		paydate: string | null;
+		months_paid_ahead: number;
+		months_to_charge: number;
+		rounded_monthly_price: number;
+		charge: number;
+	}>;
+}
+
 export const paymentService = {
-	/**
-	 * Get payments for the current user.
-	 * @param limit - Maximum number of payments to return (default 100)
-	 * @param offset - Number of payments to skip (default 0)
-	 * @returns Payment list with totals
-	 * @throws {Error} If API request fails or payment gateway error
-	 */
 	getMyPayments: async (limit = 100, offset = 0) => {
 		try {
 			const response = await api.get<PaymentListResponse>("/payments/", {
@@ -29,12 +36,6 @@ export const paymentService = {
 		}
 	},
 
-	/**
-	 * Initiate a new payment for connection renewal or new connection.
-	 * @param data - Payment initiation request including connection_name and months
-	 * @returns Payment initiation response with payment_id and redirect_url
-	 * @throws {Error} If payment gateway unreachable, insufficient funds, conflict, etc.
-	 */
 	initiatePayment: async (data: PaymentInitiationRequest) => {
 		try {
 			const response = await api.post<PaymentInitiationResponse>(
@@ -61,15 +62,23 @@ export const paymentService = {
 		}
 	},
 
-	/**
-	 * Get payment status by payment ID.
-	 * @param paymentId - Payment ID (transaction ID)
-	 * @returns Payment details
-	 * @throws {Error} If payment not found, insufficient funds, conflict, etc.
-	 */
+	calculatePrice: async (months: number): Promise<PriceBreakdown> => {
+		try {
+			const response = await api.post<PriceBreakdown>(
+				"/payments/calculate-price",
+				{ months },
+			);
+			return response.data;
+		} catch (error) {
+			console.error("Failed to calculate price", error);
+			throw new Error(
+				`Failed to calculate price: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
+		}
+	},
+
 	getPaymentStatus: async (paymentId: number) => {
 		try {
-			// Use transaction status endpoint per spec
 			const response = await api.get<Payment>(
 				`/payments/transaction/${paymentId}/status`,
 			);
@@ -93,14 +102,6 @@ export const paymentService = {
 		}
 	},
 
-	/**
-	 * Poll payment status until completed (for UI).
-	 * @param paymentId - Payment ID
-	 * @param interval - Polling interval in milliseconds (default 2000)
-	 * @param maxAttempts - Maximum polling attempts (default 30)
-	 * @returns Payment details when payment is completed
-	 * @throws {Error} If polling timeout or payment fails
-	 */
 	pollPaymentStatus: async (
 		paymentId: number,
 		interval = 2000,

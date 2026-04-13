@@ -3,7 +3,6 @@ import {
 	Alert,
 	Box,
 	Button,
-	Checkbox,
 	CircularProgress,
 	Dialog,
 	DialogActions,
@@ -11,7 +10,6 @@ import {
 	DialogTitle,
 	Divider,
 	FormControl,
-	FormControlLabel,
 	InputLabel,
 	MenuItem,
 	Select,
@@ -19,11 +17,12 @@ import {
 	Tooltip,
 	Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { paymentService } from "../../services/paymentService";
+import type { PriceBreakdown } from "../../services/paymentService";
 import type { Connection } from "../../types/connection";
 import { paymentInitiationSchema } from "../../utils/validation";
 
@@ -31,7 +30,6 @@ interface PaymentInitiationModalProps {
 	open: boolean;
 	onClose: () => void;
 	connectionName: string;
-	currentPrice: number;
 	connections: Connection[];
 	onSuccess: (paymentId: number) => void;
 	isFromPayments?: boolean;
@@ -45,33 +43,6 @@ const PAYMENT_METHODS = (t: (key: string) => string) => [
 	{ value: "crypto", label: t("modals.cryptocurrency") },
 ];
 
-const getDiscount = (months: number): number => {
-	if (months >= 12) return 0.2;
-	if (months >= 6) return 0.1;
-	return 0;
-};
-
-const getDiscountLabel = (discount: number): string => {
-	if (discount === 0.2) return "-20%";
-	if (discount === 0.1) return "-10%";
-	return "";
-};
-
-const calculateConnectionPrice = (
-	maxConnections: number,
-	isFirstConnection: boolean,
-): number => {
-	if (isFirstConnection) {
-		// First: 150 + (n-1)*100 for n<5, else 450
-		if (maxConnections >= 5) return 450;
-		return 150 + (maxConnections - 1) * 100;
-	} else {
-		// Not first: n*100 for n<5, else 400
-		if (maxConnections >= 5) return 400;
-		return maxConnections * 100;
-	}
-};
-
 const PaymentInitiationModal = ({
 	open,
 	onClose,
@@ -84,7 +55,8 @@ const PaymentInitiationModal = ({
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string>("");
 	const [polling, setPolling] = useState(false);
-	const [payForAll, setPayForAll] = useState(true);
+	const [priceBreakdown, setPriceBreakdown] = useState<PriceBreakdown | null>(null);
+	const [calculatingPrice, setCalculatingPrice] = useState(false);
 
 	const {
 		handleSubmit,
@@ -106,28 +78,24 @@ const PaymentInitiationModal = ({
 	const activeConnections = connections.filter(
 		(c) => !c.is_deleted && c.auto_renew,
 	);
-	// Sort by index to determine first connection
-	const sortedActive = [...activeConnections].sort((a, b) => a.index - b.index);
-	const firstConnectionName = sortedActive[0]?.connection_name;
 
-	const totalPriceAll = activeConnections.reduce(
-		(sum, c) => sum + (c.price || 0),
-		0,
-	);
+	const fetchPrice = useCallback(async (m: number) => {
+		setCalculatingPrice(true);
+		try {
+			const result = await paymentService.calculatePrice(m);
+			setPriceBreakdown(result);
+		} catch {
+			setPriceBreakdown(null);
+		} finally {
+			setCalculatingPrice(false);
+		}
+	}, []);
 
-	// Find the connection being paid for (when not payForAll)
-	const currentConnection = connections.find(
-		(c) => c.connection_name === connectionName,
-	);
-	const basePrice = payForAll
-		? totalPriceAll
-		: currentConnection?.price || 0;
-	const discount = getDiscount(months);
-	const totalAmount = basePrice * months * (1 - discount);
-
-	const paymentDescription = payForAll
-		? t("modals.payForAllConnections", { count: activeConnections.length })
-		: t("modals.payForConnection", { name: connectionName });
+	useEffect(() => {
+		if (open && months) {
+			fetchPrice(months);
+		}
+	}, [open, months, fetchPrice]);
 
 	const onSubmit = async (data: PaymentInitiationFormData) => {
 		setLoading(true);
@@ -168,7 +136,7 @@ const PaymentInitiationModal = ({
 	const handleClose = () => {
 		reset();
 		setError("");
-		setPayForAll(true);
+		setPriceBreakdown(null);
 		onClose();
 	};
 
@@ -200,30 +168,8 @@ const PaymentInitiationModal = ({
 					}
 					placement="right"
 				>
-					<span>
-						<FormControlLabel
-							control={
-								<Checkbox
-									checked={payForAll}
-									onChange={(e) => setPayForAll(e.target.checked)}
-									disabled={isFromPayments}
-								/>
-							}
-							label={t("modals.payForAllConnectionsLabel")}
-							sx={{ mb: 1, cursor: "pointer" }}
-						/>
-					</span>
-				</Tooltip>
-				<Tooltip
-					title={
-						<Box sx={{ whiteSpace: "pre-line" }}>
-							{activeConnections.map((c) => c.connection_name).join("\n")}
-						</Box>
-					}
-					placement="right"
-				>
 					<Typography variant="body2" sx={{ mb: 2, cursor: "pointer" }}>
-						{paymentDescription}
+						{t("modals.payForAllConnections", { count: activeConnections.length })}
 					</Typography>
 				</Tooltip>
 				<form id="payment-initiation-form" onSubmit={handleSubmit(onSubmit)}>
@@ -245,13 +191,6 @@ const PaymentInitiationModal = ({
 							sx={{ mb: 3 }}
 						/>
 					</Box>
-					{discount > 0 && (
-						<Alert severity="success" sx={{ mb: 2 }}>
-							{t("modals.discountApplied", {
-								percent: getDiscountLabel(discount),
-							})}
-						</Alert>
-					)}
 					<FormControl fullWidth margin="normal">
 						<InputLabel id="payment-method-label">
 							{t("modals.paymentMethod")}
@@ -278,37 +217,42 @@ const PaymentInitiationModal = ({
 							color: "primary.contrastText",
 						}}
 					>
-						<Typography variant="body2" sx={{ opacity: 0.9 }}>
-							{t("modals.totalAmount")}:
-						</Typography>
-						<Typography variant="h4" fontWeight="bold">
-							{totalAmount.toFixed(2)} ₽
-						</Typography>
-						<Divider sx={{ my: 1, borderColor: "rgba(255,255,255,0.2)" }} />
-						<Typography variant="body2" sx={{ opacity: 0.9 }}>
-							{payForAll ? (
-								activeConnections.map((c) => (
-									<Box key={c.connection_name} component="span">
-										{c.connection_name}: {months} × {c.price || 0}₽ ={" "}
-										{(c.price || 0) * months}₽
+						{calculatingPrice ? (
+							<Box sx={{ display: "flex", justifyContent: "center", py: 1 }}>
+								<CircularProgress size={24} sx={{ color: "common.white" }} />
+							</Box>
+						) : priceBreakdown ? (
+							<>
+								<Typography variant="body2" sx={{ opacity: 0.9 }}>
+									{t("modals.totalAmount")}:
+								</Typography>
+								<Typography variant="h4" fontWeight="bold">
+									{priceBreakdown.total.toFixed(2)} ₽
+								</Typography>
+								<Divider sx={{ my: 1, borderColor: "rgba(255,255,255,0.2)" }} />
+								{priceBreakdown.breakdown.map((item) => (
+									<Box key={item.connection_name} sx={{ mb: 0.5 }}>
+										<Typography variant="body2" sx={{ opacity: 0.9 }}>
+											{item.connection_name}: {item.months_to_charge} × {item.rounded_monthly_price} ₽ = {item.charge} ₽
+											{item.months_paid_ahead > 0 && (
+												<Box component="span" sx={{ ml: 1, fontStyle: "italic" }}>
+													({item.months_paid_ahead} {t("modals.monthsPaidAhead") || "months already paid"})
+												</Box>
+											)}
+										</Typography>
 									</Box>
-								))
-							) : (
-								<>
-									{months}{" "}
-									{months !== 1 ? t("modals.months") : t("modals.month")} ×{" "}
-									{basePrice} ₽/{t("modals.month")}
-								</>
-							)}
-							{discount > 0 && (
-								<Box
-									component="span"
-									sx={{ ml: 1, fontWeight: "bold", color: "success.main" }}
-								>
-									({getDiscountLabel(discount)})
-								</Box>
-							)}
-						</Typography>
+								))}
+								{priceBreakdown.total === 0 && (
+									<Typography variant="body2" sx={{ mt: 1 }}>
+										{t("modals.allConnectionsPaidAhead") || "All connections are already paid ahead"}
+									</Typography>
+								)}
+							</>
+						) : (
+							<Typography variant="body2" sx={{ opacity: 0.9 }}>
+								{t("modals.priceCalculationFailed") || "Could not calculate price"}
+							</Typography>
+						)}
 					</Box>
 				</form>
 			</DialogContent>
@@ -320,7 +264,7 @@ const PaymentInitiationModal = ({
 					type="submit"
 					form="payment-initiation-form"
 					variant="contained"
-					disabled={loading || polling}
+					disabled={loading || polling || calculatingPrice || (priceBreakdown !== null && priceBreakdown.total === 0)}
 				>
 					{loading || polling ? (
 						<CircularProgress size={24} />

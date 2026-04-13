@@ -411,7 +411,6 @@ const Dashboard = () => {
 					open={paymentModalOpen}
 					onClose={handleClosePaymentModal}
 					connectionName={paymentConnection.connection_name}
-					currentPrice={paymentConnection.price}
 					connections={connections}
 					onSuccess={handlePaymentSuccess}
 				/>

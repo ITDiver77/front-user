@@ -82,16 +82,8 @@ const NewConnectionModal = ({
 	});
 
 	const months = watch("months");
-	const _pricePerMonth = priceInfo?.price ?? 0;
-	const isFirstConnection = connectionsUsed === 0;
-	const pricePerConnection = isFirstConnection
-		? maxConnections >= 5
-			? 450
-			: 150 + (maxConnections - 1) * 100
-		: maxConnections >= 5
-			? 400
-			: maxConnections * 100;
-	const totalPrice = months * pricePerConnection;
+	const pricePerConnection = priceInfo?.price ?? 0;
+	const estimatedTotal = months * pricePerConnection;
 
 	const fetchServers = useCallback(async () => {
 		setServerLoading(true);
@@ -130,7 +122,6 @@ const NewConnectionModal = ({
 				server_name: data.serverName,
 				months: data.months,
 				payment_method: "card",
-				amount: totalPrice,
 			});
 
 			if (paymentResponse.redirect_url) {
@@ -247,10 +238,10 @@ const NewConnectionModal = ({
 						) : (
 							<>
 								<Typography variant="body2" color="textSecondary">
-									{t("connectionCard.price")}: {pricePerConnection} ₽
+									{t("connectionCard.price")} ({t("modals.estimated") || "estimated"}): {pricePerConnection} ₽
 								</Typography>
 								<Typography variant="h6">
-									{t("modals.total")}: {totalPrice} ₽ {t("modals.for")} {months}{" "}
+									{t("modals.total")} ({t("modals.estimated") || "estimated"}): ~{estimatedTotal} ₽ {t("modals.for")} {months}{" "}
 									{months !== 1 ? t("modals.months") : t("modals.month")}
 								</Typography>
 								{priceInfo?.reason && (

@@ -573,7 +573,6 @@ const PaymentHistory = () => {
 				open={modalOpen}
 				onClose={() => setModalOpen(false)}
 				connectionName={connections[0]?.connection_name || ""}
-				currentPrice={connections[0]?.price || 0}
 				connections={connections}
 				onSuccess={handleProceedToPayment}
 				isFromPayments={true}
