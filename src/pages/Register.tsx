@@ -96,6 +96,8 @@ const Register = () => {
 	const [showTempPassword, setShowTempPassword] = useState(false);
 	const [emailExistsError, setEmailExistsError] = useState("");
 	const [usernameExistsError, setUsernameExistsError] = useState("");
+	const [resetSent, setResetSent] = useState(false);
+	const [resetSending, setResetSending] = useState(false);
 
 	const [telegramResponse, setTelegramResponse] =
 		useState<RegisterStartResponse | null>(null);
@@ -359,6 +361,20 @@ const Register = () => {
 			}
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const handleSendReset = async () => {
+		const email = passwordForm.getValues("email");
+		if (!email) return;
+		setResetSending(true);
+		try {
+			await authService.forgotPassword({ email });
+			setResetSent(true);
+		} catch {
+			setError(t("auth.unexpectedError"));
+		} finally {
+			setResetSending(false);
 		}
 	};
 
@@ -747,12 +763,20 @@ const Register = () => {
 							{...passwordForm.register("email")}
 							error={!!passwordForm.formState.errors.email || !!emailExistsError}
 							helperText={emailExistsError ? (
-								<span>
-									{emailExistsError}{" "}
-									<Link component={RouterLink} to="/forgot-password" style={{ textDecoration: "underline" }}>
-										{t("auth.forgotPassword")}
-									</Link>
-								</span>
+								resetSent ? t("auth.resetLinkSent") : (
+									<span>
+										{emailExistsError}{" "}
+										<Link
+											component="button"
+											type="button"
+											onClick={handleSendReset}
+											style={{ textDecoration: "underline", background: "none", border: "none", cursor: "pointer", font: "inherit" }}
+											disabled={resetSending}
+										>
+											{resetSending ? t("common.loading") : t("auth.sendResetLink")}
+										</Link>
+									</span>
+								)
 							) : passwordForm.formState.errors.email?.message || t("auth.enterCredentials")}
 						/>
 

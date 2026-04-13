@@ -40,7 +40,8 @@ export interface AuthResponse {
 }
 
 export interface ForgotPasswordRequest {
-	username: string;
+	username?: string;
+	email?: string;
 }
 
 export interface ResetPasswordRequest {
