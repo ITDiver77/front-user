@@ -36,18 +36,6 @@ interface NewConnectionModalProps {
 
 type NewConnectionFormData = z.infer<typeof newConnectionSchema>;
 
-const getConnectionWord = (count: number): string => {
-	const mod10 = count % 10;
-	const mod100 = count % 100;
-	if (mod10 === 1 && mod100 !== 11) {
-		return "подключение";
-	}
-	if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) {
-		return "подключения";
-	}
-	return "подключений";
-};
-
 const NewConnectionModal = ({
 	open,
 	onClose,
@@ -61,6 +49,7 @@ const NewConnectionModal = ({
 	const [priceInfo, setPriceInfo] = useState<{
 		price: number;
 		reason: string;
+		price_type: string;
 	} | null>(null);
 	const [maxConnections, setMaxConnections] = useState(1);
 	const [connectionsUsed, setConnectionsUsed] = useState(0);
@@ -83,7 +72,7 @@ const NewConnectionModal = ({
 
 	const months = watch("months");
 	const pricePerConnection = priceInfo?.price ?? 0;
-	const estimatedTotal = months * pricePerConnection;
+	const estimatedTotal = months * pricePerConnection * maxConnections;
 
 	const fetchServers = useCallback(async () => {
 		setServerLoading(true);
@@ -94,7 +83,7 @@ const NewConnectionModal = ({
 				userService.getConnectionsUsed(),
 			]);
 			setServers(serversData);
-			setPriceInfo({ price: priceData.price, reason: priceData.reason });
+			setPriceInfo({ price: priceData.price, reason: priceData.reason, price_type: priceData.price_type });
 			setConnectionsUsed(connectionsData.used);
 		} catch (err: unknown) {
 			setError(t("modals.failedToLoadServers"));
@@ -205,7 +194,7 @@ const NewConnectionModal = ({
 					{!serverLoading && (
 						<Box sx={{ mt: 2 }}>
 							<Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
-								{maxConnections} {getConnectionWord(maxConnections)}
+								{maxConnections} {maxConnections === 1 ? t("modals.connection") : t("modals.connections")}
 							</Typography>
 							<Slider
 								value={maxConnections}
@@ -238,17 +227,13 @@ const NewConnectionModal = ({
 						) : (
 							<>
 								<Typography variant="body2" color="textSecondary">
-									{t("connectionCard.price")} ({t("modals.estimated") || "estimated"}): {pricePerConnection} ₽
+									{t("connectionCard.price")}: {pricePerConnection} ₽ × {maxConnections} = {pricePerConnection * maxConnections} ₽/{t("connectionCard.perMonth").replace("/", "").replace("мес", "мес.").replace("month", "mo.")}
 								</Typography>
 								<Typography variant="h6">
-									{t("modals.total")} ({t("modals.estimated") || "estimated"}): ~{estimatedTotal} ₽ {t("modals.for")} {months}{" "}
+									{t("modals.total")} ({t("modals.estimated")}): ~{estimatedTotal} ₽ {t("modals.for")} {months}{" "}
 									{months !== 1 ? t("modals.months") : t("modals.month")}
 								</Typography>
-								{priceInfo?.reason && (
-									<Typography variant="caption" color="textSecondary">
-										{priceInfo.reason}
-									</Typography>
-								)}
+	
 							</>
 						)}
 					</Box>
