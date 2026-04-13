@@ -168,23 +168,35 @@ const MakePaymentModal = ({
 					</Box>
 				) : priceBreakdown ? (
 					<>
-						{priceBreakdown.breakdown.length > 0 && (
+						{priceBreakdown.bulk_label && (
+								<Typography variant="body2" sx={{ mb: 1, color: "success.main", fontWeight: 600 }}>
+									{priceBreakdown.bulk_label}!
+								</Typography>
+							)}
 							<Box sx={{ mb: 2 }}>
-								{priceBreakdown.breakdown.map((item) => (
+								{priceBreakdown.breakdown.map((item) => {
+									const fullPrice = item.months_to_charge * item.price;
+									const discount = fullPrice - item.months_to_charge * item.rounded_monthly_price;
+									return (
 									<Box key={item.connection_name} sx={{ mb: 1 }}>
 										<Typography variant="body2">
-											{item.connection_name}: {item.months_to_charge} × {item.rounded_monthly_price} ₽ = {item.months_to_charge * item.rounded_monthly_price} ₽
+											{item.connection_name}: {item.months_to_charge} × {item.price} ₽ = {fullPrice} ₽
 										</Typography>
+										{discount > 0 && (
+											<Typography variant="body2" sx={{ color: "success.main", pl: 2 }}>
+												−{discount} ₽ ({item.bulk_label || `${Math.round(item.bulk_discount * 100)}%`})
+											</Typography>
+										)}
 										{item.credit > 0 && (
 											<Typography variant="body2" sx={{ color: "success.main", pl: 2 }}>
-												−{item.credit} ₽ ({t("modals.creditRemaining")})
+												−{item.credit} ₽ {item.paydate ? `(оплачено до ${new Date(item.paydate).toLocaleDateString("ru-RU")})` : ""}
 											</Typography>
 										)}
 										<Typography variant="body2" fontWeight="bold">
 											= {item.charge} ₽
 										</Typography>
 									</Box>
-								))}
+								)})}
 							</Box>
 						)}
 						<Box

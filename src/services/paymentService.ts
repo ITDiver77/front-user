@@ -20,7 +20,9 @@ export interface PriceBreakdown {
 		charge: number;
 		credit: number;
 		bulk_discount: number;
+		bulk_label: string;
 	}>;
+	bulk_label: string;
 }
 
 export const paymentService = {

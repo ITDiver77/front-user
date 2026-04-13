@@ -198,29 +198,37 @@ const PaymentInitiationModal = ({
 									{t("modals.totalAmount")}:
 								</Typography>
 								<Typography variant="h4" fontWeight="bold">
-									{priceBreakdown.total.toFixed(2)} ₽
+									{priceBreakdown.total} ₽
 								</Typography>
-								{priceBreakdown.breakdown.length > 0 && priceBreakdown.breakdown[0].bulk_discount > 0 && (
+								{priceBreakdown.bulk_label && (
 									<Typography variant="body2" sx={{ mt: 0.5, color: "success.main", fontWeight: 600 }}>
-										{t("modals.discountApplied", { percent: `${Math.round(priceBreakdown.breakdown[0].bulk_discount * 100)}%` })}
+										{priceBreakdown.bulk_label}!
 									</Typography>
 								)}
 								<Divider sx={{ my: 1, borderColor: "rgba(255,255,255,0.2)" }} />
-								{priceBreakdown.breakdown.map((item) => (
+								{priceBreakdown.breakdown.map((item) => {
+									const fullPrice = item.months_to_charge * item.price;
+									const discount = fullPrice - item.months_to_charge * item.rounded_monthly_price;
+									return (
 									<Box key={item.connection_name} sx={{ mb: 1 }}>
 										<Typography variant="body2" sx={{ opacity: 0.9 }}>
-											{item.connection_name}: {item.months_to_charge} × {item.rounded_monthly_price} ₽ = {item.months_to_charge * item.rounded_monthly_price} ₽
+											{item.connection_name}: {item.months_to_charge} × {item.price} ₽ = {fullPrice} ₽
 										</Typography>
+										{discount > 0 && (
+											<Typography variant="body2" sx={{ color: "#a5d6a7", pl: 2 }}>
+												−{discount} ₽ ({item.bulk_label || `${Math.round(item.bulk_discount * 100)}%`})
+											</Typography>
+										)}
 										{item.credit > 0 && (
 											<Typography variant="body2" sx={{ color: "#a5d6a7", pl: 2 }}>
-												−{item.credit} ₽ ({t("modals.creditRemaining")})
+												−{item.credit} ₽ {item.paydate ? `(оплачено до ${new Date(item.paydate).toLocaleDateString("ru-RU")})` : ""}
 											</Typography>
 										)}
 										<Typography variant="body2" fontWeight="bold" sx={{ opacity: 0.9 }}>
 											= {item.charge} ₽
 										</Typography>
 									</Box>
-								))}
+								)})}
 								{priceBreakdown.total === 0 && (
 									<Typography variant="body2" sx={{ mt: 1 }}>
 										{t("modals.allConnectionsPaidAhead") || "All connections are already paid ahead"}
