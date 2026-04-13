@@ -1,5 +1,18 @@
 # Changelog - VPN User Frontend
 
+## [2026-04-13] Backend-Calculated Pricing
+
+### Added
+- `calculatePrice()` method in paymentService — calls POST /payments/calculate-price
+- Per-connection price breakdown display in PaymentInitiationModal and MakePaymentModal
+
+### Changed
+- PaymentInitiationModal: removed client-side discount/price logic, uses backend breakdown
+- MakePaymentModal: removed DISCOUNTS/getPrice, uses backend calculation
+- NewConnectionModal: removed amount from initiatePayment call
+- Dashboard, PaymentHistory: removed currentPrice prop from PaymentInitiationModal
+- Frontend never sends `amount` — backend is sole source of truth for pricing
+
 ## [Unreleased]
 
 ### 2026-04-10
