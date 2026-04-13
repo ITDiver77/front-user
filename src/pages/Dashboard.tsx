@@ -389,70 +389,63 @@ const Dashboard = () => {
 				</Alert>
 			)}
 
-			{totalDebt > 0 && (
-				<Card
-					sx={{
-						mb: 3,
-						border: "2px solid",
-						borderColor: "error.main",
-						backgroundColor: (theme) =>
-							theme.palette.mode === "dark" ? "error.dark" : "error.light",
-					}}
-				>
-					<CardContent>
-						<Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-							<WarningIcon color="error" />
-							<Typography variant="h6" fontWeight={700} color="error.main">
-								{t("dashboard.totalDebt")}
-							</Typography>
-						</Box>
-						<Typography variant="h5" fontWeight={700} color="error.main" sx={{ mb: 2 }}>
-							{totalDebt.toFixed(2)} ₽
+		{totalDebt > 0 && (
+			<Card
+				sx={{
+					mb: 3,
+					border: "2px solid",
+					borderColor: "error.main",
+					backgroundColor: (theme) =>
+						theme.palette.mode === "dark" ? "error.dark" : "error.light",
+				}}
+			>
+				<CardContent>
+					<Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+						<WarningIcon color="error" />
+						<Typography variant="h6" fontWeight={700} color="error.main">
+							{t("dashboard.totalDebt")}
 						</Typography>
-						{connections
-							.filter((c) => c.debt && c.debt > 0)
-							.map((c) => (
-								<Box
-									key={c.connection_name}
-									sx={{
-										display: "flex",
-										alignItems: "center",
-										justifyContent: "space-between",
-										py: 1,
-										px: 2,
-										mb: 1,
-										borderRadius: 1,
-										bgcolor: "action.hover",
-									}}
-								>
-									<Typography variant="body1">
-										{c.connection_name}: <strong>{c.debt!.toFixed(2)} ₽</strong>
-									</Typography>
-									<Box sx={{ display: "flex", gap: 1 }}>
-										<Button
-											variant="contained"
-											size="small"
-											color="warning"
-											startIcon={<PaymentIcon />}
-											onClick={() => handlePayDebt(c.connection_name, c.debt!)}
-										>
-											{t("dashboard.payDebt")}
-										</Button>
-										<Button
-											variant="outlined"
-											size="small"
-											color="inherit"
-											startIcon={<ChatIcon />}
-											onClick={() => handleDisputeDebt(c.connection_name, c.debt!)}
-										>
-											{t("dashboard.disputeDebt")}
-										</Button>
-									</Box>
-								</Box>
-							))}
-					</CardContent>
-				</Card>
-			)}
+					</Box>
+					<Typography variant="h5" fontWeight={700} color="error.main" sx={{ mb: 2 }}>
+						{totalDebt.toFixed(2)} ₽
+					</Typography>
+					{connections
+						.filter((c) => c.debt && c.debt > 0)
+						.map((c) => (
+							<Typography key={c.connection_name} variant="body1" sx={{ py: 0.5 }}>
+								{c.connection_name}: <strong>{c.debt!.toFixed(2)} ₽</strong>
+							</Typography>
+						))}
+					<Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+						<Button
+							variant="contained"
+							color="warning"
+							startIcon={<PaymentIcon />}
+							onClick={() => {
+								const debtConnections = connections.filter((c) => c.debt && c.debt > 0);
+								if (debtConnections.length > 0) {
+									handlePayDebt(debtConnections[0].connection_name, totalDebt);
+								}
+							}}
+						>
+							{t("dashboard.payDebt")} ({totalDebt.toFixed(2)} ₽)
+						</Button>
+						<Button
+							variant="outlined"
+							color="inherit"
+							startIcon={<ChatIcon />}
+							onClick={() => {
+								const debtConnections = connections.filter((c) => c.debt && c.debt > 0);
+								const names = debtConnections.map((c) => c.connection_name).join(", ");
+								handleDisputeDebt(names, totalDebt);
+							}}
+						>
+							{t("dashboard.disputeDebt")}
+						</Button>
+					</Box>
+				</CardContent>
+			</Card>
+		)}
 
 			{filteredConnections.length === 0 ? (
 				<motion.div

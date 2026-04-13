@@ -220,21 +220,24 @@ const NewConnectionModal = ({
 						</Box>
 					)}
 					<Box
-						sx={{ mt: 2, p: 2, backgroundColor: "grey.50", borderRadius: 1 }}
+						sx={{ mt: 2, p: 2, backgroundColor: "action.hover", borderRadius: 1 }}
 					>
 						{serverLoading ? (
 							<CircularProgress size={20} />
-						) : (
+						) : pricePerConnection > 0 ? (
 							<>
 								<Typography variant="body2" color="textSecondary">
-									{t("connectionCard.price")}: {pricePerConnection} ₽ × {maxConnections} = {pricePerConnection * maxConnections} ₽/{t("connectionCard.perMonth").replace("/", "").replace("мес", "мес.").replace("month", "mo.")}
+									{t("connectionCard.price")}: {pricePerConnection} ₽ × {maxConnections} = {pricePerConnection * maxConnections} ₽
 								</Typography>
 								<Typography variant="h6">
 									{t("modals.total")} ({t("modals.estimated")}): ~{estimatedTotal} ₽ {t("modals.for")} {months}{" "}
 									{months !== 1 ? t("modals.months") : t("modals.month")}
 								</Typography>
-	
 							</>
+						) : (
+							<Typography variant="body2" color="textSecondary">
+								{t("modals.failedToLoadServers")}
+							</Typography>
 						)}
 					</Box>
 				</Box>

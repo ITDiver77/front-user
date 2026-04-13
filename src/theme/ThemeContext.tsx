@@ -47,7 +47,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 const THEME_STORAGE_KEY = "vpn-user-theme";
 
 function getInitialTheme(): ThemeName {
-	if (typeof window === "undefined") return "greySteel";
+	if (typeof window === "undefined") return "indigoSlate";
 	const stored = localStorage.getItem(THEME_STORAGE_KEY);
 	const validThemes = [
 		"violet",
@@ -80,7 +80,7 @@ function getInitialTheme(): ThemeName {
 	if (stored && validThemes.includes(stored)) {
 		return stored as ThemeName;
 	}
-	return "greySteel";
+	return "indigoSlate";
 }
 
 function detectTelegramTheme(): {
@@ -135,7 +135,7 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 		setTelegramState(detected);
 
 		// Auto-switch to telegram theme if in Telegram and theme is default
-		if (detected.isTelegram && themeName === "greySteel") {
+		if (detected.isTelegram && themeName === "indigoSlate") {
 			setThemeNameState("telegram");
 		}
 	}, [themeName]);
@@ -221,7 +221,7 @@ export function CustomThemeProvider({ children }: CustomThemeProviderProps) {
 			case "sage":
 				return sageTheme;
 			default:
-				return violetTheme;
+				return indigoSlateTheme;
 		}
 	}, [themeName, telegramState]);
 
