@@ -5,23 +5,22 @@
 ### Added
 - Public `/instructions` route accessible without login, rendered via new `PublicLayout` component
 - `PublicLayout` component: sticky header (logo, theme selector, EN/RU toggle, Login & Register buttons), content area, footer
-- Instructions page rebuilt with 6 comprehensive sections:
-  1. Registration guide — 6 step-by-step instructions with screenshot placeholders (RU)
+- Instructions page rebuilt with 6 collapsible sections:
+  1. Registration guide — 6 step-by-step instructions (RU)
   2. VPN setup — tab-based per-OS guides (Windows, Android, iOS, Linux)
-  3. Changing color theme — 3 steps with placeholders
-  4. Changing VPN server — 3 steps with placeholders
-  5. Managing connections — creating new connections + changing slot count (5 steps)
-  6. FAQ — accordion-style Q&A
-- Table of contents with smooth-scroll anchor links
-- `ScreenshotPlaceholder` component: styled dashed-border boxes for future screenshot insertion
-- `StepCard` component: numbered step with description and screenshot placeholder
-- `SectionTitle` component: icon + heading with scroll-margin-top for anchor navigation
+  3. Changing color theme — 3 steps
+  4. Changing VPN server — 3 steps
+  5. Managing connections — creating new connections + changing slot count
+  6. FAQ — nested accordion Q&A
+- Card-grid TOC (2-col mobile, 3-col desktop) with icons for quick section jumping
+- Screenshots hidden behind toggleable "show screenshot" buttons (collapsed by default)
+- One section expanded at a time via Accordion pattern — no endless scrolling
+- Compact step indicators: numbered circles with title + description inline
 - ~40 new i18n translation keys (EN + RU) for all instruction sections
 
 ### Changed
-- `/instructions` route now exists as both public (PublicLayout) and authenticated (Layout) — logged-in users can still access from sidebar
-- Existing per-OS VPN instruction translations preserved and reused in tab UI
-- Framer-motion animations on all sections and step cards
+- `/instructions` route exists as both public (PublicLayout) and authenticated (Layout)
+- TOC cards auto-expand the target section and smooth-scroll to it
 
 ### Files
 - `src/components/Layout/PublicLayout.tsx` — new
