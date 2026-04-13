@@ -1,5 +1,35 @@
 # Changelog - VPN User Frontend
 
+## [2026-04-13] Public Instructions Page Rebuild
+
+### Added
+- Public `/instructions` route accessible without login, rendered via new `PublicLayout` component
+- `PublicLayout` component: sticky header (logo, theme selector, EN/RU toggle, Login & Register buttons), content area, footer
+- Instructions page rebuilt with 6 comprehensive sections:
+  1. Registration guide — 6 step-by-step instructions with screenshot placeholders (RU)
+  2. VPN setup — tab-based per-OS guides (Windows, Android, iOS, Linux)
+  3. Changing color theme — 3 steps with placeholders
+  4. Changing VPN server — 3 steps with placeholders
+  5. Managing connections — creating new connections + changing slot count (5 steps)
+  6. FAQ — accordion-style Q&A
+- Table of contents with smooth-scroll anchor links
+- `ScreenshotPlaceholder` component: styled dashed-border boxes for future screenshot insertion
+- `StepCard` component: numbered step with description and screenshot placeholder
+- `SectionTitle` component: icon + heading with scroll-margin-top for anchor navigation
+- ~40 new i18n translation keys (EN + RU) for all instruction sections
+
+### Changed
+- `/instructions` route now exists as both public (PublicLayout) and authenticated (Layout) — logged-in users can still access from sidebar
+- Existing per-OS VPN instruction translations preserved and reused in tab UI
+- Framer-motion animations on all sections and step cards
+
+### Files
+- `src/components/Layout/PublicLayout.tsx` — new
+- `src/pages/Instructions.tsx` — rewritten
+- `src/App.tsx` — added public route + PublicLayout import
+- `src/i18n/translations/en.ts` — 40+ new keys
+- `src/i18n/translations/ru.ts` — 40+ new keys
+
 ## [2026-04-13] Debt Feature + Bugfixes
 
 ### Added

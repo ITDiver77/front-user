@@ -4,6 +4,14 @@ Current tasks, planned features, and deferred work.
 
 ## High Priority
 
+### Public Instructions Page
+- [x] Create PublicLayout component (header with login/register, footer)
+- [x] Rebuild Instructions page with 6 sections (registration, VPN setup, theme, server, connections, FAQ)
+- [x] Move /instructions route outside PrivateRoute (public access)
+- [x] Add ~40 i18n keys (EN + RU) for all instruction sections
+- [x] Add screenshot placeholders for future image insertion
+- [ ] Replace screenshot placeholders with actual screenshots
+
 ### Debt Feature
 - [x] Add `debt?: number` to Connection type
 - [x] Display per-connection debt on ConnectionCard (red warning)
