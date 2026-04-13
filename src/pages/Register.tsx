@@ -94,6 +94,8 @@ const Register = () => {
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [showTempPassword, setShowTempPassword] = useState(false);
+	const [emailExistsError, setEmailExistsError] = useState("");
+	const [usernameExistsError, setUsernameExistsError] = useState("");
 
 	const [telegramResponse, setTelegramResponse] =
 		useState<RegisterStartResponse | null>(null);
@@ -153,6 +155,15 @@ const Register = () => {
 	});
 
 	const passwordValue = passwordForm.watch("password", "");
+	const emailValue = passwordForm.watch("email", "");
+
+	useEffect(() => {
+		setEmailExistsError("");
+	}, [emailValue]);
+
+	useEffect(() => {
+		setUsernameExistsError("");
+	}, [usernameValue]);
 
 	useEffect(() => {
 		const savedState = sessionStorage.getItem(SESSION_KEY);
@@ -337,10 +348,15 @@ const Register = () => {
 		try {
 			const response = await authService.verifyEmailCode(data.code);
 			setEmailVerificationResult(response);
-		} catch (err: unknown) {
-			const errorMessage =
-				err instanceof Error ? err.message : "Verification failed";
-			setError(errorMessage);
+	} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : "Registration failed";
+			if (message.toLowerCase().includes("email already")) {
+				setEmailExistsError(t("auth.emailAlreadyRegistered"));
+			} else if (message.toLowerCase().includes("username already")) {
+				setUsernameExistsError(t("auth.usernameAlreadyExists"));
+			} else {
+				setError(message);
+			}
 		} finally {
 			setLoading(false);
 		}
@@ -360,6 +376,8 @@ const Register = () => {
 		setEmailVerificationResult(null);
 		setTempCredentials(null);
 		setPollingStatus("pending");
+		setEmailExistsError("");
+		setUsernameExistsError("");
 	};
 
 	if (tempCredentials) {
@@ -699,11 +717,7 @@ const Register = () => {
 							<Alert severity="error" sx={{ mb: 2 }}>
 								{error}
 							</Alert>
-						)}
-
-						<Alert severity="info" sx={{ mb: 2 }}>
-							{t("auth.enterCredentials")}
-						</Alert>
+						)						}
 
 						<TextField
 							margin="normal"
@@ -717,9 +731,10 @@ const Register = () => {
 							error={
 								!!passwordForm.formState.errors.username ||
 								(usernameValue.length > 0 &&
-									!/^[a-zA-Z0-9_]+$/.test(usernameValue))
+									!/^[a-zA-Z0-9_]+$/.test(usernameValue)) ||
+								!!usernameExistsError
 							}
-							helperText={getUsernameHelperText()}
+							helperText={usernameExistsError || getUsernameHelperText()}
 						/>
 
 						<TextField
@@ -730,8 +745,15 @@ const Register = () => {
 							label={t("auth.email")}
 							autoComplete="email"
 							{...passwordForm.register("email")}
-							error={!!passwordForm.formState.errors.email}
-							helperText={passwordForm.formState.errors.email?.message}
+							error={!!passwordForm.formState.errors.email || !!emailExistsError}
+							helperText={emailExistsError ? (
+								<span>
+									{emailExistsError}{" "}
+									<Link component={RouterLink} to="/forgot-password" style={{ textDecoration: "underline" }}>
+										{t("auth.forgotPassword")}
+									</Link>
+								</span>
+							) : passwordForm.formState.errors.email?.message || t("auth.enterCredentials")}
 						/>
 
 						<TextField

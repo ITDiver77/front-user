@@ -99,6 +99,8 @@ export const ru = {
 		backToSignIn: "Вернуться ко входу",
 		loginViaTelegram: "Войти через Telegram",
 		telegramVpnRequired: "Для авторизации через Telegram должен быть включен VPN",
+		emailAlreadyRegistered: "Этот email уже зарегистрирован",
+		usernameAlreadyExists: "Это имя пользователя уже занято",
 	},
 	dashboard: {
 		myConnections: "Мои подключения",

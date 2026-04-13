@@ -98,6 +98,8 @@ export const en = {
 		backToSignIn: "Back to Sign In",
 		loginViaTelegram: "Login via Telegram",
 		telegramVpnRequired: "VPN must be enabled to login via Telegram",
+		emailAlreadyRegistered: "This email is already registered",
+		usernameAlreadyExists: "This username is already taken",
 	},
 	dashboard: {
 		myConnections: "My Connections",
