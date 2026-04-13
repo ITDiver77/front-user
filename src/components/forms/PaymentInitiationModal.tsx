@@ -9,10 +9,6 @@ import {
 	DialogContent,
 	DialogTitle,
 	Divider,
-	FormControl,
-	InputLabel,
-	MenuItem,
-	Select,
 	Slider,
 	Tooltip,
 	Typography,
@@ -36,12 +32,6 @@ interface PaymentInitiationModalProps {
 }
 
 type PaymentInitiationFormData = z.infer<typeof paymentInitiationSchema>;
-
-const PAYMENT_METHODS = (t: (key: string) => string) => [
-	{ value: "card", label: t("modals.creditDebitCard") },
-	{ value: "paypal", label: t("modals.paypal") },
-	{ value: "crypto", label: t("modals.cryptocurrency") },
-];
 
 const PaymentInitiationModal = ({
 	open,
@@ -68,12 +58,10 @@ const PaymentInitiationModal = ({
 		resolver: zodResolver(paymentInitiationSchema),
 		defaultValues: {
 			months: 1,
-			paymentMethod: "card",
 		},
 	});
 
 	const months = watch("months");
-	const paymentMethod = watch("paymentMethod");
 
 	const activeConnections = connections.filter(
 		(c) => !c.is_deleted && c.auto_renew,
@@ -104,7 +92,7 @@ const PaymentInitiationModal = ({
 			const response = await paymentService.initiatePayment({
 				connection_name: connectionName,
 				months: data.months,
-				payment_method: data.paymentMethod,
+				payment_method: "card",
 			});
 
 			if (response.redirect_url) {
@@ -191,24 +179,7 @@ const PaymentInitiationModal = ({
 							sx={{ mb: 3 }}
 						/>
 					</Box>
-					<FormControl fullWidth margin="normal">
-						<InputLabel id="payment-method-label">
-							{t("modals.paymentMethod")}
-						</InputLabel>
-						<Select
-							labelId="payment-method-label"
-							label={t("modals.paymentMethod")}
-							value={paymentMethod}
-							onChange={(e) => setValue("paymentMethod", e.target.value)}
-						>
-							{PAYMENT_METHODS(t).map((method) => (
-								<MenuItem key={method.value} value={method.value}>
-									{method.label}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
-					<Box
+				<Box
 						sx={{
 							mt: 2,
 							p: 2,
@@ -236,14 +207,17 @@ const PaymentInitiationModal = ({
 								)}
 								<Divider sx={{ my: 1, borderColor: "rgba(255,255,255,0.2)" }} />
 								{priceBreakdown.breakdown.map((item) => (
-									<Box key={item.connection_name} sx={{ mb: 0.5 }}>
+									<Box key={item.connection_name} sx={{ mb: 1 }}>
 										<Typography variant="body2" sx={{ opacity: 0.9 }}>
-											{item.connection_name}: {item.months_to_charge} × {item.rounded_monthly_price} ₽ = {item.charge} ₽
-											{item.months_paid_ahead > 0 && (
-												<Box component="span" sx={{ ml: 1, fontStyle: "italic" }}>
-													({item.months_paid_ahead} {t("modals.monthsPaidAhead") || "months already paid"})
-												</Box>
-											)}
+											{item.connection_name}: {item.months_to_charge} × {item.rounded_monthly_price} ₽ = {item.months_to_charge * item.rounded_monthly_price} ₽
+										</Typography>
+										{item.credit > 0 && (
+											<Typography variant="body2" sx={{ color: "#a5d6a7", pl: 2 }}>
+												−{item.credit} ₽ ({t("modals.creditRemaining")})
+											</Typography>
+										)}
+										<Typography variant="body2" fontWeight="bold" sx={{ opacity: 0.9 }}>
+											= {item.charge} ₽
 										</Typography>
 									</Box>
 								))}
