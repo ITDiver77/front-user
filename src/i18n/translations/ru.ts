@@ -679,6 +679,10 @@ export const ru = {
 		priceReason_default: "Стандартная цена для нового пользователя",
 		maxConnectionsLabel: "Количество слотов подключений",
 		connection: "подключение",
+		paidUntil: "Оплачено до",
+		payForSingleConnection: "Оплатить только это подключение",
+		allConnectionsPaidAhead: "Все подключения уже оплачены вперёд",
+		priceCalculationFailed: "Не удалось рассчитать стоимость",
 	},
 	servers: {
 		srv1: "srv1",

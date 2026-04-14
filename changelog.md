@@ -1,5 +1,41 @@
 # Changelog - VPN User Frontend
 
+## [2026-04-14] Payment Window Enhancement — Single-Connection Pay + Date Preview
+
+### Added
+- Date preview: "Paid until: ..." displayed prominently when user changes months
+- "Pay for all connections" checkbox: toggles between single and multi-connection payment
+- Single-connection pricing: backend calculates price for one connection (simple +N months, no alignment)
+- Single-connection payment processing: on callback, only the specified connection is extended
+- `connection_name` column on Payment model (nullable, null = all connections)
+- `target_date` field in `PriceBreakdown` interface and API response
+- `connection_name` parameter in `CalculatePriceRequest` schema
+- Translation keys: `paidUntil`, `payForSingleConnection`, `allConnectionsPaidAhead`, `priceCalculationFailed` (EN + RU)
+- `period_days` stored at payment initiation for accurate months calculation on callback
+
+### Changed
+- PaymentInitiationModal: reorganized layout — date and price at top, breakdown, slider, checkbox at bottom
+- `paymentService.calculatePrice()` accepts optional `connectionName` parameter
+- `calculate_user_payment()` accepts optional `connection_name` for single-connection calculation
+- `_process_completed_payment()` uses stored `period_days` for months instead of lossy reverse-calculation
+- `initiate_payment` stores `connection_name` and `period_days` on Payment record
+
+### Files
+- `central_manager/database/models.py` — Added `connection_name` column to Payment
+- `central_manager/schemas/payment.py` — Added `connection_name` to CalculatePriceRequest
+- `central_manager/services/pricing_service.py` — Single-connection pricing branch
+- `central_manager/api/v1/endpoints/payments.py` — Pass connection_name, store on payment
+- `central_manager/services/payment_service.py` — Single-connection processing + period_days fix
+- `front-user/src/services/paymentService.ts` — calculatePrice with connectionName + target_date
+- `front-user/src/components/forms/PaymentInitiationModal.tsx` — UI rework
+- `front-user/src/i18n/translations/en.ts` — 4 new keys
+- `front-user/src/i18n/translations/ru.ts` — 4 new keys
+
+### Review
+- Reviewer: ISSUES_FOUND → APPROVED after 1 fix round
+- P1 Fix: Months reverse-calculation was lossy under bulk discount — now uses stored period_days
+- P2 Fix: Missing translation keys added
+
 ## [2026-04-13] Public Instructions Page Rebuild
 
 ### Added

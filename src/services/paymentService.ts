@@ -22,6 +22,7 @@ export interface PriceBreakdown {
 		bulk_discount: number;
 		bulk_label: string;
 	}>;
+	target_date: string | null;
 	bulk_label: string;
 }
 
@@ -66,11 +67,14 @@ export const paymentService = {
 		}
 	},
 
-	calculatePrice: async (months: number): Promise<PriceBreakdown> => {
+	calculatePrice: async (months: number, connectionName?: string): Promise<PriceBreakdown> => {
 		try {
 			const response = await api.post<PriceBreakdown>(
 				"/payments/calculate-price",
-				{ months },
+				{
+					months,
+					...(connectionName ? { connection_name: connectionName } : {}),
+				},
 			);
 			return response.data;
 		} catch (error) {

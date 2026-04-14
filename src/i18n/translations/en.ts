@@ -677,6 +677,10 @@ export const en = {
 		priceReason_default: "Default price for new user",
 		maxConnectionsLabel: "Connection slots count",
 		connection: "connection",
+		paidUntil: "Paid until",
+		payForSingleConnection: "Pay for this connection only",
+		allConnectionsPaidAhead: "All connections are already paid ahead",
+		priceCalculationFailed: "Could not calculate price",
 	},
 	servers: {
 		srv1: "srv1",
