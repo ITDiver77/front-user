@@ -186,12 +186,12 @@ const MakePaymentModal = ({
 										</Typography>
 										{item.bulk_savings > 0 && (
 											<Typography variant="body2" sx={{ color: "success.main", pl: 2 }}>
-												−{item.bulk_savings} ₽ ({item.bulk_label})
+												−{item.bulk_savings} ₽ ({item.bulk_label === "2 months free" ? t("modals.bulkLabel_2MonthsFree") : item.bulk_label === "10% off" ? t("modals.bulkLabel_6MonthsOff") : item.bulk_label.endsWith("%") ? t("modals.discountApplied", { percent: item.bulk_label }) : item.bulk_label})
 											</Typography>
 										)}
 										{item.alignment > 0 && (
 											<Typography variant="body2" sx={{ color: "success.main", pl: 2 }}>
-												−{item.alignment} ₽ (пересчёт для выравнивания дат)
+												−{item.alignment} ₽ ({t("modals.alignmentAdjustment")})
 											</Typography>
 										)}
 										<Typography variant="body2" fontWeight="bold">

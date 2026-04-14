@@ -665,6 +665,7 @@ export const ru = {
 		bulkLabel_2MonthsFree: "2 месяца бесплатно",
 		bulkLabel_6MonthsOff: "10% скидка",
 		creditRemaining: "остаток оплаченного периода",
+		alignmentAdjustment: "пересчёт для выравнивания дат",
 		estimated: "расчётная",
 		for: "за",
 		pricePerSlot: "за слот",

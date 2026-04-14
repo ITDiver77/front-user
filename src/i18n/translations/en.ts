@@ -663,6 +663,7 @@ export const en = {
 		bulkLabel_2MonthsFree: "2 months free",
 		bulkLabel_6MonthsOff: "10% off",
 		creditRemaining: "remaining credit",
+		alignmentAdjustment: "date alignment adjustment",
 		estimated: "estimated",
 		for: "for",
 		pricePerSlot: "per slot",
