@@ -73,6 +73,7 @@ const NewConnectionModal = ({
 	const months = watch("months");
 	const pricePerConnection = priceInfo?.price ?? 0;
 	const [effectiveDiscount, setEffectiveDiscount] = useState(0);
+	const [bulkLabel, setBulkLabel] = useState("");
 	const discountedPrice = effectiveDiscount > 0 ? Math.max(100, Math.round(pricePerConnection * (1 - effectiveDiscount) / 5) * 5) : pricePerConnection;
 	const paidSlots = Math.min(maxConnections - 1, 3);
 	const connectionPrice = discountedPrice + paidSlots * pricePerConnection;
@@ -97,23 +98,27 @@ const NewConnectionModal = ({
 		}
 	}, [t]);
 
-	useEffect(() => {
-		if (open) {
-			fetchServers();
-			reset();
-			setError("");
-			setMaxConnections(1);
-			setEffectiveDiscount(0);
-		}
-	}, [open, reset, fetchServers]);
+		useEffect(() => {
+			if (open) {
+				fetchServers();
+				reset();
+				setError("");
+				setMaxConnections(1);
+				setEffectiveDiscount(0);
+				setBulkLabel("");
+			}
+		}, [open, reset, fetchServers]);
 
 	useEffect(() => {
 		if (!open || pricePerConnection <= 0) return;
-		if (months < 6) { setEffectiveDiscount(0); return; }
+		if (months < 6) { setEffectiveDiscount(0); setBulkLabel(""); return; }
 		paymentService.calculatePrice(months)
 			.then((r) => {
 				if (r.breakdown.length > 0 && r.breakdown[0].bulk_discount > 0) {
 					setEffectiveDiscount(r.breakdown[0].bulk_discount);
+					if (r.breakdown[0].bulk_label) {
+						setBulkLabel(r.breakdown[0].bulk_label);
+					}
 				} else {
 					setEffectiveDiscount(0);
 				}
@@ -246,7 +251,9 @@ const NewConnectionModal = ({
 						) : pricePerConnection > 0 ? (
 							<>
 								<Typography variant="body2" color="textSecondary">
-									{t("connectionCard.price")}: {discountedPrice} ₽{effectiveDiscount > 0 && <span> ({Math.round(effectiveDiscount * 100)}% off)</span>} × {months} {months !== 1 ? t("modals.months") : t("modals.month")}
+									{t("connectionCard.price")}: {discountedPrice} ₽{effectiveDiscount > 0 && (
+										<span> ({bulkLabel || `${Math.round(effectiveDiscount * 100)}% off`})</span>
+									)} × {months} {months !== 1 ? t("modals.months") : t("modals.month")}
 								</Typography>
 								{maxConnections > 1 && (
 									<Typography variant="body2" color="textSecondary">

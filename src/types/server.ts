@@ -9,6 +9,11 @@ export interface Server {
 	max_users: number;
 	is_active: boolean;
 	created_at: string;
+	capacity_total: number;
+	used_capacity: number;
+	traffic_limit: number;
+	current_traffic: number;
+	country_code?: string;
 	active_connections?: number;
 	total_connections?: number;
 	is_deleted?: boolean;
