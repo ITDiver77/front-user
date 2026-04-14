@@ -14,11 +14,11 @@ export interface PriceBreakdown {
 		connection_name: string;
 		price: number;
 		paydate: string | null;
-		months_paid_ahead: number;
 		months_to_charge: number;
 		rounded_monthly_price: number;
 		charge: number;
-		credit: number;
+		bulk_savings: number;
+		alignment: number;
 		bulk_discount: number;
 		bulk_label: string;
 	}>;

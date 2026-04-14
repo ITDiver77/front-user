@@ -208,20 +208,19 @@ const PaymentInitiationModal = ({
 								<Divider sx={{ my: 1, borderColor: "rgba(255,255,255,0.2)" }} />
 								{priceBreakdown.breakdown.map((item) => {
 									const fullPrice = item.months_to_charge * item.price;
-									const discount = fullPrice - item.months_to_charge * item.rounded_monthly_price;
 									return (
 									<Box key={item.connection_name} sx={{ mb: 1 }}>
 										<Typography variant="body2" sx={{ opacity: 0.9 }}>
 											{item.connection_name}: {item.months_to_charge} × {item.price} ₽ = {fullPrice} ₽
 										</Typography>
-										{discount > 0 && (
+										{item.bulk_savings > 0 && (
 											<Typography variant="body2" sx={{ color: "#a5d6a7", pl: 2 }}>
-												−{discount} ₽ ({item.bulk_label || `${Math.round(item.bulk_discount * 100)}%`})
+												−{item.bulk_savings} ₽ ({item.bulk_label})
 											</Typography>
 										)}
-										{item.credit > 0 && (
+										{item.alignment > 0 && (
 											<Typography variant="body2" sx={{ color: "#a5d6a7", pl: 2 }}>
-												−{item.credit} ₽ {item.paydate ? `(оплачено до ${new Date(item.paydate).toLocaleDateString("ru-RU")})` : ""}
+												−{item.alignment} ₽ (пересчёт для выравнивания дат)
 											</Typography>
 										)}
 										<Typography variant="body2" fontWeight="bold" sx={{ opacity: 0.9 }}>
