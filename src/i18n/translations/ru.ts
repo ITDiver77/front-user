@@ -295,6 +295,10 @@ export const ru = {
 		switchInboundFailed: "Не удалось переключить протокол",
 		loadingInbounds: "Загрузка протоколов...",
 		inboundsError: "Не удалось загрузить протоколы",
+		slotChangePreview: "Предпросмотр изменений",
+		currentPaydate: "Текущая дата оплаты",
+		newPaydate: "Новая дата оплаты",
+		daysChange: "{old} дн. → {new} дн.",
 	},
 	paymentHistory: {
 		title: "История платежей",

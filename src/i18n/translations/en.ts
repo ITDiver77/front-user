@@ -294,6 +294,10 @@ export const en = {
 		switchInboundFailed: "Failed to switch protocol",
 		loadingInbounds: "Loading protocols...",
 		inboundsError: "Failed to load protocols",
+		slotChangePreview: "Change Preview",
+		currentPaydate: "Current paydate",
+		newPaydate: "New paydate",
+		daysChange: "{old} days → {new} days",
 	},
 	paymentHistory: {
 		title: "Payment History",

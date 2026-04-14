@@ -105,6 +105,24 @@ export const connectionService = {
 		return response.data;
 	},
 
+	previewSlotChange: async (
+		connectionName: string,
+		maxConnections: number,
+	): Promise<{
+		current_price: number;
+		new_price: number;
+		current_paydate: string | null;
+		new_paydate: string | null;
+		days_remaining: number | null;
+		new_days_remaining: number | null;
+	}> => {
+		const response = await api.get(
+			`/connections/my/${connectionName}/slot-preview`,
+			{ params: { max_connections: maxConnections } },
+		);
+		return response.data;
+	},
+
 	/**
 	 * Cancel deletion for a connection marked for deletion
 	 *
