@@ -663,6 +663,7 @@ export const ru = {
 		bulkDiscountBadge: "−{percent}",
 		bulkDiscountNotice: "Скидка {percent}% за {months} мес.",
 		bulkLabel_2MonthsFree: "2 месяца бесплатно",
+		bulkLabel_6MonthsOff: "10% скидка",
 		creditRemaining: "остаток оплаченного периода",
 		estimated: "расчётная",
 		for: "за",

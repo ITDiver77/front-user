@@ -661,6 +661,7 @@ export const en = {
 		bulkDiscountBadge: "−{percent}",
 		bulkDiscountNotice: "{percent}% off for {months} months",
 		bulkLabel_2MonthsFree: "2 months free",
+		bulkLabel_6MonthsOff: "10% off",
 		creditRemaining: "remaining credit",
 		estimated: "estimated",
 		for: "for",

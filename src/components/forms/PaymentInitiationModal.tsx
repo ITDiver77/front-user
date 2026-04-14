@@ -203,6 +203,7 @@ const PaymentInitiationModal = ({
 								{priceBreakdown.bulk_label && (
 									<Typography variant="body2" sx={{ mt: 0.5, color: "success.main", fontWeight: 600 }}>
 										{priceBreakdown.bulk_label === "2 months free" && t("modals.bulkLabel_2MonthsFree")}
+										{priceBreakdown.bulk_label === "10% off" && t("modals.bulkLabel_6MonthsOff")}
 										{priceBreakdown.bulk_label.endsWith("%") && t("modals.discountApplied", { percent: priceBreakdown.bulk_label })}
 										{!priceBreakdown.bulk_label.includes("%") && !priceBreakdown.bulk_label.includes("months free") && priceBreakdown.bulk_label}
 									</Typography>
