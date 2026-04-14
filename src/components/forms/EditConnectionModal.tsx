@@ -87,7 +87,8 @@ const EditConnectionModal = ({
 	const [preview, setPreview] = useState<SlotPreview | null>(null);
 	const [previewLoading, setPreviewLoading] = useState(false);
 
-	const basePrice = connection.price || 150;
+	const currentSlots = connection.max_connections || 1;
+	const basePrice = (connection.price || 150) - Math.min(currentSlots - 1, 3) * 100;
 
 	useEffect(() => {
 		if (open) {
