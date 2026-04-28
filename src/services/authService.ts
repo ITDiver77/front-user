@@ -144,11 +144,11 @@ export const authService = {
 	 * @returns Verification result with credentials if successful
 	 * @throws {Error} On network or API error with descriptive message
 	 */
-	async verifyEmailCode(code: string): Promise<EmailVerificationResponse> {
+	async verifyEmailCode(code: string, password?: string): Promise<EmailVerificationResponse> {
 		try {
 			const response = await api.post<EmailVerificationResponse>(
 				"/auth/register/verify/code",
-				{ code },
+				{ code, password },
 			);
 			return response.data;
 		} catch (error: unknown) {
@@ -263,6 +263,44 @@ export const authService = {
 		} catch (error: unknown) {
 			throw new Error(
 				error instanceof Error ? error.message : "Login by token failed",
+			);
+		}
+	},
+
+	async telegramWebAppAuth(
+		initData: string,
+		referrerId?: string,
+	): Promise<LoginByTokenResponse & { is_new?: boolean; password?: string }> {
+		try {
+			const response = await api.post<
+				LoginByTokenResponse & { is_new?: boolean; password?: string }
+			>("/auth/telegram-webapp", {
+				init_data: initData,
+				referrer_id: referrerId || undefined,
+			});
+			return response.data;
+		} catch (error: unknown) {
+			throw new Error(
+				error instanceof Error
+					? error.message
+					: "Telegram WebApp auth failed",
+			);
+		}
+	},
+
+	async telegramLoginVerify(
+		params: Record<string, string>,
+	): Promise<LoginByTokenResponse & { is_new?: boolean; password?: string }> {
+		try {
+			const response = await api.post<
+				LoginByTokenResponse & { is_new?: boolean; password?: string }
+			>("/auth/telegram-login-verify", params);
+			return response.data;
+		} catch (error: unknown) {
+			throw new Error(
+				error instanceof Error
+					? error.message
+					: "Telegram login verification failed",
 			);
 		}
 	},

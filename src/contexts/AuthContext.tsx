@@ -88,6 +88,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
 	useEffect(() => {
 		const restoreSession = async () => {
+			const tg = window.Telegram?.WebApp;
+			if (tg?.initData) {
+				try {
+					const urlParams = new URLSearchParams(window.location.search);
+					const referrerId = urlParams.get("ref") || undefined;
+					const result = await authService.telegramWebAppAuth(
+						tg.initData,
+						referrerId,
+					);
+					localStorage.setItem("token", result.access_token);
+					const profile = await userService.getMyProfile();
+					setUser({
+						username: profile.username,
+						telegram_verified: profile.telegram_verified,
+					});
+					setIsAuthenticated(true);
+					setLoading(false);
+					return;
+				} catch (e) {
+					console.error("Telegram WebApp auth failed", e);
+				}
+			}
 			const token =
 				localStorage.getItem("token") || sessionStorage.getItem("token");
 			if (!token) {

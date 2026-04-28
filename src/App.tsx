@@ -19,9 +19,13 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
 const Instructions = lazy(() => import("./pages/Instructions"));
+const About = lazy(() => import("./pages/About"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Support = lazy(() => import("./pages/Support"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const TelegramLogin = lazy(() => import("./pages/TelegramLogin"));
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
 	<motion.div
@@ -139,6 +143,14 @@ function AppRoutes() {
 							</PageWrapper>
 						}
 					/>
+					<Route
+						path="/auth/telegram-login"
+						element={
+							<PageWrapper>
+								<TelegramLogin />
+							</PageWrapper>
+						}
+					/>
 					{/* Instructions — uses Layout when authenticated, PublicLayout when not */}
 					<Route
 						path="/instructions"
@@ -149,6 +161,33 @@ function AppRoutes() {
 							element={
 								<PageWrapper>
 									<Instructions />
+								</PageWrapper>
+							}
+						/>
+					</Route>
+					{/* About — uses Layout when authenticated, PublicLayout when not */}
+					<Route path="/about" element={<OptionalAuthRoute />}>
+						<Route
+							index
+							element={
+								<PageWrapper>
+									<About />
+								</PageWrapper>
+							}
+						/>
+						<Route
+							path="terms"
+							element={
+								<PageWrapper>
+									<TermsOfService />
+								</PageWrapper>
+							}
+						/>
+						<Route
+							path="privacy"
+							element={
+								<PageWrapper>
+									<PrivacyPolicy />
 								</PageWrapper>
 							}
 						/>
