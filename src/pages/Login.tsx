@@ -87,19 +87,23 @@ const TelegramLoginButton = () => {
 	useEffect(() => {
 		if (!containerRef.current) return;
 
+		const btn = document.createElement("button");
+		btn.className = "tg-auth-button";
+		btn.textContent = t("auth.loginViaTelegram");
+		btn.style.width = "100%";
+
 		const script = document.createElement("script");
 		script.async = true;
 		script.src = "https://oauth.telegram.org/js/telegram-login.js?3";
 		script.setAttribute("data-client-id", config.TELEGRAM_BOT_ID);
-		script.setAttribute("data-size", "large");
 		script.setAttribute("data-onauth", "__telegramLoginCallback(data)");
 		script.setAttribute("data-request-access", "write");
-
 		script.onerror = () => setScriptError(true);
 
 		containerRef.current.innerHTML = "";
+		containerRef.current.appendChild(btn);
 		containerRef.current.appendChild(script);
-	}, []);
+	}, [t]);
 
 	if (scriptError) {
 		return (
@@ -132,7 +136,7 @@ const TelegramLoginButton = () => {
 	}
 
 	return (
-		<Box sx={{ mt: 2, width: "100%", display: "flex", justifyContent: "center" }} ref={containerRef} />
+		<Box sx={{ mt: 2, width: "100%" }} ref={containerRef} />
 	);
 };
 
