@@ -61,8 +61,8 @@ const TelegramLoginButton = () => {
 
 		const script = document.createElement("script");
 		script.async = true;
-		script.src = "https://telegram.org/js/telegram-widget.js?22";
-		script.setAttribute("data-telegram-login", config.TELEGRAM_BOT_NAME);
+		script.src = "https://oauth.telegram.org/js/telegram-login.js?3";
+		script.setAttribute("data-client-id", config.TELEGRAM_BOT_ID);
 		script.setAttribute("data-size", "large");
 		script.setAttribute("data-auth-url", `${window.location.origin}/auth/telegram-login`);
 		script.setAttribute("data-request-access", "write");
