@@ -88,6 +88,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
 	useEffect(() => {
 		const restoreSession = async () => {
+			const urlParams = new URLSearchParams(window.location.search);
+			if (urlParams.get("fresh") === "1") {
+				localStorage.removeItem("vpn_login_token");
+				localStorage.removeItem("token");
+				sessionStorage.removeItem("token");
+				setLoading(false);
+				return;
+			}
+
 			const tg = window.Telegram?.WebApp;
 			if (tg?.initData) {
 				try {
