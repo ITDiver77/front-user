@@ -96,6 +96,7 @@ export interface PendingEmailChangeResponse {
 export interface LoginByTokenResponse {
 	access_token: string;
 	username: string;
+	login_token?: string;
 }
 
 export interface ReferralsResponse {

@@ -98,6 +98,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 						referrerId,
 					);
 					localStorage.setItem("token", result.access_token);
+					if (result.login_token) {
+						localStorage.setItem("vpn_login_token", result.login_token);
+					}
 					const profile = await userService.getMyProfile();
 					setUser({
 						username: profile.username,
@@ -130,6 +133,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 				sessionStorage.removeItem("token");
 				localStorage.removeItem(STORAGE_KEY);
 				sessionStorage.removeItem(STORAGE_KEY);
+
+				const savedLoginToken = localStorage.getItem("vpn_login_token");
+				if (savedLoginToken) {
+					try {
+						const tokenResult = await authService.loginByToken(savedLoginToken);
+						if (tokenResult.login_token) {
+							localStorage.setItem("vpn_login_token", tokenResult.login_token);
+						}
+						localStorage.setItem("token", tokenResult.access_token);
+						const profile = await userService.getMyProfile();
+						setUser({
+							username: profile.username,
+							telegram_verified: profile.telegram_verified,
+						});
+						setIsAuthenticated(true);
+						return;
+					} catch {
+						localStorage.removeItem("vpn_login_token");
+					}
+				}
 			} finally {
 				setLoading(false);
 			}
@@ -211,6 +234,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 	const logout = useCallback(() => {
 		clearToken();
 		clearUserData();
+		localStorage.removeItem("vpn_login_token");
 		setIsAuthenticated(false);
 		setUser(null);
 	}, [clearToken, clearUserData]);

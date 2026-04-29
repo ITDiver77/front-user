@@ -33,6 +33,9 @@ const TelegramLogin = () => {
 				}
 
 				const result = await authService.telegramLoginVerify(params);
+				if (result.login_token) {
+					localStorage.setItem("vpn_login_token", result.login_token);
+				}
 				await setAuthFromToken(result.access_token);
 				navigate("/", { replace: true });
 			} catch {
