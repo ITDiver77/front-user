@@ -59,6 +59,32 @@ const TelegramLoginButton = () => {
 	const { t } = useLanguage();
 
 	useEffect(() => {
+		(window as any).__telegramLoginCallback = (data: {
+			id: number;
+			first_name?: string;
+			last_name?: string;
+			username?: string;
+			photo_url?: string;
+			auth_date: number;
+			hash: string;
+		}) => {
+			const params = new URLSearchParams();
+			params.set("id", String(data.id));
+			params.set("auth_date", String(data.auth_date));
+			params.set("hash", data.hash);
+			if (data.first_name) params.set("first_name", data.first_name);
+			if (data.last_name) params.set("last_name", data.last_name);
+			if (data.username) params.set("username", data.username);
+			if (data.photo_url) params.set("photo_url", data.photo_url);
+			window.location.href = `${window.location.origin}/auth/telegram-login?${params.toString()}`;
+		};
+
+		return () => {
+			delete (window as any).__telegramLoginCallback;
+		};
+	}, []);
+
+	useEffect(() => {
 		if (!containerRef.current) return;
 
 		const script = document.createElement("script");
@@ -66,7 +92,7 @@ const TelegramLoginButton = () => {
 		script.src = "https://oauth.telegram.org/js/telegram-login.js?3";
 		script.setAttribute("data-client-id", config.TELEGRAM_BOT_ID);
 		script.setAttribute("data-size", "large");
-		script.setAttribute("data-auth-url", `${window.location.origin}/auth/telegram-login`);
+		script.setAttribute("data-onauth", "__telegramLoginCallback(data)");
 		script.setAttribute("data-request-access", "write");
 
 		script.onerror = () => setScriptError(true);
