@@ -11,6 +11,28 @@ const TelegramLogin = () => {
 	const [error, setError] = useState(false);
 
 	useEffect(() => {
+		const idToken = searchParams.get("id_token");
+
+		if (idToken) {
+			const verify = async () => {
+				try {
+					const result = await authService.telegramIdTokenAuth(idToken);
+					if (result.login_token) {
+						localStorage.setItem("vpn_login_token", result.login_token);
+					}
+					await setAuthFromToken(result.access_token);
+					navigate("/", { replace: true });
+				} catch {
+					setError(true);
+					setTimeout(() => {
+						navigate("/login", { replace: true });
+					}, 2000);
+				}
+			};
+			verify();
+			return;
+		}
+
 		const id = searchParams.get("id");
 		const hash = searchParams.get("hash");
 

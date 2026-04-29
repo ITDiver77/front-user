@@ -11,7 +11,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import type { z } from "zod";
@@ -55,57 +55,63 @@ const clearCredentials = () => {
 
 const TelegramLoginButton = () => {
 	const [error, setError] = useState("");
+	const [loading, setLoading] = useState(false);
+	const scriptLoaded = useRef(false);
 	const { t } = useLanguage();
 
 	useEffect(() => {
-		const handler = (event: MessageEvent) => {
-			if (event.origin !== "https://oauth.telegram.org") return;
-			let data: any;
-			try {
-				data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-			} catch {
-				return;
-			}
-			if (data?.event !== "auth_result" || !data.result) return;
-			const user = data.result;
-			const params = new URLSearchParams();
-			params.set("id", String(user.id));
-			params.set("auth_date", String(user.auth_date));
-			params.set("hash", user.hash);
-			if (user.first_name) params.set("first_name", user.first_name);
-			if (user.last_name) params.set("last_name", user.last_name);
-			if (user.username) params.set("username", user.username);
-			if (user.photo_url) params.set("photo_url", user.photo_url);
-			window.location.href = `${window.location.origin}/auth/telegram-login?${params.toString()}`;
+		const script = document.createElement("script");
+		script.async = true;
+		script.src = "https://oauth.telegram.org/js/telegram-login.js?3";
+		script.onload = () => {
+			scriptLoaded.current = true;
 		};
-		window.addEventListener("message", handler);
-		return () => window.removeEventListener("message", handler);
+		script.onerror = () => {
+			scriptLoaded.current = false;
+		};
+		document.head.appendChild(script);
+
+		return () => {
+			script.remove();
+		};
 	}, []);
 
-	const handleClick = () => {
+	const handleClick = async () => {
 		setError("");
-		const origin = window.location.origin;
-		const redirectUri = origin + "/login";
-		const authUrl =
-			`https://oauth.telegram.org/auth` +
-			`?response_type=post_message` +
-			`&client_id=${config.TELEGRAM_BOT_ID}` +
-			`&redirect_uri=${encodeURIComponent(redirectUri)}` +
-			`&scope=${encodeURIComponent("openid profile telegram:bot_access")}` +
-			`&origin=${encodeURIComponent(origin)}`;
+		setLoading(true);
 
-		const width = 550;
-		const height = 650;
-		const left = Math.max(0, (screen.width - width) / 2);
-		const top = Math.max(0, (screen.height - height) / 2);
-		const popup = window.open(
-			authUrl,
-			"telegram_oauth",
-			`width=${width},height=${height},left=${left},top=${top},status=no,toolbar=no`,
-		);
-		if (!popup) {
+		if (!scriptLoaded.current) {
+			setLoading(false);
 			setError(t("auth.telegramUnavailable"));
+			return;
 		}
+
+		const tg = (window as any).Telegram;
+		if (!tg?.Login) {
+			setLoading(false);
+			setError(t("auth.telegramUnavailable"));
+			return;
+		}
+
+		tg.Login.init(
+			{
+				client_id: config.TELEGRAM_BOT_ID,
+				request_access: ["write"],
+			},
+			(result: any) => {
+				setLoading(false);
+				if (result?.error) {
+					setError(result.error);
+					return;
+				}
+				if (!result?.id_token) {
+					setError(t("auth.telegramUnavailable"));
+					return;
+				}
+				window.location.href = `${window.location.origin}/auth/telegram-login?id_token=${encodeURIComponent(result.id_token)}`;
+			},
+		);
+		tg.Login.open();
 	};
 
 	return (
@@ -114,18 +120,24 @@ const TelegramLoginButton = () => {
 				fullWidth
 				variant="contained"
 				onClick={handleClick}
+				disabled={loading}
 				sx={{
 					bgcolor: "#0088cc",
 					color: "white",
 					textTransform: "none",
 					fontWeight: 600,
 					"&:hover": { bgcolor: "#006699" },
+					"&:disabled": { bgcolor: "#0088cc", opacity: 0.6 },
 				}}
 				startIcon={
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-						<title>Telegram</title>
-						<path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-					</svg>
+					loading ? (
+						<CircularProgress size={20} color="inherit" />
+					) : (
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+							<title>Telegram</title>
+							<path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+						</svg>
+					)
 				}
 			>
 				{t("auth.loginViaTelegram")}
