@@ -93,12 +93,22 @@ const TelegramLoginButton = () => {
 			return;
 		}
 
+		const realOpen = window.open.bind(window);
+		window.open = (...args: Parameters<typeof window.open>) => {
+			const url = typeof args[0] === "string" ? args[0] : "";
+			if (url.includes("oauth.telegram.org/auth") && !url.includes("origin=")) {
+				args[0] = url + "&origin=" + encodeURIComponent(window.location.origin);
+			}
+			return realOpen(...args);
+		};
+
 		tg.Login.init(
 			{
 				client_id: config.TELEGRAM_BOT_ID,
 				request_access: ["write"],
 			},
 			(result: any) => {
+				window.open = realOpen;
 				setLoading(false);
 				if (result?.error) {
 					setError(result.error);
@@ -112,6 +122,7 @@ const TelegramLoginButton = () => {
 			},
 		);
 		tg.Login.open();
+		setTimeout(() => { window.open = realOpen; }, 5000);
 	};
 
 	return (
