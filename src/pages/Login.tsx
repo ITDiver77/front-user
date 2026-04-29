@@ -59,51 +59,25 @@ const TelegramLoginButton = () => {
 	const { t } = useLanguage();
 
 	useEffect(() => {
-		(window as any).__telegramLoginCallback = (data: {
-			id: number;
-			first_name?: string;
-			last_name?: string;
-			username?: string;
-			photo_url?: string;
-			auth_date: number;
-			hash: string;
-		}) => {
-			const params = new URLSearchParams();
-			params.set("id", String(data.id));
-			params.set("auth_date", String(data.auth_date));
-			params.set("hash", data.hash);
-			if (data.first_name) params.set("first_name", data.first_name);
-			if (data.last_name) params.set("last_name", data.last_name);
-			if (data.username) params.set("username", data.username);
-			if (data.photo_url) params.set("photo_url", data.photo_url);
-			window.location.href = `${window.location.origin}/auth/telegram-login?${params.toString()}`;
-		};
-
-		return () => {
-			delete (window as any).__telegramLoginCallback;
-		};
-	}, []);
-
-	useEffect(() => {
 		if (!containerRef.current) return;
-
-		const btn = document.createElement("button");
-		btn.className = "tg-auth-button";
-		btn.textContent = t("auth.loginViaTelegram");
-		btn.style.width = "100%";
 
 		const script = document.createElement("script");
 		script.async = true;
-		script.src = "https://oauth.telegram.org/js/telegram-login.js?3";
-		script.setAttribute("data-client-id", config.TELEGRAM_BOT_ID);
-		script.setAttribute("data-onauth", "__telegramLoginCallback(data)");
+		script.src = "https://telegram.org/js/telegram-widget.js?22";
+		script.setAttribute("data-telegram-login", config.TELEGRAM_BOT_NAME);
+		script.setAttribute("data-size", "large");
+		script.setAttribute("data-auth-url", `${window.location.origin}/auth/telegram-login`);
 		script.setAttribute("data-request-access", "write");
 		script.onerror = () => setScriptError(true);
 
+		const wrapper = document.createElement("div");
+		wrapper.style.display = "flex";
+		wrapper.style.justifyContent = "center";
+		wrapper.appendChild(script);
+
 		containerRef.current.innerHTML = "";
-		containerRef.current.appendChild(btn);
-		containerRef.current.appendChild(script);
-	}, [t]);
+		containerRef.current.appendChild(wrapper);
+	}, []);
 
 	if (scriptError) {
 		return (
@@ -136,7 +110,7 @@ const TelegramLoginButton = () => {
 	}
 
 	return (
-		<Box sx={{ mt: 2, width: "100%" }} ref={containerRef} />
+		<Box sx={{ mt: 2, width: "100%", display: "flex", justifyContent: "center" }} ref={containerRef} />
 	);
 };
 
