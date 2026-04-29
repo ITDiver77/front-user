@@ -3,6 +3,22 @@ export const en = {
 		title: "VPN User Panel",
 		footer: "© 2026 VPN Service",
 	},
+	about: {
+		nav: "About Service",
+		title: "About Service",
+		subtitle:
+			"Legal information and policies governing the use of our VPN service",
+		userAgreement: "User Agreement",
+		userAgreementDesc: "Terms and conditions for using MythicalVPN services",
+		privacyPolicy: "Privacy Policy",
+		privacyPolicyDesc:
+			"How we collect, use, and protect your personal information",
+		readMore: "Read more",
+		footerNotePrefix: "By using our service, you agree to the",
+		footerNoteTerms: "Terms of Service",
+		footerNoteAnd: "and",
+		footerNotePrivacy: "Privacy Policy",
+	},
 	nav: {
 		dashboard: "Dashboard",
 		paymentHistory: "Payment History",
@@ -100,6 +116,7 @@ export const en = {
 		backToSignIn: "Back to Sign In",
 		loginViaTelegram: "Login via Telegram",
 		telegramVpnRequired: "VPN must be enabled to login via Telegram",
+		telegramUnavailable: "Telegram is unavailable. Please enable VPN or try again later.",
 		emailAlreadyRegistered: "This email is already registered",
 		usernameAlreadyExists: "This username is already taken",
 	},
@@ -143,7 +160,8 @@ export const en = {
 		payDebt: "Pay debt",
 		disputeDebt: "Dispute debt",
 		debtDisputeSubject: "Debt dispute",
-		debtDisputeMessage: "Hello, I want to dispute the debt of {amount} ₽ on connection {connection}.",
+		debtDisputeMessage:
+			"Hello, I want to dispute the debt of {amount} ₽ on connection {connection}.",
 		debtPaymentTitle: "Pay off debt",
 		debtPaymentDescription: "Debt payment: {amount} ₽",
 		debtPaymentSuccess: "Debt paid successfully",
@@ -331,30 +349,6 @@ export const en = {
 	instructions: {
 		title: "Instructions & Guides",
 		subtitle: "Follow the instructions below to set up your VPN",
-		gettingStarted:
-			"Follow these steps to configure your VPN connection on your device.",
-		step1Title: "Step 1: Download a WireGuard client",
-		step1Desc:
-			"WireGuard is available for Windows, macOS, Linux, iOS, and Android. Download the official client from your app store or wireguard.com.",
-		step2Title: "Step 2: Import connection configuration",
-		step2Desc:
-			"Copy your connection string from the dashboard and import it into the WireGuard app. On most clients, you can scan a QR code or paste the configuration file.",
-		step3Title: "Step 3: Activate the connection",
-		step3Desc:
-			"Toggle the connection to 'Active' within the WireGuard app. Your traffic will now be routed through the VPN server.",
-		troubleshooting: "Troubleshooting",
-		connectionFails: "Connection fails or times out",
-		connectionFailsTip1: "Ensure your device has internet access.",
-		connectionFailsTip2:
-			"Verify that the VPN server is active (check dashboard status).",
-		connectionFailsTip3: "Try switching to a different server location.",
-		slowSpeeds: "Slow speeds",
-		slowSpeedsTip1: "Connect to a server geographically closer to you.",
-		slowSpeedsTip2: "Avoid peak hours when server load may be higher.",
-		configErrors: "Configuration errors",
-		configErrorsTip1: "Make sure you copied the entire connection string.",
-		configErrorsTip2:
-			"If you changed servers, generate a new connection string.",
 		faq: "FAQ",
 		faqDevicesQ: "How many devices can I use simultaneously?",
 		faqDevicesA:
@@ -367,51 +361,54 @@ export const en = {
 			"The connection will be disabled until you make a new payment. You can renew before expiration to avoid interruption.",
 		faqLoggingQ: "Is my data logged?",
 		faqLoggingA:
-			"We operate a strict no‑logging policy. Your privacy is our priority.",
-		downloadClient: "Download client",
-		importConfig: "Import configuration",
-		enterCredentials: "Enter credentials",
-		connect: "Connect",
+			"We operate a strict no-logging policy. Your privacy is our priority.",
 		toc: "Table of Contents",
 		nav: {
 			login: "Login",
 			register: "Register",
 		},
 		registration: {
-			title: "Registration Guide",
+			title: "Registration",
 			description:
-				"Follow these steps to create your account and get started with MythicalVPN.",
-			step1Title: "Step 1: Open the Portal",
+				"You can register via email or Telegram. Choose the method that suits you best.",
+			emailTitle: "Method 1: Email Registration",
+			step1Title: "Open the Registration Page",
 			step1Desc:
-				"Open your browser and go to the VPN portal website. You will see the login page with options to sign in or register.",
-			step1Screenshot: "Portal landing page",
-			step2Title: "Step 2: Start Registration",
+				'Go to the portal and click "Register". The email registration form is shown by default.',
+			step2Title: "Fill in Your Details",
 			step2Desc:
-				'Click the "Register" button on the login page to begin creating your account.',
-			step2Screenshot: "Registration button on login page",
-			step3Title: "Step 3: Fill in Your Details",
+				"Enter a username (letters, numbers, underscores), your email, and a password that meets the requirements (8+ chars, uppercase, lowercase, number).",
+			step3Title: "Confirm Your Email",
 			step3Desc:
-				"Enter your desired username, email address, and create a strong password. Make sure your password meets the security requirements.",
-			step3Screenshot: "Registration form",
-			step4Title: "Step 4: Verify via Telegram",
+				"A 4-digit verification code will be sent to your email. Enter it on the confirmation page.",
+			step4Title: "Save Your Credentials",
 			step4Desc:
-				"Open the Telegram bot @Myth_vpnbot and follow the verification instructions to confirm your account.",
-			step4Screenshot: "Telegram verification",
-			step5Title: "Step 5: Save Your Credentials",
+				"After verification, you will be logged in automatically or shown your credentials — save them securely.",
+			telegramTitle: "Method 2: Telegram Registration",
+			step5Title: "Switch to Telegram Tab",
 			step5Desc:
-				"After successful registration, save your credentials in a secure place. You will need them to log in.",
-			step5Screenshot: "Credentials display",
-			step6Title: "Step 6: Login",
+				'On the registration page, switch to the "Telegram" tab.',
+			step6Title: "Open the Bot",
 			step6Desc:
-				"Use your saved credentials to login to the portal and start setting up your VPN connections.",
-			step6Screenshot: "Login form",
+				"Click the \"Continue with Telegram\" button — it will open the bot @Myth_vpnbot. The bot will verify your account automatically.",
 		},
 		vpnSetup: {
-			title: "VPN Setup",
-			description: "Choose your operating system and follow the step-by-step guide to set up your VPN connection.",
-			downloadConfig: "Download the configuration file from your dashboard",
-			enterCreds: "Enter your VPN credentials (username and password from your profile)",
-			screenshot: "VPN client screenshot",
+			title: "VPN Setup (VLESS)",
+			description:
+				"We use the VLESS protocol. Download the Happ app on any device — Android, iOS, Windows, macOS, or Linux — and follow the steps below.",
+			step1Title: "Download Happ",
+			step1Desc:
+				"Download and install the Happ app from happ.su. It is available for Android, iOS, Windows, macOS, and Linux.",
+			step2Title: "Copy Your VLESS Key",
+			step2Desc:
+				"Go to the Dashboard in your VPN portal, find your connection, and copy the VLESS key (starts with vless://).",
+			step3Title: "Add Connection in Happ",
+			step3Desc:
+				"Open Happ, tap the add button or paste from clipboard — the app will automatically detect the VLESS key and create the connection.",
+			step4Title: "Connect",
+			step4Desc:
+				"Tap the connect button in Happ. Once connected, all your traffic will be securely routed through the VPN server.",
+			success: "Done! VPN is connected.",
 		},
 		theme: {
 			title: "Changing Color Theme",
@@ -420,15 +417,12 @@ export const en = {
 			step1Title: "Open Theme Selector",
 			step1Desc:
 				"Click the palette icon in the top right corner of the navigation bar to open the theme selector.",
-			step1Screenshot: "Theme selector button",
 			step2Title: "Choose Your Theme",
 			step2Desc:
 				"Browse available dark and light themes and select one you like. Each theme has a name and description.",
-			step2Screenshot: "Theme selection panel",
 			step3Title: "Apply Theme",
 			step3Desc:
 				"Click on a theme to apply it. The change takes effect immediately — no need to save.",
-			step3Screenshot: "Applied theme",
 		},
 		server: {
 			title: "Changing VPN Server",
@@ -437,15 +431,12 @@ export const en = {
 			step1Title: "Find Your Connection",
 			step1Desc:
 				"Go to the Dashboard and find the connection you want to change the server for.",
-			step1Screenshot: "Dashboard with connections",
 			step2Title: "Click Change Server",
 			step2Desc:
 				'Click the "Change Server" button on the connection card to open the server selection dialog.',
-			step2Screenshot: "Change server button",
 			step3Title: "Select New Server",
 			step3Desc:
 				"Choose a new server from the list and confirm. A new configuration will be generated automatically.",
-			step3Screenshot: "Server selection",
 		},
 		connections: {
 			title: "Managing Connections",
@@ -454,57 +445,20 @@ export const en = {
 			newTitle: "Creating a New Connection",
 			newStep1Title: "Click New Connection",
 			newStep1Desc:
-				"On the Dashboard, click the \"New Connection\" button to start creating a new VPN connection.",
-			newStep1Screenshot: "New connection button",
+				'On the Dashboard, click the "New Connection" button to start creating a new VPN connection.',
 			newStep2Title: "Configure Connection",
 			newStep2Desc:
 				"Select server, duration, and number of connection slots. Review the total price before proceeding.",
-			newStep2Screenshot: "Connection configuration",
 			newStep3Title: "Complete Payment",
 			newStep3Desc:
 				"Proceed to payment to activate your new connection. Choose your preferred payment method.",
-			newStep3Screenshot: "Payment process",
 			slotsTitle: "Changing Number of Connection Slots",
 			slotsStep1Title: "Open Connection Settings",
 			slotsStep1Desc:
 				"Click the edit button on your connection card to open the connection settings.",
-			slotsStep1Screenshot: "Edit connection",
 			slotsStep2Title: "Adjust Slots",
 			slotsStep2Desc:
 				"Change the number of connection slots as needed. Each additional slot is paid separately.",
-			slotsStep2Screenshot: "Slot adjustment",
-		},
-		windows: {
-			title: "Windows",
-			step1: "Download and install OpenVPN Connect from the official website",
-			step2: "Download the configuration file from your dashboard",
-			step3: "Import the configuration into OpenVPN Connect",
-			step4: "Enter your credentials (username and password from your profile)",
-			step5: 'Click "Connect" to establish the VPN connection',
-		},
-		android: {
-			title: "Android",
-			step1: "Install OpenVPN Connect from Google Play",
-			step2: "Download the configuration file from your dashboard",
-			step3: "Import the configuration through the app",
-			step4: "Enter your credentials",
-			step5: "Connect to VPN",
-		},
-		ios: {
-			title: "iOS",
-			step1: "Install OpenVPN Connect from the App Store",
-			step2: "Download the configuration file",
-			step3: "Open the configuration file in OpenVPN Connect",
-			step4: "Enter credentials from your profile",
-			step5: "Connect",
-		},
-		linux: {
-			title: "Linux",
-			step1: "Install OpenVPN: sudo apt install openvpn",
-			step2: "Download configuration",
-			step3: "sudo openvpn --config file.ovpn",
-			step4: "Enter credentials",
-			step5: "VPN connected",
 		},
 	},
 	support: {
@@ -671,13 +625,14 @@ export const en = {
 		estimated: "estimated",
 		for: "for",
 		pricePerSlot: "per slot",
-		priceReason_renewal: "Renewal price for user with {count} active connection(s)",
+		priceReason_renewal:
+			"Renewal price for user with {count} active connection(s)",
 		priceReason_min: "Minimum price for user with {count} active connection(s)",
 		priceReason_inviter: "Price based on referral program",
 		priceReason_default: "Default price for new user",
 		maxConnectionsLabel: "Connection slots count",
 		connection: "connection",
-		paidUntil: "Paid until",
+		paidUntil: "Will be extended until",
 		payForSingleConnection: "Pay for this connection only",
 		allConnectionsPaidAhead: "All connections are already paid ahead",
 		priceCalculationFailed: "Could not calculate price",

@@ -11,7 +11,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import type { z } from "zod";
@@ -54,12 +54,21 @@ const clearCredentials = () => {
 };
 
 const TelegramLoginButton = () => {
-	const containerRef = useRef<HTMLDivElement>(null);
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState("");
+	const { t } = useLanguage();
 
-	useEffect(() => {
-		if (!containerRef.current) return;
+	const handleClick = () => {
+		setError("");
+		setLoading(true);
+
+		const existing = document.getElementById("tg-oauth-script");
+		if (existing) {
+			existing.remove();
+		}
 
 		const script = document.createElement("script");
+		script.id = "tg-oauth-script";
 		script.async = true;
 		script.src = "https://oauth.telegram.org/js/telegram-login.js?3";
 		script.setAttribute("data-client-id", config.TELEGRAM_BOT_ID);
@@ -67,16 +76,61 @@ const TelegramLoginButton = () => {
 		script.setAttribute("data-auth-url", `${window.location.origin}/auth/telegram-login`);
 		script.setAttribute("data-request-access", "write");
 
-		const wrapper = document.createElement("div");
-		wrapper.style.display = "flex";
-		wrapper.style.justifyContent = "center";
-		wrapper.appendChild(script);
+		const timeout = setTimeout(() => {
+			setLoading(false);
+			setError(t("auth.telegramUnavailable"));
+			script.remove();
+		}, 10000);
 
-		containerRef.current.innerHTML = "";
-		containerRef.current.appendChild(wrapper);
-	}, []);
+		script.onerror = () => {
+			clearTimeout(timeout);
+			setLoading(false);
+			setError(t("auth.telegramUnavailable"));
+			script.remove();
+		};
 
-	return <div ref={containerRef} />;
+		script.onload = () => {
+			clearTimeout(timeout);
+			setLoading(false);
+		};
+
+		document.body.appendChild(script);
+	};
+
+	return (
+		<Box sx={{ mt: 2, width: "100%" }}>
+			<Button
+				fullWidth
+				variant="contained"
+				onClick={handleClick}
+				disabled={loading}
+				sx={{
+					bgcolor: "#0088cc",
+					color: "white",
+					textTransform: "none",
+					fontWeight: 600,
+					"&:hover": { bgcolor: "#006699" },
+				}}
+				startIcon={
+					loading ? (
+						<CircularProgress size={20} color="inherit" />
+					) : (
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+							<title>Telegram</title>
+							<path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+						</svg>
+					)
+				}
+			>
+				{t("auth.loginViaTelegram")}
+			</Button>
+			{error && (
+				<Typography variant="caption" color="error" sx={{ display: "block", textAlign: "center", mt: 0.5 }}>
+					{error}
+				</Typography>
+			)}
+		</Box>
+	);
 };
 
 const Login = () => {
