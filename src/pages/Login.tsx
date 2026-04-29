@@ -91,7 +91,8 @@ const TelegramLoginButton = () => {
 				`&scope=${encodeURIComponent("openid profile telegram:bot_access")}` +
 				`&state=${state}` +
 				`&code_challenge=${codeChallenge}` +
-				`&code_challenge_method=S256`;
+				`&code_challenge_method=S256` +
+				`&origin=${encodeURIComponent(window.location.origin)}`;
 
 			const width = 550;
 			const height = 650;
