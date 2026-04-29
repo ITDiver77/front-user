@@ -70,6 +70,7 @@ type VerifyCodeFormData = z.infer<typeof verifyCodeSchema>;
 
 interface EmailVerificationState {
 	email: string;
+	password?: string;
 	registrationToken?: string;
 }
 
@@ -187,7 +188,7 @@ const Register = () => {
 					parsed.username
 				) {
 					setRegistrationMethod("email");
-					setEmailVerification({ email: parsed.email });
+					setEmailVerification({ email: parsed.email, password: parsed.password });
 					setStep("verify_code");
 				}
 			} catch {
@@ -296,7 +297,7 @@ const Register = () => {
 				email: data.email,
 				referrer_id: referrerId || undefined,
 			});
-			setEmailVerification({ email: response.email });
+			setEmailVerification({ email: response.email, password: data.password });
 			setStep("verify_code");
 			sessionStorage.setItem(
 				SESSION_KEY,
@@ -304,6 +305,7 @@ const Register = () => {
 					method: "email",
 					username: data.username,
 					email: data.email,
+					password: data.password,
 				} as RegistrationState),
 			);
 		} catch (err: unknown) {
@@ -348,7 +350,7 @@ const Register = () => {
 		setError("");
 		setLoading(true);
 		try {
-			const response = await authService.verifyEmailCode(data.code);
+			const response = await authService.verifyEmailCode(data.code, emailVerification?.password);
 			setEmailVerificationResult(response);
 	} catch (err: unknown) {
 			const message = err instanceof Error ? err.message : "Registration failed";

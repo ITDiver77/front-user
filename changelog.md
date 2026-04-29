@@ -1,5 +1,47 @@
 # Changelog - VPN User Frontend
 
+## [2026-04-29] Fix: Registration Password Not Saved
+
+### Fixed
+- Users could not login after email+password registration because the chosen password was never sent to the backend. The frontend only sent `{ username, email }` during registration start and `{ code }` during verification — the password was silently dropped.
+
+### Changed
+- `authService.verifyEmailCode()` now accepts and sends optional `password` parameter
+- `Register.tsx` stores password in component state and `sessionStorage`, passes it to `verifyEmailCode()` when verifying email code
+- Session restore on page reload also preserves the password
+- Backend now uses the user's chosen password instead of generating a random one
+- Credentials email with username + password is sent to user after registration
+
+### Files
+- `src/services/authService.ts` — Updated `verifyEmailCode(code, password?)`
+- `src/pages/Register.tsx` — Added `password` to `EmailVerificationState`, sessionStorage, and verification call
+
+## [2026-04-15] About Service Page — Legal Documents
+
+### Added
+- About Service page (`/about`) with links to legal documents
+- User Agreement link: https://telegra.ph/Polzovatelskoe-soglashenie-04-08-39
+- Privacy Policy link: https://telegra.ph/Politika-konfidencialnosti-04-08-57
+- Public `/about` route accessible with or without authentication (uses OptionalAuthRoute)
+- Navigation link to About page in footer (both Layout and PublicLayout)
+- i18n translations (EN + RU) for about page: title, subtitle, document titles/descriptions, navigation link
+- Animated card layout with hover effects for legal document links
+
+### Changed
+- Added `About` component import to App.tsx
+- Added `/about` route with OptionalAuthRoute wrapper
+- Updated Layout.tsx footer to include "About Service" link
+- Updated PublicLayout.tsx footer to include "About Service" link
+- Removed unused `IconButton` import from PublicLayout.tsx
+
+### Files
+- `front-user/src/pages/About.tsx` — New About Service page component
+- `front-user/src/App.tsx` — Added About import and /about route
+- `front-user/src/components/Layout/Layout.tsx` — Added footer link
+- `front-user/src/components/Layout/PublicLayout.tsx` — Added footer link
+- `front-user/src/i18n/translations/en.ts` — Added about translations (8 keys)
+- `front-user/src/i18n/translations/ru.ts` — Added about translations (8 keys)
+
 ## [2026-04-14] Payment Window Enhancement — Single-Connection Pay + Date Preview
 
 ### Added
