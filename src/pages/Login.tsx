@@ -11,7 +11,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import type { z } from "zod";
@@ -19,6 +19,13 @@ import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../i18n";
 import { loginSchema } from "../utils/validation";
 import { config } from "../config";
+
+function base64url(buffer: Uint8Array): string {
+	return btoa(String.fromCharCode(...buffer))
+		.replace(/\+/g, "-")
+		.replace(/\//g, "_")
+		.replace(/=+$/, "");
+}
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
@@ -56,73 +63,53 @@ const clearCredentials = () => {
 const TelegramLoginButton = () => {
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
-	const scriptLoaded = useRef(false);
 	const { t } = useLanguage();
-
-	useEffect(() => {
-		const script = document.createElement("script");
-		script.async = true;
-		script.src = "https://oauth.telegram.org/js/telegram-login.js?3";
-		script.onload = () => {
-			scriptLoaded.current = true;
-		};
-		script.onerror = () => {
-			scriptLoaded.current = false;
-		};
-		document.head.appendChild(script);
-
-		return () => {
-			script.remove();
-		};
-	}, []);
 
 	const handleClick = async () => {
 		setError("");
 		setLoading(true);
 
-		if (!scriptLoaded.current) {
-			setLoading(false);
-			setError(t("auth.telegramUnavailable"));
-			return;
-		}
+		try {
+			const array = new Uint8Array(32);
+			crypto.getRandomValues(array);
+			const codeVerifier = base64url(array);
 
-		const tg = (window as any).Telegram;
-		if (!tg?.Login) {
-			setLoading(false);
-			setError(t("auth.telegramUnavailable"));
-			return;
-		}
+			const encoder = new TextEncoder();
+			const digest = await crypto.subtle.digest("SHA-256", encoder.encode(codeVerifier));
+			const codeChallenge = base64url(new Uint8Array(digest));
 
-		const realOpen = window.open.bind(window);
-		window.open = (...args: Parameters<typeof window.open>) => {
-			const url = typeof args[0] === "string" ? args[0] : "";
-			if (url.includes("oauth.telegram.org/auth") && !url.includes("origin=")) {
-				args[0] = url + "&origin=" + encodeURIComponent(window.location.origin);
-			}
-			return realOpen(...args);
-		};
+			const state = base64url(crypto.getRandomValues(new Uint8Array(16)));
 
-		tg.Login.init(
-			{
-				client_id: config.TELEGRAM_BOT_ID,
-				request_access: ["write"],
-			},
-			(result: any) => {
-				window.open = realOpen;
+			sessionStorage.setItem("tg_pkce_verifier", codeVerifier);
+			sessionStorage.setItem("tg_pkce_state", state);
+
+			const authUrl =
+				`https://oauth.telegram.org/auth` +
+				`?response_type=code` +
+				`&client_id=${config.TELEGRAM_BOT_ID}` +
+				`&redirect_uri=${encodeURIComponent(window.location.origin + "/auth/telegram-callback")}` +
+				`&scope=${encodeURIComponent("openid profile telegram:bot_access")}` +
+				`&state=${state}` +
+				`&code_challenge=${codeChallenge}` +
+				`&code_challenge_method=S256`;
+
+			const width = 550;
+			const height = 650;
+			const left = Math.max(0, (screen.width - width) / 2);
+			const top = Math.max(0, (screen.height - height) / 2);
+			const popup = window.open(
+				authUrl,
+				"telegram_oidc",
+				`width=${width},height=${height},left=${left},top=${top},status=no,toolbar=no`,
+			);
+			if (!popup) {
 				setLoading(false);
-				if (result?.error) {
-					setError(result.error);
-					return;
-				}
-				if (!result?.id_token) {
-					setError(t("auth.telegramUnavailable"));
-					return;
-				}
-				window.location.href = `${window.location.origin}/auth/telegram-login?id_token=${encodeURIComponent(result.id_token)}`;
-			},
-		);
-		tg.Login.open();
-		setTimeout(() => { window.open = realOpen; }, 5000);
+				setError(t("auth.telegramUnavailable"));
+			}
+		} catch {
+			setLoading(false);
+			setError(t("auth.telegramUnavailable"));
+		}
 	};
 
 	return (

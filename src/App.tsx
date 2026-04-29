@@ -26,6 +26,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const Support = lazy(() => import("./pages/Support"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const TelegramLogin = lazy(() => import("./pages/TelegramLogin"));
+const TelegramOidcCallback = lazy(() => import("./pages/TelegramOidcCallback"));
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
 	<motion.div
@@ -148,6 +149,14 @@ function AppRoutes() {
 						element={
 							<PageWrapper>
 								<TelegramLogin />
+							</PageWrapper>
+						}
+					/>
+					<Route
+						path="/auth/telegram-callback"
+						element={
+							<PageWrapper>
+								<TelegramOidcCallback />
 							</PageWrapper>
 						}
 					/>

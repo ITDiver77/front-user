@@ -305,16 +305,16 @@ export const authService = {
 		}
 	},
 
-	async telegramIdTokenAuth(
-		idToken: string,
-		referrerId?: string,
+	async telegramOidcCallback(
+		code: string,
+		codeVerifier?: string,
 	): Promise<LoginByTokenResponse & { is_new?: boolean; password?: string }> {
 		try {
 			const response = await api.post<
 				LoginByTokenResponse & { is_new?: boolean; password?: string }
-			>("/auth/telegram-id-token", {
-				id_token: idToken,
-				referrer_id: referrerId || undefined,
+			>("/auth/telegram-oidc-callback", {
+				code,
+				code_verifier: codeVerifier,
 			});
 			return response.data;
 		} catch (error: unknown) {
