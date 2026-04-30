@@ -83,15 +83,17 @@ api.interceptors.response.use(
 		}
 
 		if (error.response?.status === 401 && !isRedirecting) {
-			isRedirecting = true;
-			localStorage.removeItem("token");
-			sessionStorage.removeItem("token");
-			if (window.location.pathname !== "/login") {
+			const authPages = ["/login", "/register", "/forgot-password", "/reset-password", "/auth/"];
+			const isOnAuthPage = authPages.some((p) => window.location.pathname.startsWith(p));
+			if (!isOnAuthPage) {
+				isRedirecting = true;
+				localStorage.removeItem("token");
+				sessionStorage.removeItem("token");
 				window.location.href = "/login";
+				setTimeout(() => {
+					isRedirecting = false;
+				}, 1000);
 			}
-			setTimeout(() => {
-				isRedirecting = false;
-			}, 1000);
 		}
 
 		return Promise.reject(

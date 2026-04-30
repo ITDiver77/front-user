@@ -34,6 +34,7 @@ import { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../i18n";
 import { authService } from "../services/authService";
+import { ApiError } from "../services/api";
 import type {
 	EmailVerificationResponse,
 	RegisterStartResponse,
@@ -260,8 +261,9 @@ const AuthPage = () => {
 					clearInterval(pollInterval);
 				}
 			} catch (err: unknown) {
-				const errorMsg = err instanceof Error ? err.message : "";
-				if (errorMsg.includes("404") || errorMsg.includes("Not Found")) {
+				const is404 = (err instanceof ApiError && err.status === 404)
+					|| (err instanceof Error && (err.message.includes("Not Found") || err.message.includes("404")));
+				if (is404) {
 					setPollingStatus("completed");
 					setAuthCompletedViaBot(true);
 					clearInterval(pollInterval);
