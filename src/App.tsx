@@ -13,8 +13,7 @@ const Layout = lazy(() => import("./components/Layout/Layout"));
 const PublicLayout = lazy(() => import("./components/Layout/PublicLayout"));
 
 // Pages
-const Login = lazy(() => import("./pages/Login"));
-const Register = lazy(() => import("./pages/Register"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
@@ -108,7 +107,7 @@ function AppRoutes() {
 						path="/login"
 						element={
 							<PageWrapper>
-								<Login />
+								<AuthPage />
 							</PageWrapper>
 						}
 					/>
@@ -116,7 +115,7 @@ function AppRoutes() {
 						path="/register"
 						element={
 							<PageWrapper>
-								<Register />
+								<AuthPage />
 							</PageWrapper>
 						}
 					/>

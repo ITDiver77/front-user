@@ -4,6 +4,27 @@ Current tasks, planned features, and deferred work.
 
 ## High Priority
 
+### Auth Page Rework
+- [x] Create unified AuthPage.tsx replacing Login.tsx + Register.tsx
+- [x] Landing view with Sign In / Create Account buttons
+- [x] Login methods: Telegram OAuth, Telegram Bot, Username & Password
+- [x] Register methods: Telegram OAuth, Telegram Bot, Email
+- [x] Telegram OAuth/Bot buttons do the same for login and register
+- [x] Password login with remember me (checked by default) and forgot password link
+- [x] Email registration with verification code and temp credentials display
+- [x] Referrer ID auto-advance to register mode
+- [x] Session restore for in-progress registrations
+- [x] i18n translations (EN + RU) for new keys
+- [x] Update App.tsx routing (/login and /register → AuthPage)
+- [x] Delete old Login.tsx and Register.tsx
+
+### About Service Page
+- [x] Create About page component with legal document links
+- [x] Add /about route to App.tsx (public access via OptionalAuthRoute)
+- [x] Add navigation link to footer (Layout.tsx and PublicLayout.tsx)
+- [x] Add i18n translations (EN + RU) for about page
+- [x] Legal docs: User Agreement (https://telegra.ph/Polzovatelskoe-soglashenie-04-08-39) and Privacy Policy (https://telegra.ph/Politika-konfidencialnosti-04-08-57)
+
 ### Public Instructions Page
 - [x] Create PublicLayout component (header with login/register, footer)
 - [x] Rebuild Instructions page with 6 sections (registration, VPN setup, theme, server, connections, FAQ)

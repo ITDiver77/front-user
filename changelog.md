@@ -1,5 +1,27 @@
 # Changelog - VPN User Frontend
 
+## [2026-04-30] Rework: Unified Auth Page
+
+### Changed
+- Replaced separate `/login` (Login.tsx) and `/register` (Register.tsx) pages with a single unified `AuthPage.tsx`
+- Both `/login` and `/register` routes now render `AuthPage` with path-based initial mode detection
+- New auth flow: Landing → Login or Register → Method selection → Form
+- Login methods: Telegram OAuth (PKCE popup), Telegram Bot (polling), Username & Password (form with remember me + forgot password)
+- Register methods: Telegram OAuth (PKCE popup), Telegram Bot (polling), Email (username/email/password form with 4-digit verification code)
+- Telegram OAuth and Telegram Bot buttons perform the same action for both login and register (backend auto-detects)
+- Referrer ID (`?ref=`) auto-advances to register mode
+- Session restore for in-progress registrations (telegram wait, email verify code) preserved via sessionStorage
+- Temp credentials display after registration preserved
+- Remember me checkbox defaults to checked, credential saving to localStorage preserved
+
+### Files
+- `src/pages/AuthPage.tsx` — New unified auth page (replaces Login.tsx + Register.tsx)
+- `src/pages/Login.tsx` — Deleted
+- `src/pages/Register.tsx` — Deleted
+- `src/App.tsx` — Both /login and /register routes render AuthPage
+- `src/i18n/translations/en.ts` — 9 new auth keys
+- `src/i18n/translations/ru.ts` — 9 new auth keys
+
 ## [2026-04-29] Fix: Registration Password Not Saved
 
 ### Fixed
