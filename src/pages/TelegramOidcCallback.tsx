@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -26,7 +26,6 @@ const TelegramOidcCallback = () => {
 
 		if (savedState && state !== savedState) {
 			setError(true);
-			setTimeout(() => navigate("/login", { replace: true }), 2000);
 			return;
 		}
 
@@ -40,7 +39,6 @@ const TelegramOidcCallback = () => {
 				navigate("/", { replace: true });
 			} catch {
 				setError(true);
-				setTimeout(() => navigate("/login", { replace: true }), 2000);
 			}
 		};
 
@@ -59,13 +57,21 @@ const TelegramOidcCallback = () => {
 			}}
 		>
 			{error ? (
-				<Typography variant="h6" color="error">
-					Login failed. Redirecting...
-				</Typography>
+				<>
+					<Typography variant="h6" color="error">
+						Login failed.
+					</Typography>
+					<Button variant="contained" onClick={() => navigate("/login", { replace: true })}>
+						Back to Login
+					</Button>
+				</>
 			) : (
 				<>
 					<CircularProgress />
 					<Typography variant="h6">Logging in...</Typography>
+					<Button variant="text" onClick={() => navigate("/login", { replace: true })}>
+						Cancel
+					</Button>
 				</>
 			)}
 		</Box>
