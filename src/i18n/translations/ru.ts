@@ -129,6 +129,9 @@ export const ru = {
 		loginOrRegister: "Войдите в свой аккаунт или создайте новый",
 		chooseLoginMethod: "Выберите способ входа",
 		chooseRegisterMethod: "Выберите способ регистрации",
+		authCompletedTitle: "Авторизация успешна",
+		authCompletedViaBot: "Авторизация через Telegram завершена. Вы можете вернуться на портал.",
+		returnToPortalHint: "Нажмите кнопку в Telegram боте для возврата на портал или используйте кнопку ниже.",
 	},
 	dashboard: {
 		myConnections: "Мои подключения",

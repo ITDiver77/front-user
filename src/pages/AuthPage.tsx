@@ -140,6 +140,7 @@ const AuthPage = () => {
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [showTempPassword, setShowTempPassword] = useState(false);
+	const [authCompletedViaBot, setAuthCompletedViaBot] = useState(false);
 	const [emailExistsError, setEmailExistsError] = useState("");
 	const [usernameExistsError, setUsernameExistsError] = useState("");
 	const [resetSent, setResetSent] = useState(false);
@@ -258,8 +259,14 @@ const AuthPage = () => {
 					setTelegramCredentials(status);
 					clearInterval(pollInterval);
 				}
-			} catch (err) {
-				console.error("Polling error:", err);
+			} catch (err: unknown) {
+				const errorMsg = err instanceof Error ? err.message : "";
+				if (errorMsg.includes("404") || errorMsg.includes("Not Found")) {
+					setPollingStatus("completed");
+					setAuthCompletedViaBot(true);
+					clearInterval(pollInterval);
+					clearSession();
+				}
 			}
 		}, 3000);
 		return () => clearInterval(pollInterval);
@@ -476,6 +483,7 @@ const AuthPage = () => {
 		setPollingStatus("pending");
 		setEmailExistsError("");
 		setUsernameExistsError("");
+		setAuthCompletedViaBot(false);
 		setError("");
 	};
 
@@ -540,7 +548,7 @@ const AuthPage = () => {
 						<Alert severity="warning" sx={{ mt: 3, textAlign: "left" }}>
 							{t("auth.saveCredentialsWarning")}
 						</Alert>
-						<Button component={RouterLink} to="/login" variant="contained" fullWidth sx={{ mt: 3, borderRadius: 2 }}>
+						<Button variant="contained" fullWidth sx={{ mt: 3, borderRadius: 2 }} onClick={handleResetSubView}>
 							{t("auth.goToLogin")}
 						</Button>
 					</Paper>
@@ -605,6 +613,43 @@ const AuthPage = () => {
 		);
 	}
 
+	if (sharedSubView === "telegram_wait" && pollingStatus === "completed" && authCompletedViaBot) {
+		return (
+			<Container component="main" maxWidth="sm">
+				<Box sx={{ marginTop: 8, display: "flex", flexDirection: "column", alignItems: "center" }}>
+					<Paper sx={{ p: 4, width: "100%", borderRadius: 3, textAlign: "center" }}>
+						<CheckCircle sx={{ fontSize: 64, color: "#4caf50", mb: 2 }} />
+						<Typography component="h1" variant="h5" gutterBottom>
+							{t("auth.authCompletedTitle")}
+						</Typography>
+						<Alert severity="success" sx={{ mb: 3, textAlign: "left" }}>
+							{t("auth.authCompletedViaBot")}
+						</Alert>
+						<Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+							{t("auth.returnToPortalHint")}
+						</Typography>
+						<Button
+							variant="contained"
+							fullWidth
+							sx={{ mb: 2, borderRadius: 2 }}
+							onClick={() => navigate("/login")}
+						>
+							{t("auth.goToLogin")}
+						</Button>
+						<Button
+							variant="outlined"
+							fullWidth
+							sx={{ borderRadius: 2 }}
+							onClick={handleResetSubView}
+						>
+							{t("common.back")}
+						</Button>
+					</Paper>
+				</Box>
+			</Container>
+		);
+	}
+
 	if (sharedSubView === "telegram_wait" && telegramResponse) {
 		return (
 			<Container component="main" maxWidth="sm">
@@ -654,12 +699,10 @@ const AuthPage = () => {
 							</>
 						)}
 						<Button
-							component={RouterLink}
-							to="/login"
 							variant="outlined"
 							fullWidth
 							sx={{ borderRadius: 2, mt: 2 }}
-							onClick={clearSession}
+							onClick={handleResetSubView}
 						>
 							{t("auth.backToLogin")}
 						</Button>

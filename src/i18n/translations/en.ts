@@ -128,6 +128,9 @@ export const en = {
 		loginOrRegister: "Sign in to your account or create a new one",
 		chooseLoginMethod: "Choose login method",
 		chooseRegisterMethod: "Choose registration method",
+		authCompletedTitle: "Authorization Successful",
+		authCompletedViaBot: "Authorization completed via Telegram. You can now return to the portal.",
+		returnToPortalHint: "Click the button in the Telegram bot to return to the portal, or use the button below.",
 	},
 	dashboard: {
 		myConnections: "My Connections",
