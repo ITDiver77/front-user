@@ -790,25 +790,6 @@ const AuthPage = () => {
 						>
 							{t("auth.loginViaTelegram")}
 						</Button>
-						<Button
-							fullWidth
-							variant="contained"
-							onClick={handleTelegramBot}
-							disabled={loading}
-							sx={{
-								bgcolor: "#0088cc",
-								color: "white",
-								textTransform: "none",
-								fontWeight: 600,
-								py: 1.5,
-								borderRadius: 2,
-								"&:hover": { bgcolor: "#006699" },
-								"&:disabled": { bgcolor: "#0088cc", opacity: 0.6 },
-							}}
-							startIcon={<TelegramIcon />}
-						>
-							{t("auth.loginViaTelegramBot")}
-						</Button>
 						<Typography variant="caption" color="text.secondary" sx={{ display: "block", textAlign: "center" }}>
 							{t("auth.telegramVpnRequired")}
 						</Typography>
