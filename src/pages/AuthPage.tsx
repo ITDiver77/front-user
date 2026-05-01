@@ -246,6 +246,7 @@ const AuthPage = () => {
 
 	const pollingStatusRef = useRef(pollingStatus);
 	pollingStatusRef.current = pollingStatus;
+	const pollingInFlightRef = useRef(false);
 
 	useEffect(() => {
 		if (sharedSubView !== "telegram_wait" || !telegramResponse || pollingStatusRef.current !== "pending") {
@@ -253,22 +254,32 @@ const AuthPage = () => {
 		}
 		setPollingStatus("checking");
 		const pollInterval = setInterval(async () => {
+			if (pollingInFlightRef.current) return;
+			if (pollingStatusRef.current !== "checking") {
+				clearInterval(pollInterval);
+				return;
+			}
+			pollingInFlightRef.current = true;
 			try {
 				const status = await authService.getRegistrationStatus(telegramResponse.registration_token);
+				if (pollingStatusRef.current !== "checking") return;
 				if (status.status === "completed") {
+					clearInterval(pollInterval);
 					setPollingStatus("completed");
 					setTelegramCredentials(status);
-					clearInterval(pollInterval);
 				}
 			} catch (err: unknown) {
+				if (pollingStatusRef.current !== "checking") return;
 				const is404 = (err instanceof ApiError && err.status === 404)
 					|| (err instanceof Error && (err.message.includes("Not Found") || err.message.includes("404")));
 				if (is404) {
+					clearInterval(pollInterval);
 					setPollingStatus("completed");
 					setAuthCompletedViaBot(true);
-					clearInterval(pollInterval);
 					clearSession();
 				}
+			} finally {
+				pollingInFlightRef.current = false;
 			}
 		}, 3000);
 		return () => clearInterval(pollInterval);
@@ -276,10 +287,38 @@ const AuthPage = () => {
 
 	useEffect(() => {
 		if (pollingStatus === "completed" && telegramCredentials?.access_token) {
+			if (telegramCredentials.login_token) {
+				localStorage.setItem("vpn_login_token", telegramCredentials.login_token);
+			}
 			localStorage.setItem("token", telegramCredentials.access_token);
-			setAuthFromToken(telegramCredentials.access_token);
-			clearSession();
-			navigate("/");
+			setAuthFromToken(telegramCredentials.access_token).then(() => {
+				clearSession();
+				navigate("/", { replace: true });
+			}).catch(() => {
+				const loginToken = telegramCredentials.login_token || localStorage.getItem("vpn_login_token");
+				if (loginToken) {
+					authService.loginByToken(loginToken).then((res) => {
+						if (res.login_token) {
+							localStorage.setItem("vpn_login_token", res.login_token);
+						}
+						localStorage.setItem("token", res.access_token);
+						return setAuthFromToken(res.access_token);
+					}).then(() => {
+						clearSession();
+						navigate("/", { replace: true });
+					}).catch(() => {
+						clearSession();
+						setError(t("auth.unexpectedError"));
+						setSharedSubView(null);
+						setPollingStatus("pending");
+					});
+				} else {
+					clearSession();
+					setError(t("auth.unexpectedError"));
+					setSharedSubView(null);
+					setPollingStatus("pending");
+				}
+			});
 		} else if (pollingStatus === "completed" && telegramCredentials?.temp_password) {
 			setTempCredentials({
 				username: telegramCredentials.username || "",
@@ -735,18 +774,18 @@ const AuthPage = () => {
 							variant="contained"
 							size="large"
 							sx={{ py: 2, textTransform: "none", fontSize: "1.1rem", borderRadius: 2 }}
-							onClick={() => { setAuthMode("login"); setLoginMethod("methods"); }}
+							onClick={() => { setAuthMode("register"); setRegisterMethod("methods"); }}
 						>
-							{t("auth.signIn")}
+							{t("auth.connectVpn")}
 						</Button>
 						<Button
 							fullWidth
 							variant="outlined"
 							size="large"
 							sx={{ py: 2, textTransform: "none", fontSize: "1.1rem", borderRadius: 2 }}
-							onClick={() => { setAuthMode("register"); setRegisterMethod("methods"); }}
+							onClick={() => { setAuthMode("login"); setLoginMethod("methods"); }}
 						>
-							{t("auth.createAccount")}
+							{t("auth.signIn")}
 						</Button>
 					</Box>
 				</Box>

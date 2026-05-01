@@ -132,6 +132,7 @@ export const ru = {
 		authCompletedTitle: "Авторизация успешна",
 		authCompletedViaBot: "Авторизация через Telegram завершена. Вы можете вернуться на портал.",
 		returnToPortalHint: "Нажмите кнопку в Telegram боте для возврата на портал или используйте кнопку ниже.",
+		connectVpn: "Подключить VPN",
 	},
 	dashboard: {
 		myConnections: "Мои подключения",

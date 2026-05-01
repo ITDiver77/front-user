@@ -131,6 +131,7 @@ export const en = {
 		authCompletedTitle: "Authorization Successful",
 		authCompletedViaBot: "Authorization completed via Telegram. You can now return to the portal.",
 		returnToPortalHint: "Click the button in the Telegram bot to return to the portal, or use the button below.",
+		connectVpn: "Connect VPN",
 	},
 	dashboard: {
 		myConnections: "My Connections",
